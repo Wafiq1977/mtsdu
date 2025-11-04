@@ -1,4 +1,4 @@
-class Grade {
+ class Grade {
   final String id;
   final String studentId;
   final String subject;

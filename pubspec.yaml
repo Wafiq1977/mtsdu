@@ -76,6 +76,7 @@ dependencies:
   # Animated bottom navigation bar
   animated_bottom_navigation_bar: ^1.0.1
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

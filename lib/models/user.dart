@@ -13,6 +13,10 @@ class User {
   final String? major; // For students
   final String? nip; // For teachers
   final String? subject; // For teachers
+  final String? nisn; // NISN for students
+  final String? gender; // Gender for students
+  final String? birthPlace; // Birth place for students
+  final DateTime? birthDate; // Birth date for students
 
   User({
     required this.id,
@@ -27,6 +31,10 @@ class User {
     this.major,
     this.nip,
     this.subject,
+    this.nisn,
+    this.gender,
+    this.birthPlace,
+    this.birthDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -43,6 +51,10 @@ class User {
       'major': major,
       'nip': nip,
       'subject': subject,
+      'nisn': nisn,
+      'gender': gender,
+      'birthPlace': birthPlace,
+      'birthDate': birthDate?.toIso8601String(),
     };
   }
 
@@ -60,6 +72,10 @@ class User {
       major: map['major'],
       nip: map['nip'],
       subject: map['subject'],
+      nisn: map['nisn'],
+      gender: map['gender'],
+      birthPlace: map['birthPlace'],
+      birthDate: map['birthDate'] != null ? DateTime.parse(map['birthDate']) : null,
     );
   }
 
@@ -76,6 +92,10 @@ class User {
     String? major,
     String? nip,
     String? subject,
+    String? nisn,
+    String? gender,
+    String? birthPlace,
+    DateTime? birthDate,
   }) {
     return User(
       id: id ?? this.id,
@@ -90,6 +110,10 @@ class User {
       major: major ?? this.major,
       nip: nip ?? this.nip,
       subject: subject ?? this.subject,
+      nisn: nisn ?? this.nisn,
+      gender: gender ?? this.gender,
+      birthPlace: birthPlace ?? this.birthPlace,
+      birthDate: birthDate ?? this.birthDate,
     );
   }
 }
