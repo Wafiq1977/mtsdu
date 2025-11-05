@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               // Name
               Text(
-                'MOCH WAFIQ IZNA',
+                'Kelompok 1',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
