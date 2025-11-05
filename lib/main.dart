@@ -156,7 +156,7 @@ Future<void> _addSampleData() async {
     final assignments = [
       Assignment(
         id: 'as1',
-        title: 'Mathematics Homework',
+        title: 'Mathematics Homework!',
         description: 'Complete exercises 1-10 from chapter 5',
         subject: 'Mathematics',
         teacherId: '2',
