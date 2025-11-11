@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'student_dashboard.dart';
@@ -37,22 +38,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (success) {
-      final user = authProvider.currentUser!;
-      if (user.role == UserRole.student) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const StudentDashboard()),
-        );
-      } else if (user.role == UserRole.teacher) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const TeacherDashboard()),
-        );
-      } else if (user.role == UserRole.admin) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-        );
+      final user = authProvider.currentUser;
+      if (user != null) {
+        if (user.role == UserRole.student) {
+          context.go('/student-dashboard');
+        } else if (user.role == UserRole.teacher) {
+          context.go('/teacher-dashboard');
+        } else if (user.role == UserRole.admin) {
+          context.go('/admin-dashboard');
+        }
       }
     } else {
       setState(() {
@@ -75,22 +69,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (success) {
-      final user = authProvider.currentUser!;
-      if (user.role == UserRole.student) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const StudentDashboard()),
-        );
-      } else if (user.role == UserRole.teacher) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const TeacherDashboard()),
-        );
-      } else if (user.role == UserRole.admin) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-        );
+      final user = authProvider.currentUser;
+      if (user != null) {
+        if (user.role == UserRole.student) {
+          context.go('/student-dashboard');
+        } else if (user.role == UserRole.teacher) {
+          context.go('/teacher-dashboard');
+        } else if (user.role == UserRole.admin) {
+          context.go('/admin-dashboard');
+        }
       }
     } else {
       setState(() {

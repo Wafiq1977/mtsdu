@@ -14,7 +14,10 @@ class StatisticsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
-    final user = authProvider.currentUser!;
+    final user = authProvider.currentUser;
+    if (user == null) {
+      return const Text('User not logged in');
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

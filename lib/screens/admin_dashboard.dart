@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
@@ -30,7 +31,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
-  void _showProfileDialog(BuildContext context, user, AuthProvider authProvider) {
+  void _showProfileDialog(
+    BuildContext context,
+    user,
+    AuthProvider authProvider,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -45,7 +50,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   child: const CircleAvatar(
                     radius: 40,
                     backgroundColor: Color(0xFF667EEA),
-                    child: Icon(Icons.admin_panel_settings, size: 40, color: Colors.white),
+                    child: Icon(
+                      Icons.admin_panel_settings,
+                      size: 40,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -81,12 +90,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   onPressed: () {
                     authProvider.logout();
                     Navigator.of(context).pop();
-                    Navigator.of(context).pushReplacementNamed('/');
+                    context.go('/');
                   },
                   child: const Text('Logout'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
               ],
             ),
@@ -105,7 +112,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser!;
+    final user = authProvider.currentUser;
+    if (user == null) {
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF667EEA),
+                Color(0xFF764BA2),
+                Color(0xFFF093FB),
+                Color(0xFFF5576C),
+              ],
+            ),
+          ),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
     return Scaffold(
       body: Container(
@@ -133,11 +159,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: () => _showProfileDialog(context, user, authProvider),
+                          onTap: () =>
+                              _showProfileDialog(context, user, authProvider),
                           child: CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.white,
-                            child: const Icon(Icons.admin_panel_settings, color: Color(0xFF667EEA)),
+                            child: const Icon(
+                              Icons.admin_panel_settings,
+                              color: Color(0xFF667EEA),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -163,10 +193,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                         const Text(
                           'Administrator',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white60,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.white60),
                         ),
                       ],
                     ),
@@ -174,7 +201,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       icon: const Icon(Icons.logout, color: Colors.white),
                       onPressed: () {
                         authProvider.logout();
-                        Navigator.of(context).pushReplacementNamed('/');
+                        context.go('/');
                       },
                     ),
                   ],
