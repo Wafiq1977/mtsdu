@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/data_provider.dart';
@@ -16,7 +17,9 @@ import 'teacher_bulk_attendance_view.dart';
 import 'teacher_input_assignment_view.dart';
 
 class TeacherDashboard extends StatefulWidget {
-  const TeacherDashboard({super.key});
+  const TeacherDashboard({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<TeacherDashboard> createState() => _TeacherDashboardState();
@@ -40,9 +43,20 @@ class _TeacherDashboardState extends State<TeacherDashboard>
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/teacher-dashboard/pengumuman');
+        break;
+      case 1:
+        GoRouter.of(context).go('/teacher-dashboard/beranda');
+        break;
+      case 2:
+        GoRouter.of(context).go('/teacher-dashboard/kalender');
+        break;
+      case 3:
+        GoRouter.of(context).go('/teacher-dashboard/profil');
+        break;
+    }
   }
 
   void _toggleTools() {
@@ -59,6 +73,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
 
     _fabAnimationController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -540,7 +555,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                       onPressed: () {
                         authProvider.logout();
                         Navigator.of(context).pop();
-                        Navigator.of(context).pushReplacementNamed('/');
+                        context.go('/');
                       },
                       child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
@@ -693,7 +708,20 @@ class TeacherHomeView extends StatelessWidget {
   }
 
   void _navigateToView(BuildContext context, int index) {
-    _showToolView(context, index);
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/teacher-dashboard/beranda/input-grades');
+        break;
+      case 1:
+        GoRouter.of(context).go('/teacher-dashboard/beranda/input-attendance');
+        break;
+      case 2:
+        GoRouter.of(context).go('/teacher-dashboard/beranda/input-assignments');
+        break;
+      case 3:
+        _showToolView(context, index);
+        break;
+    }
   }
 
   void _showToolView(BuildContext context, int toolIndex) {
@@ -1578,7 +1606,7 @@ class TeacherProfileView extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         authProvider.logout();
-                        Navigator.of(context).pushReplacementNamed('/');
+                        context.go('/');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

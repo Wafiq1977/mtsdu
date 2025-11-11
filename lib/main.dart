@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'services/hive_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/data_provider.dart';
 import 'providers/theme_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/splash_screen.dart';
+import 'routes/app_router.dart';
 import 'models/user.dart';
 import 'models/schedule.dart';
 import 'models/grade.dart';
@@ -17,6 +18,7 @@ import 'models/payment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
   await HiveService.init();
   await _addSampleData();
   runApp(const MyApp());
@@ -247,10 +249,10 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return MaterialApp(
+          return MaterialApp.router(
             title: 'LPMMTSDU',
             theme: themeProvider.currentTheme,
-            home: const SplashScreen(),
+            routerConfig: AppRouter.router,
             debugShowCheckedModeBanner: false,
           );
         },
