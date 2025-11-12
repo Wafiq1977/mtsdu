@@ -74,6 +74,10 @@ dependencies:
   animated_bottom_navigation_bar: ^1.0.1
   go_router: ^17.0.0
 
+  flutter_bloc: ^8.1.5  # Untuk Cubit
+  equatable: ^2.0.5     # Untuk perbandingan state BLoC
+  http: ^1.2.1          # Untuk melakukan panggilan API
+
 
 dev_dependencies:
   flutter_test:

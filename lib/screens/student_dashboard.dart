@@ -15,6 +15,11 @@ import 'student_attendance_screen.dart';
 import 'student_assignments_screen.dart';
 import 'student_materials_screen.dart';
 
+// -------------------------------------------------------------------
+// PERUBAHAN: Pastikan import untuk BlogView sudah ada
+// -------------------------------------------------------------------
+import '../blog/blog_view.dart';
+
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key, this.initialIndex = 0});
 
@@ -1606,6 +1611,9 @@ class AcademicCalendarView extends StatelessWidget {
   }
 }
 
+// -------------------------------------------------------------------
+// PERUBAHAN: class AnnouncementsView dimodifikasi
+// -------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
 
@@ -1618,8 +1626,10 @@ class AnnouncementsView extends StatelessWidget {
 
     return Container(
       color: Colors.red.shade50,
-      child: Column(
+      // Mengganti Column -> ListView agar bisa di-scroll
+      child: ListView(
         children: [
+          // 1. Judul Pengumuman (dari DataProvider)
           Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.centerLeft,
@@ -1632,60 +1642,101 @@ class AnnouncementsView extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = announcements[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.announcement, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                announcement.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+
+          // 2. List Pengumuman (dari DataProvider)
+          ListView.builder(
+            itemCount: announcements.length,
+            // Properti ini penting agar ListView.builder bisa ada di dalam ListView
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              final announcement = announcements[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.announcement, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              announcement.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          announcement.content,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Target: ${announcement.targetRole}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        announcement.content,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Target: ${announcement.targetRole}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+          
+          // Menangani jika tidak ada pengumuman
+          if (announcements.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Center(
+                child: Text(
+                  'Tidak ada pengumuman internal.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+
+
+          // 3. Pemisah dan Judul Blog (dari API)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Divider(thickness: 1, color: Colors.red.shade100),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Blog Terbaru (dari API)',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade900, // Warna berbeda
+              ),
             ),
           ),
+          const SizedBox(height: 8),
+
+          // 4. Widget BlogView (dari API)
+          const BlogView(),
+          
+          // 5. Padding di bagian bawah
+          const SizedBox(height: 20),
         ],
       ),
     );
