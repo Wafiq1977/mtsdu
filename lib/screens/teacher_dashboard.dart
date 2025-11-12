@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../providers/auth_provider.dart';
 import '../providers/data_provider.dart';
 import '../providers/theme_provider.dart';
@@ -14,7 +16,6 @@ import '../widgets/statistics_widget.dart';
 import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
 import 'teacher_bulk_attendance_view.dart';
-import 'teacher_input_assignment_view.dart';
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -215,7 +216,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
             opacity: _contentAnimation,
             child: Column(
               children: [
-                // Header with slide animation
+                // Header with full width profile
                 SlideTransition(
                   position:
                       Tween<Offset>(
@@ -239,23 +240,39 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                       ),
                     ),
                     child: Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
                           GestureDetector(
                             onTap: () =>
                                 _showProfileDialog(context, user, authProvider),
-                            child: user.profileImagePath != null
-                                ? CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: AssetImage(
-                                      user.profileImagePath!,
-                                    ),
-                                  )
-                                : const CircleAvatar(
-                                    radius: 20,
-                                    child: Icon(Icons.person),
-                                  ),
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 3,
+                                ),
+                                image: user.profileImagePath != null
+                                    ? DecorationImage(
+                                        image: AssetImage(
+                                          user.profileImagePath!,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: user.profileImagePath == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 30,
+                                    )
+                                  : null,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -286,7 +303,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                   ),
                 ),
 
-                // Content Area with scale animation
+                // Content Area
                 Expanded(
                   child: ScaleTransition(
                     scale: Tween<double>(begin: 0.9, end: 1.0).animate(
@@ -307,7 +324,6 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                         ),
                       ),
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -315,7 +331,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
                               blurRadius: 20,
-                              spreadRadius: 5,
+                              spreadRadius: 10,
                             ),
                           ],
                         ),
@@ -457,7 +473,6 @@ class _TeacherDashboardState extends State<TeacherDashboard>
         ),
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -597,9 +612,6 @@ class TeacherHomeView extends StatelessWidget {
     final assignments = dataProvider.assignments
         .where((a) => a.teacherId == user.id)
         .toList();
-    final announcements = dataProvider.announcements
-        .where((a) => a.authorId == user.id)
-        .toList();
 
     return Container(
       color: Colors.white,
@@ -617,47 +629,61 @@ class TeacherHomeView extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                children: [
-                  _buildFeatureCard(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
                     'Input Nilai',
                     Icons.grade,
                     Colors.green,
                     grades.length,
-                    () => _navigateToView(context, 0),
+                    () => GoRouter.of(
+                      context,
+                    ).go('/teacher-dashboard/beranda/input-grades'),
                   ),
-                  _buildFeatureCard(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
-                    'Input Kehadiran',
+                    'Absen',
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
-                    () => _navigateToView(context, 1),
+                    () => _showAttendanceOptionsDialog(context),
                   ),
-                  _buildFeatureCard(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
                     'Tugas',
                     Icons.assignment,
                     Colors.purple,
                     assignments.length,
-                    () => _navigateToView(context, 2),
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AssignmentListPage(),
+                      ),
+                    ),
                   ),
-                  _buildFeatureCard(
-                    context,
-                    'Pengumuman',
-                    Icons.announcement,
-                    Colors.red,
-                    announcements.length,
-                    () => _navigateToView(context, 3),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: const Center(
+                child: Text(
+                  'Selamat datang di Dashboard Guru',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
               ),
             ),
           ),
@@ -666,7 +692,7 @@ class TeacherHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(
+  Widget _buildCompactFeatureCard(
     BuildContext context,
     String title,
     IconData icon,
@@ -675,162 +701,37 @@ class TeacherHomeView extends StatelessWidget {
     VoidCallback onTap,
   ) {
     return Card(
-      elevation: 4,
+      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 8),
+              Icon(icon, size: 32, color: color),
+              const SizedBox(height: 6),
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
               Text(
-                '$count item${count != 1 ? 's' : ''}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                '$count',
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _navigateToView(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        GoRouter.of(context).go('/teacher-dashboard/beranda/input-grades');
-        break;
-      case 1:
-        GoRouter.of(context).go('/teacher-dashboard/beranda/input-attendance');
-        break;
-      case 2:
-        GoRouter.of(context).go('/teacher-dashboard/beranda/input-assignments');
-        break;
-      case 3:
-        _showToolView(context, index);
-        break;
-    }
-  }
-
-  void _showToolView(BuildContext context, int toolIndex) {
-    Widget toolView = const SizedBox.shrink();
-    String title = '';
-
-    switch (toolIndex) {
-      case 0:
-        toolView = const GradesInputView();
-        title = 'Input Nilai';
-        break;
-      case 1:
-        toolView = const AttendanceInputView();
-        title = 'Input Kehadiran';
-        break;
-      case 2:
-        toolView = const AssignmentsView();
-        title = 'Tugas';
-        break;
-      case 3:
-        toolView = const AnnouncementsView();
-        title = 'Pengumuman';
-        break;
-      default:
-        return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.8,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                color: Colors.white,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF667EEA),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      if (toolIndex <= 2)
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showAddDialog(context, toolIndex);
-                          },
-                          icon: const Icon(
-                            Icons.add_circle,
-                            color: Color(0xFF667EEA),
-                          ),
-                        ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Expanded(child: toolView),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddDialog(BuildContext context, int toolIndex) {
-    switch (toolIndex) {
-      case 0:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TeacherInputGradesView(),
-          ),
-        );
-        break;
-      case 1:
-        _showAttendanceOptionsDialog(context);
-        break;
-      case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TeacherInputAssignmentView(),
-          ),
-        );
-        break;
-    }
   }
 
   void _showAttendanceOptionsDialog(BuildContext context) {
@@ -870,190 +771,9 @@ class TeacherHomeView extends StatelessWidget {
   }
 }
 
-// Grades Input View
-class GradesInputView extends StatelessWidget {
-  const GradesInputView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
-    final user = authProvider.currentUser!;
-    final grades = dataProvider.grades
-        .where((g) => g.teacherId == user.id)
-        .toList();
-
-    return Container(
-      color: Colors.green.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Daftar Nilai',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.green.shade900,
-              ),
-            ),
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              child: ListView.builder(
-                itemCount: grades.length,
-                itemBuilder: (context, index) {
-                  final grade = grades[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      leading: Icon(Icons.grade, color: Colors.green),
-                      title: Text(
-                        grade.assignment,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${grade.subject} - Student: ${grade.studentId}',
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: grade.score >= 80
-                              ? Colors.green
-                              : grade.score >= 60
-                              ? Colors.orange
-                              : Colors.red,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '${grade.score}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Attendance Input View
-class AttendanceInputView extends StatelessWidget {
-  const AttendanceInputView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
-    final user = authProvider.currentUser!;
-    final attendances = dataProvider.attendances
-        .where((a) => a.teacherId == user.id)
-        .toList();
-
-    return Container(
-      color: Colors.orange.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Daftar Kehadiran',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.orange.shade900,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: attendances.length,
-              itemBuilder: (context, index) {
-                final attendance = attendances[index];
-                Color statusColor;
-                switch (attendance.status) {
-                  case AttendanceStatus.present:
-                    statusColor = Colors.green;
-                    break;
-                  case AttendanceStatus.absent:
-                    statusColor = Colors.red;
-                    break;
-                  case AttendanceStatus.late:
-                    statusColor = Colors.orange;
-                    break;
-                }
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    leading: Icon(Icons.check_circle, color: statusColor),
-                    title: Text(
-                      attendance.subject,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      'Student: ${attendance.studentId} - ${attendance.date}',
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        attendance.status.toString().split('.').last,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Assignments View
-class AssignmentsView extends StatelessWidget {
-  const AssignmentsView({super.key});
+// Assignment List Page (New Page)
+class AssignmentListPage extends StatelessWidget {
+  const AssignmentListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1064,180 +784,640 @@ class AssignmentsView extends StatelessWidget {
         .where((a) => a.teacherId == user.id)
         .toList();
 
-    return Container(
-      color: Colors.purple.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Daftar Tugas',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple.shade900,
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Daftar Tugas'),
+        backgroundColor: const Color(0xFF667EEA),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle, size: 30),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateAssignmentPage(),
+                ),
+              );
+            },
           ),
-          Expanded(
-            child: ListView.builder(
+        ],
+      ),
+      body: assignments.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.assignment, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Belum ada tugas',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap tombol + untuk menambah tugas baru',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: assignments.length,
               itemBuilder: (context, index) {
                 final assignment = assignments[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
                   elevation: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text(assignment.title),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Deskripsi: ${assignment.description}'),
-                                const SizedBox(height: 8),
-                                Text('Mata Pelajaran: ${assignment.subject}'),
-                                const SizedBox(height: 8),
-                                Text('Kelas: ${assignment.className}'),
-                                const SizedBox(height: 8),
-                                Text('Deadline: ${assignment.dueDate}'),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('Tutup'),
+                    onTap: () => _showAssignmentDetail(context, assignment),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.assignment,
+                                  color: Colors.purple,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      assignment.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      assignment.subject,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios, size: 16),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _buildInfoChip(
+                                Icons.class_,
+                                assignment.className,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildInfoChip(
+                                Icons.calendar_today,
+                                assignment.dueDate.split(' ')[0],
                               ),
                             ],
-                          );
-                        },
-                      );
-                    },
-                    child: ListTile(
-                      leading: Icon(Icons.assignment, color: Colors.purple),
-                      title: Text(
-                        assignment.title,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                      subtitle: Text(
-                        '${assignment.subject} - Class: ${assignment.className}\nDue: ${assignment.dueDate}',
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     ),
                   ),
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[700]),
+          const SizedBox(width: 4),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+        ],
+      ),
+    );
+  }
+
+  void _showAssignmentDetail(BuildContext context, Assignment assignment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(assignment.title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDetailRow('Mata Pelajaran', assignment.subject),
+              _buildDetailRow('Kelas', assignment.className),
+              _buildDetailRow('Jurusan', assignment.major),
+              _buildDetailRow('Deadline', assignment.dueDate.split(' ')[0]),
+              const SizedBox(height: 12),
+              const Text(
+                'Deskripsi:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(assignment.description),
+            ],
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
         ],
       ),
     );
   }
 }
 
-// Announcements View
-class AnnouncementsView extends StatelessWidget {
-  const AnnouncementsView({super.key});
+// Create Assignment Page (New Page)
+class CreateAssignmentPage extends StatefulWidget {
+  const CreateAssignmentPage({super.key});
+
+  @override
+  State<CreateAssignmentPage> createState() => _CreateAssignmentPageState();
+}
+
+class _CreateAssignmentPageState extends State<CreateAssignmentPage> {
+  final _formKey = GlobalKey<FormState>();
+  String _title = '';
+  String _description = '';
+  String? _selectedSubject;
+  String _dueDate = '';
+  List<String> _selectedClasses = [];
+  List<String> _availableClasses = [];
+  final TextEditingController _dueDateController = TextEditingController();
+  List<PlatformFile> _attachedFiles = [];
+
+  // Mapping mata pelajaran ke kelas
+  final Map<String, List<String>> _subjectToClasses = {
+    'Matematika': ['10A', '10B', '11A', '11B', '12A', '12B'],
+    'Fisika': ['10A', '11A', '12A'],
+    'Kimia': ['10B', '11B', '12B'],
+    'Biologi': ['10A', '10B', '11A', '11B'],
+    'Bahasa Indonesia': ['10A', '10B', '11A', '11B', '12A', '12B'],
+    'Bahasa Inggris': ['10A', '10B', '11A', '11B', '12A', '12B'],
+    'Sejarah': ['10A', '11A', '12A'],
+    'Geografi': ['10B', '11B', '12B'],
+  };
+
+  @override
+  void dispose() {
+    _dueDateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFiles() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+      );
+
+      if (result != null) {
+        setState(() {
+          _attachedFiles.addAll(result.files);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${result.files.length} file(s) ditambahkan')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking files: $e')));
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      _attachedFiles.removeAt(index);
+    });
+  }
+
+  void _submitAssignment() {
+    if (_formKey.currentState!.validate() &&
+        _selectedSubject != null &&
+        _selectedClasses.isNotEmpty) {
+      _formKey.currentState!.save();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      final user = authProvider.currentUser!;
+
+      for (String className in _selectedClasses) {
+        final assignment = Assignment(
+          id: '${DateTime.now().millisecondsSinceEpoch}_${className}_${_selectedSubject}',
+          title: _title,
+          description: _description,
+          subject: _selectedSubject!,
+          teacherId: user.id,
+          className: className,
+          major: '', // Set default or extract from class
+          dueDate: _dueDate,
+        );
+
+        dataProvider.addAssignment(assignment);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tugas berhasil ditambahkan!')),
+      );
+      Navigator.pop(context);
+    } else {
+      String errorMsg = 'Lengkapi semua field yang diperlukan';
+      if (_selectedSubject == null) {
+        errorMsg = 'Pilih mata pelajaran terlebih dahulu';
+      } else if (_selectedClasses.isEmpty) {
+        errorMsg = 'Pilih minimal satu kelas';
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMsg)));
+    }
+  }
+
+  Future<void> _selectDueDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 7)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        _dueDate = picked.toIso8601String();
+        _dueDateController.text = picked.toLocal().toString().split(' ')[0];
+      });
+    }
+  }
+
+  String _getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return '📄';
+      case 'doc':
+      case 'docx':
+        return '📝';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return '🖼️';
+      default:
+        return '📎';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
-    final user = authProvider.currentUser!;
-    final announcements = dataProvider.announcements
-        .where((a) => a.authorId == user.id)
-        .toList();
-
-    return Container(
-      color: Colors.red.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Daftar Pengumuman',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade900,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = announcements[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Buat Tugas Baru'),
+        backgroundColor: const Color(0xFF667EEA),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Judul Tugas
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Judul Tugas',
+                  prefixIcon: const Icon(Icons.title, color: Color(0xFF667EEA)),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.announcement, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                announcement.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                validator: (value) =>
+                    value!.isEmpty ? 'Judul harus diisi' : null,
+                onSaved: (value) => _title = value!,
+              ),
+              const SizedBox(height: 16),
+
+              // Mata Pelajaran Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedSubject,
+                decoration: InputDecoration(
+                  labelText: 'Mata Pelajaran',
+                  prefixIcon: const Icon(
+                    Icons.subject,
+                    color: Color(0xFF667EEA),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                items: _subjectToClasses.keys.map((subject) {
+                  return DropdownMenuItem<String>(
+                    value: subject,
+                    child: Text(subject),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSubject = value;
+                    _availableClasses = _subjectToClasses[value!] ?? [];
+                    _selectedClasses.clear();
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Pilih mata pelajaran' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Kelas Selection
+              if (_selectedSubject != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Pilih Kelas Yang Diajar',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF667EEA),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: _availableClasses.map((className) {
+                          final isSelected = _selectedClasses.contains(
+                            className,
+                          );
+                          return FilterChip(
+                            label: Text(className),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedClasses.add(className);
+                                } else {
+                                  _selectedClasses.remove(className);
+                                }
+                              });
+                            },
+                            selectedColor: const Color(0xFF667EEA),
+                            checkmarkColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
-                          ],
+                            backgroundColor: Colors.white,
+                          );
+                        }).toList(),
+                      ),
+                      if (_selectedClasses.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            '⚠️ Pilih minimal satu kelas',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          announcement.content,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Target: ${announcement.targetRole}',
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Deskripsi
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Deskripsi Tugas',
+                  prefixIcon: const Icon(
+                    Icons.description,
+                    color: Color(0xFF667EEA),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  alignLabelWithHint: true,
+                ),
+                maxLines: 5,
+                validator: (value) =>
+                    value!.isEmpty ? 'Deskripsi harus diisi' : null,
+                onSaved: (value) => _description = value!,
+              ),
+              const SizedBox(height: 16),
+
+              // Deadline
+              TextFormField(
+                controller: _dueDateController,
+                decoration: InputDecoration(
+                  labelText: 'Deadline Pengumpulan',
+                  prefixIcon: const Icon(
+                    Icons.calendar_today,
+                    color: Color(0xFF667EEA),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                readOnly: true,
+                onTap: () => _selectDueDate(context),
+                validator: (value) =>
+                    value!.isEmpty ? 'Tentukan deadline' : null,
+              ),
+              const SizedBox(height: 24),
+
+              // File Attachment Section
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.purple[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.purple[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Lampiran File',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _pickFiles,
+                          icon: const Icon(Icons.attach_file, size: 18),
+                          label: const Text('Pilih File'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Format: JPG, PNG, PDF, DOC, DOCX',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    if (_attachedFiles.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      ...List.generate(_attachedFiles.length, (index) {
+                        final file = _attachedFiles[index];
+                        final extension = file.extension ?? '';
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.purple[100]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                _getFileIcon(extension),
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      file.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '${(file.size / 1024).toStringAsFixed(1)} KB',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _removeFile(index),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Submit Button
+              ElevatedButton.icon(
+                onPressed: _submitAssignment,
+                icon: const Icon(Icons.send),
+                label: const Text('Simpan dan Publikasikan Tugas'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                );
-              },
-            ),
+                  backgroundColor: const Color(0xFF667EEA),
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// Teacher Announcements View (Main Tab)
+// Teacher Announcements View
 class TeacherAnnouncementsView extends StatelessWidget {
   const TeacherAnnouncementsView({super.key});
 
@@ -1256,7 +1436,6 @@ class TeacherAnnouncementsView extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1269,7 +1448,11 @@ class TeacherAnnouncementsView extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: Color(0xFF667EEA)),
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: Color(0xFF667EEA),
+                    size: 28,
+                  ),
                   onPressed: () => _showAddAnnouncementDialog(context),
                 ),
               ],
@@ -1277,16 +1460,23 @@ class TeacherAnnouncementsView extends StatelessWidget {
           ),
           Expanded(
             child: announcements.isEmpty
-                ? const Center(child: Text('Belum ada pengumuman'))
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.announcement, size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('Belum ada pengumuman'),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
                     itemCount: announcements.length,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemBuilder: (context, index) {
                       final announcement = announcements[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -1347,44 +1537,46 @@ class TeacherAnnouncementsView extends StatelessWidget {
         title: const Text('Tambah Pengumuman'),
         content: StatefulBuilder(
           builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Judul',
-                    border: OutlineInputBorder(),
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Judul',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: contentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Konten',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: contentController,
+                    decoration: const InputDecoration(
+                      labelText: 'Konten',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
                   ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: targetRole,
-                  decoration: const InputDecoration(
-                    labelText: 'Target',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: targetRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Target',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text('Semua')),
+                      DropdownMenuItem(value: 'student', child: Text('Siswa')),
+                      DropdownMenuItem(value: 'teacher', child: Text('Guru')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        targetRole = value!;
+                      });
+                    },
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'all', child: Text('Semua')),
-                    DropdownMenuItem(value: 'student', child: Text('Siswa')),
-                    DropdownMenuItem(value: 'teacher', child: Text('Guru')),
-                  ],
-                  onChanged: (value) {
-                    setState(() {
-                      targetRole = value!;
-                    });
-                  },
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -1395,6 +1587,14 @@ class TeacherAnnouncementsView extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              if (titleController.text.isEmpty ||
+                  contentController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Lengkapi semua field')),
+                );
+                return;
+              }
+
               final authProvider = Provider.of<AuthProvider>(
                 context,
                 listen: false,
@@ -1416,6 +1616,11 @@ class TeacherAnnouncementsView extends StatelessWidget {
 
               await dataProvider.addAnnouncement(announcement);
               Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Pengumuman berhasil ditambahkan'),
+                ),
+              );
             },
             child: const Text('Tambah'),
           ),
@@ -1438,7 +1643,6 @@ class TeacherScheduleView extends StatelessWidget {
         .where((s) => s.assignedToId == user.id)
         .toList();
 
-    // Group schedules by day
     final Map<String, List<Schedule>> schedulesByDay = {
       'Monday': [],
       'Tuesday': [],
