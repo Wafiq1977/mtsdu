@@ -107,19 +107,19 @@ class AppRouter {
       // Admin routes
       GoRoute(
         path: '/admin-dashboard',
-        builder: (context, state) => const AdminDashboard(),
+        redirect: (context, state) => '/admin-dashboard/usermanagements',
       ),
       GoRoute(
-        path: '/admin/user-management',
-        builder: (context, state) => const AdminUserManagement(),
+        path: '/admin-dashboard/usermanagements',
+        builder: (context, state) => const AdminDashboard(initialIndex: 0),
       ),
       GoRoute(
-        path: '/admin/schedule-management',
-        builder: (context, state) => const AdminScheduleManagement(),
+        path: '/admin-dashboard/academic',
+        builder: (context, state) => const AdminDashboard(initialIndex: 1),
       ),
       GoRoute(
-        path: '/admin/attendance-reports',
-        builder: (context, state) => const AdminAttendanceReports(),
+        path: '/admin-dashboard/reports',
+        builder: (context, state) => const AdminDashboard(initialIndex: 2),
       ),
     ],
   );

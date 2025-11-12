@@ -10,7 +10,9 @@ import 'admin_schedule_management.dart';
 import 'admin_attendance_reports.dart';
 
 class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({super.key});
+  const AdminDashboard({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -19,6 +21,12 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
+
   static const List<Widget> _widgetOptions = <Widget>[
     AdminUserManagement(),
     AdminScheduleManagement(),
@@ -26,9 +34,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    switch (index) {
+      case 0:
+        GoRouter.of(context).go('/admin-dashboard/usermanagements');
+        break;
+      case 1:
+        GoRouter.of(context).go('/admin-dashboard/academic');
+        break;
+      case 2:
+        GoRouter.of(context).go('/admin-dashboard/reports');
+        break;
+    }
   }
 
   void _showProfileDialog(
