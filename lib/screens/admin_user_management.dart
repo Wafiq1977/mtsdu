@@ -14,11 +14,20 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
   List<User> _users = [];
   bool _isLoading = true;
   UserRole? _selectedRoleFilter;
+  String? _selectedMajorFilter;
+  String? _selectedClassFilter;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadUsers();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUsers() async {
@@ -35,10 +44,54 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
   }
 
   List<User> get filteredUsers {
-    if (_selectedRoleFilter == null) {
-      return _users;
+    List<User> filtered = _users;
+
+    // Filter by role
+    if (_selectedRoleFilter != null) {
+      filtered = filtered.where((user) => user.role == _selectedRoleFilter).toList();
     }
-    return _users.where((user) => user.role == _selectedRoleFilter).toList();
+
+    // Filter by major (for students)
+    if (_selectedMajorFilter != null && _selectedMajorFilter!.isNotEmpty) {
+      filtered = filtered.where((user) => user.major == _selectedMajorFilter).toList();
+    }
+
+    // Filter by class (for students)
+    if (_selectedClassFilter != null && _selectedClassFilter!.isNotEmpty) {
+      filtered = filtered.where((user) => user.className == _selectedClassFilter).toList();
+    }
+
+    // Filter by search query
+    if (_searchController.text.isNotEmpty) {
+      final query = _searchController.text.toLowerCase();
+      filtered = filtered.where((user) =>
+        user.name.toLowerCase().contains(query) ||
+        user.username.toLowerCase().contains(query) ||
+        (user.className?.toLowerCase().contains(query) ?? false) ||
+        (user.major?.toLowerCase().contains(query) ?? false) ||
+        (user.subject?.toLowerCase().contains(query) ?? false)
+      ).toList();
+    }
+
+    return filtered;
+  }
+
+  List<String> get availableMajors {
+    return _users.where((user) => user.role == UserRole.student)
+                 .map((user) => user.major ?? '')
+                 .where((major) => major.isNotEmpty)
+                 .toSet()
+                 .toList()
+               ..sort();
+  }
+
+  List<String> get availableClasses {
+    return _users.where((user) => user.role == UserRole.student)
+                 .map((user) => user.className ?? '')
+                 .where((className) => className.isNotEmpty)
+                 .toSet()
+                 .toList()
+               ..sort();
   }
 
   void _editUser(User user) {
@@ -322,6 +375,25 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
               ],
             ),
           ),
+          // Search bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari nama, username, kelas, jurusan, atau mata pelajaran...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.grey[100],
+              ),
+              onChanged: (value) {
+                setState(() {});
+              },
+            ),
+          ),
           // Filter by role
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -337,6 +409,8 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                       onPressed: () {
                         setState(() {
                           _selectedRoleFilter = null;
+                          _selectedMajorFilter = null;
+                          _selectedClassFilter = null;
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -352,6 +426,8 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                       onPressed: () {
                         setState(() {
                           _selectedRoleFilter = UserRole.student;
+                          _selectedMajorFilter = null;
+                          _selectedClassFilter = null;
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -367,6 +443,8 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                       onPressed: () {
                         setState(() {
                           _selectedRoleFilter = UserRole.teacher;
+                          _selectedMajorFilter = null;
+                          _selectedClassFilter = null;
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -382,6 +460,8 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                       onPressed: () {
                         setState(() {
                           _selectedRoleFilter = UserRole.admin;
+                          _selectedMajorFilter = null;
+                          _selectedClassFilter = null;
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -395,6 +475,88 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                     ),
                   ],
                 ),
+                if (_selectedRoleFilter == UserRole.student) ...[
+                  const SizedBox(height: 16),
+                  const Text('Filter berdasarkan Jurusan:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedMajorFilter = null;
+                            _selectedClassFilter = null;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedMajorFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
+                          foregroundColor: _selectedMajorFilter == null ? Colors.white : Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text('Semua Jurusan'),
+                      ),
+                      ...availableMajors.map((major) => ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedMajorFilter = major;
+                            _selectedClassFilter = null;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedMajorFilter == major ? const Color(0xFF667EEA) : Colors.grey[300],
+                          foregroundColor: _selectedMajorFilter == major ? Colors.white : Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text(major),
+                      )),
+                    ],
+                  ),
+                  if (_selectedMajorFilter != null) ...[
+                    const SizedBox(height: 16),
+                    const Text('Filter berdasarkan Kelas:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedClassFilter = null;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedClassFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
+                            foregroundColor: _selectedClassFilter == null ? Colors.white : Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text('Semua Kelas'),
+                        ),
+                        ...availableClasses.where((className) => _users.any((user) => user.className == className && user.major == _selectedMajorFilter)).map((className) => ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedClassFilter = className;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedClassFilter == className ? const Color(0xFF667EEA) : Colors.grey[300],
+                            foregroundColor: _selectedClassFilter == className ? Colors.white : Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(className),
+                        )),
+                      ],
+                    ),
+                  ],
+                ],
               ],
             ),
           ),
