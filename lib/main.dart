@@ -43,7 +43,7 @@ Future<void> _addSampleData() async {
     for (int i = 1; i <= 20; i++) {
       final teacher = User(
         id: 'teacher$i',
-        username: 'teacher$i',
+        username: teacherNames[i - 1],
         password: 'pass',
         role: UserRole.teacher,
         name: teacherNames[i - 1],
@@ -64,12 +64,14 @@ Future<void> _addSampleData() async {
     int studentId = 1;
     for (final classInfo in classes) {
       for (int j = 1; j <= 5; j++) {
+        final name = studentNames[(studentId - 1) % studentNames.length];
+        final username = '$name ${classInfo['name']}';
         final student = User(
           id: 'student$studentId',
-          username: 'student$studentId',
+          username: username,
           password: 'pass',
           role: UserRole.student,
-          name: studentNames[(studentId - 1) % studentNames.length],
+          name: name,
           className: classInfo['name'],
           major: classInfo['major'],
         );
@@ -85,8 +87,8 @@ Future<void> _addSampleData() async {
     final schedules = [
       Schedule(
         id: 's1',
-        subject: 'Mathematics',
-        assignedToId: 'teacher1',
+        subject: 'B. Indo',
+        assignedToId: 'Egin',
         className: '10A',
         day: 'Monday',
         time: '08:00-09:00',
@@ -95,8 +97,8 @@ Future<void> _addSampleData() async {
       ),
       Schedule(
         id: 's2',
-        subject: 'Physics',
-        assignedToId: 'teacher2',
+        subject: 'Matematika',
+        assignedToId: 'Iqbal',
         className: '10A',
         day: 'Tuesday',
         time: '09:00-10:00',
@@ -105,8 +107,8 @@ Future<void> _addSampleData() async {
       ),
       Schedule(
         id: 's3',
-        subject: 'Chemistry',
-        assignedToId: 'teacher3',
+        subject: 'B. Inggris',
+        assignedToId: 'Izaz',
         className: '10A',
         day: 'Wednesday',
         time: '10:00-11:00',
