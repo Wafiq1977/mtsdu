@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -9,15 +10,27 @@ import '../models/attendance.dart' as attendance_model;
 
 import '../widgets/statistics_widget.dart';
 import '../widgets/animated_navigation_bar.dart';
+import 'student_grades_screen.dart';
+import 'student_attendance_screen.dart';
+import 'student_assignments_screen.dart';
+import 'student_materials_screen.dart';
+
+// -------------------------------------------------------------------
+// PERUBAHAN: Pastikan import untuk BlogView sudah ada
+// -------------------------------------------------------------------
+import '../blog/blog_view.dart';
 
 class StudentDashboard extends StatefulWidget {
-  const StudentDashboard({super.key});
+  const StudentDashboard({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<StudentDashboard> createState() => _StudentDashboardState();
 }
 
-class _StudentDashboardState extends State<StudentDashboard> with TickerProviderStateMixin {
+class _StudentDashboardState extends State<StudentDashboard>
+    with TickerProviderStateMixin {
   int _selectedIndex = 0;
   bool _showTools = false;
   String? _selectedDay;
@@ -33,13 +46,26 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
     ProfileView(),
   ];
 
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    // Navigate to the corresponding sub-route
+    switch (index) {
+      case 0:
+        context.go('/student-dashboard/pengumuman');
+        break;
+      case 1:
+        context.go('/student-dashboard/beranda');
+        break;
+      case 2:
+        context.go('/student-dashboard/kalender');
+        break;
+      case 3:
+        context.go('/student-dashboard/profil');
+        break;
+    }
   }
-
 
   void _toggleTools() {
     setState(() {
@@ -55,27 +81,34 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     // Theme is already loaded in ThemeProvider constructor
 
     // Initialize animations
     _fabAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
     _fabAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _fabAnimationController, curve: Curves.elasticOut),
+      CurvedAnimation(
+        parent: _fabAnimationController,
+        curve: Curves.elasticOut,
+      ),
     );
 
     _contentAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     _contentAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _contentAnimationController, curve: Curves.easeOutCubic),
+      CurvedAnimation(
+        parent: _contentAnimationController,
+        curve: Curves.easeOutCubic,
+      ),
     );
 
     // Staggered animation for different elements
-    Future.delayed(const Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) _contentAnimationController.forward();
     });
   }
@@ -97,7 +130,8 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
   void _showDaySchedule(String day) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final dataProvider = Provider.of<DataProvider>(context, listen: false);
-    final user = authProvider.currentUser!;
+    final user = authProvider.currentUser;
+    if (user == null) return;
     final daySchedules = dataProvider.schedules
         .where((s) => s.className == user.className && s.day == day)
         .toList();
@@ -128,14 +162,23 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
               else
                 Expanded(
                   child: ListView(
-                    children: daySchedules.map((schedule) => Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: Icon(Icons.schedule, color: Theme.of(context).primaryColor),
-                        title: Text(schedule.subject),
-                        subtitle: Text('${schedule.time} - Room: ${schedule.room}'),
-                      ),
-                    )).toList(),
+                    children: daySchedules
+                        .map(
+                          (schedule) => Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.schedule,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              title: Text(schedule.subject),
+                              subtitle: Text(
+                                '${schedule.time} - Room: ${schedule.room}',
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
             ],
@@ -149,11 +192,11 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
     return ElevatedButton(
       onPressed: () => _selectDay(day),
       style: ElevatedButton.styleFrom(
-        backgroundColor: _selectedDay == day ? const Color(0xFF667EEA) : Colors.grey[300],
+        backgroundColor: _selectedDay == day
+            ? const Color(0xFF667EEA)
+            : Colors.grey[300],
         foregroundColor: _selectedDay == day ? Colors.white : Colors.black,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       child: Text(
@@ -173,7 +216,26 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser!;
+    final user = authProvider.currentUser;
+    if (user == null) {
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF667EEA),
+                Color(0xFF764BA2),
+                Color(0xFFF093FB),
+                Color(0xFFF5576C),
+              ],
+            ),
+          ),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
 
     return Scaffold(
       body: Container(
@@ -196,28 +258,40 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
               children: [
                 // Header with slide animation
                 SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, -0.5),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _contentAnimationController,
-                    curve: const Interval(0.1, 0.6, curve: Curves.easeOutCubic),
-                  )),
+                  position:
+                      Tween<Offset>(
+                        begin: const Offset(0, -0.5),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: _contentAnimationController,
+                          curve: const Interval(
+                            0.1,
+                            0.6,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
+                      ),
                   child: FadeTransition(
-                    opacity: Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-                      parent: _contentAnimationController,
-                      curve: const Interval(0.1, 0.5, curve: Curves.easeIn),
-                    )),
+                    opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(
+                        parent: _contentAnimationController,
+                        curve: const Interval(0.1, 0.5, curve: Curves.easeIn),
+                      ),
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
                           GestureDetector(
-                            onTap: () => _showProfileDialog(context, user, authProvider),
+                            onTap: () =>
+                                _showProfileDialog(context, user, authProvider),
                             child: user.profileImagePath != null
                                 ? CircleAvatar(
                                     radius: 20,
-                                    backgroundImage: AssetImage(user.profileImagePath!),
+                                    backgroundImage: AssetImage(
+                                      user.profileImagePath!,
+                                    ),
                                   )
                                 : const CircleAvatar(
                                     radius: 20,
@@ -242,18 +316,23 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                 // Content Area with scale animation
                 Expanded(
                   child: ScaleTransition(
-                    scale: Tween<double>(
-                      begin: 0.9,
-                      end: 1.0,
-                    ).animate(CurvedAnimation(
-                      parent: _contentAnimationController,
-                      curve: const Interval(0.3, 0.9, curve: Curves.elasticOut),
-                    )),
-                    child: FadeTransition(
-                      opacity: Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+                    scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+                      CurvedAnimation(
                         parent: _contentAnimationController,
-                        curve: const Interval(0.3, 0.8, curve: Curves.easeIn),
-                      )),
+                        curve: const Interval(
+                          0.3,
+                          0.9,
+                          curve: Curves.elasticOut,
+                        ),
+                      ),
+                    ),
+                    child: FadeTransition(
+                      opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                        CurvedAnimation(
+                          parent: _contentAnimationController,
+                          curve: const Interval(0.3, 0.8, curve: Curves.easeIn),
+                        ),
+                      ),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
@@ -269,23 +348,27 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0.5, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  )),
-                                  child: child,
-                                ),
-                              );
-                            },
+                            child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 150),
+                            transitionBuilder:
+                                (Widget child, Animation<double> animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: SlideTransition(
+                                      position:
+                                          Tween<Offset>(
+                                            begin: const Offset(0.5, 0.0),
+                                            end: Offset.zero,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeOutCubic,
+                                            ),
+                                          ),
+                                      child: child,
+                                    ),
+                                  );
+                                },
                             child: _widgetOptions.elementAt(_selectedIndex),
                           ),
                         ),
@@ -309,15 +392,20 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                             ),
                           ),
                           child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.3),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: _fabAnimationController,
-                              curve: Curves.easeOutCubic,
-                            )),
+                            position:
+                                Tween<Offset>(
+                                  begin: const Offset(0, 0.3),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: _fabAnimationController,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                ),
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 20),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -342,7 +430,8 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                                   ),
                                   const SizedBox(height: 16),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: [
                                       _buildDayButton('Monday'),
                                       _buildDayButton('Tuesday'),
@@ -368,7 +457,10 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
       floatingActionButton: ScaleTransition(
         scale: _fabAnimation,
         child: FadeTransition(
-          opacity: Tween<double>(begin: 0.7, end: 1.0).animate(_fabAnimationController),
+          opacity: Tween<double>(
+            begin: 0.7,
+            end: 1.0,
+          ).animate(_fabAnimationController),
           child: FloatingActionButton(
             onPressed: _toggleTools,
             backgroundColor: const Color(0xFF667EEA),
@@ -380,10 +472,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                   turns: Tween<double>(begin: 0.0, end: 0.25).animate(
                     CurvedAnimation(parent: animation, curve: Curves.easeInOut),
                   ),
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  ),
+                  child: FadeTransition(opacity: animation, child: child),
                 );
               },
               child: Icon(
@@ -410,24 +499,21 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: AnimatedNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.announcement),
-              label: 'Pengumuman',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'Kalender',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.announcement),
+                label: 'Pengumuman',
+              ),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_today),
+                label: 'Kalender',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
             selectedColor: const Color(0xFF667EEA),
@@ -438,7 +524,11 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
     );
   }
 
-  void _showProfileDialog(BuildContext context, User user, AuthProvider authProvider) {
+  void _showProfileDialog(
+    BuildContext context,
+    User user,
+    AuthProvider authProvider,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -455,7 +545,9 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                       child: user.profileImagePath != null
                           ? CircleAvatar(
                               radius: 40,
-                              backgroundImage: AssetImage(user.profileImagePath!),
+                              backgroundImage: AssetImage(
+                                user.profileImagePath!,
+                              ),
                             )
                           : const CircleAvatar(
                               radius: 40,
@@ -492,7 +584,7 @@ class _StudentDashboardState extends State<StudentDashboard> with TickerProvider
                       onPressed: () {
                         authProvider.logout();
                         Navigator.of(context).pop();
-                        Navigator.of(context).pushReplacementNamed('/');
+                        context.go('/');
                       },
                       child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
@@ -524,7 +616,9 @@ class GradesView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final grades = dataProvider.grades.where((g) => g.studentId == user.id).toList();
+    final grades = dataProvider.grades
+        .where((g) => g.studentId == user.id)
+        .toList();
 
     return Container(
       color: Colors.green.shade50,
@@ -553,7 +647,10 @@ class GradesView extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final grade = grades[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -564,11 +661,20 @@ class GradesView extends StatelessWidget {
                         grade.assignment,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('${grade.subject} - Score: ${grade.score}'),
+                      subtitle: Text(
+                        '${grade.subject} - Score: ${grade.score}',
+                      ),
                       trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: grade.score >= 80 ? Colors.green : grade.score >= 60 ? Colors.orange : Colors.red,
+                          color: grade.score >= 80
+                              ? Colors.green
+                              : grade.score >= 60
+                              ? Colors.orange
+                              : Colors.red,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -599,7 +705,9 @@ class AttendanceView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final attendances = dataProvider.attendances.where((a) => a.studentId == user.id).toList();
+    final attendances = dataProvider.attendances
+        .where((a) => a.studentId == user.id)
+        .toList();
 
     return Container(
       color: Colors.orange.shade50,
@@ -635,7 +743,10 @@ class AttendanceView extends StatelessWidget {
                     break;
                 }
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -648,7 +759,10 @@ class AttendanceView extends StatelessWidget {
                     ),
                     subtitle: Text(attendance.date),
                     trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(20),
@@ -680,7 +794,9 @@ class AssignmentsView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final assignments = dataProvider.assignments.where((a) => a.className == user.className).toList();
+    final assignments = dataProvider.assignments
+        .where((a) => a.className == user.className)
+        .toList();
 
     return Container(
       color: Colors.purple.shade50,
@@ -704,7 +820,10 @@ class AssignmentsView extends StatelessWidget {
               itemBuilder: (context, index) {
                 final assignment = assignments[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -745,7 +864,9 @@ class AssignmentsView extends StatelessWidget {
                         assignment.title,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('${assignment.subject} - Due: ${assignment.dueDate}'),
+                      subtitle: Text(
+                        '${assignment.subject} - Due: ${assignment.dueDate}',
+                      ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     ),
                   ),
@@ -767,9 +888,15 @@ class HomeView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final grades = dataProvider.grades.where((g) => g.studentId == user.id).toList();
-    final attendances = dataProvider.attendances.where((a) => a.studentId == user.id).toList();
-    final assignments = dataProvider.assignments.where((a) => a.className == user.className).toList();
+    final grades = dataProvider.grades
+        .where((g) => g.studentId == user.id)
+        .toList();
+    final attendances = dataProvider.attendances
+        .where((a) => a.studentId == user.id)
+        .toList();
+    final assignments = dataProvider.assignments
+        .where((a) => a.className == user.className)
+        .toList();
 
     return Container(
       color: Colors.white,
@@ -825,7 +952,7 @@ class HomeView extends StatelessWidget {
                     Icons.library_books,
                     Colors.teal,
                     0, // Placeholder for materials count
-                    () => _navigateToView(context, 4), // Materials (new index)
+                    () => _navigateToView(context, 3), // Materials
                   ),
                 ],
               ),
@@ -836,12 +963,17 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(BuildContext context, String title, IconData icon, Color color, int count, VoidCallback onTap) {
+  Widget _buildFeatureCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    int count,
+    VoidCallback onTap,
+  ) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -863,10 +995,7 @@ class HomeView extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '$count item${count != 1 ? 's' : ''}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -877,9 +1006,27 @@ class HomeView extends StatelessWidget {
 
   void _navigateToView(BuildContext context, int index) {
     // Cards navigate to specific tool views
-    // Card indices: 0=Grades, 1=Attendance, 2=Assignments, 3=Announcements
-    // Show these as modal bottom sheets or separate screens
-    _showToolView(context, index);
+    // Card indices: 0=Grades, 1=Attendance, 2=Assignments, 3=Materials, 4=Announcements
+    switch (index) {
+      case 0:
+        context.go('/student-dashboard/beranda/grades');
+        break;
+      case 1:
+        context.go('/student-dashboard/beranda/attendance');
+        break;
+      case 2:
+        context.go('/student-dashboard/beranda/assignments');
+        break;
+      case 3:
+        context.go('/student-dashboard/beranda/materials');
+        break;
+      case 4:
+        // Announcements: Keep modal since no separate screen exists
+        _showToolView(context, index);
+        break;
+      default:
+        break;
+    }
   }
 
   void _showToolView(BuildContext context, int toolIndex) {
@@ -900,12 +1047,12 @@ class HomeView extends StatelessWidget {
         title = 'Tugas';
         break;
       case 3:
-        toolView = const AnnouncementsView();
-        title = 'Pengumuman';
-        break;
-      case 4:
         toolView = const MaterialsView();
         title = 'Materi';
+        break;
+      case 4:
+        toolView = const AnnouncementsView();
+        title = 'Pengumuman';
         break;
       default:
         return;
@@ -949,9 +1096,7 @@ class HomeView extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(
-              child: toolView,
-            ),
+            Expanded(child: toolView),
           ],
         ),
       ),
@@ -968,7 +1113,11 @@ class MaterialsView extends StatelessWidget {
     final materials = [
       {'title': 'Matematika Dasar', 'subject': 'Matematika', 'type': 'PDF'},
       {'title': 'Fisika Mekanika', 'subject': 'Fisika', 'type': 'Video'},
-      {'title': 'Bahasa Indonesia', 'subject': 'Bahasa Indonesia', 'type': 'Dokumen'},
+      {
+        'title': 'Bahasa Indonesia',
+        'subject': 'Bahasa Indonesia',
+        'type': 'Dokumen',
+      },
       {'title': 'Kimia Organik', 'subject': 'Kimia', 'type': 'PPT'},
     ];
 
@@ -994,7 +1143,10 @@ class MaterialsView extends StatelessWidget {
               itemBuilder: (context, index) {
                 final material = materials[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1009,13 +1161,17 @@ class MaterialsView extends StatelessWidget {
                       material['title'] as String,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text('${material['subject']} - ${material['type']}'),
+                    subtitle: Text(
+                      '${material['subject']} - ${material['type']}',
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.download, color: Colors.teal),
                       onPressed: () {
                         // TODO: Implement download functionality
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Downloading ${material['title']}')),
+                          SnackBar(
+                            content: Text('Downloading ${material['title']}'),
+                          ),
                         );
                       },
                     ),
@@ -1117,10 +1273,16 @@ class ProfileView extends StatelessWidget {
                         _buildProfileInfo('Nama Lengkap', user.name),
                         _buildProfileInfo('Jurusan', user.major ?? 'Tidak ada'),
                         _buildProfileInfo('NISN', user.nisn ?? 'Tidak ada'),
-                        _buildProfileInfo('Jenis Kelamin', user.gender ?? 'Tidak ada'),
-                        _buildProfileInfo('Tempat Tanggal Lahir', user.birthPlace != null && user.birthDate != null
-                            ? '${user.birthPlace}, ${user.birthDate!.toLocal().toString().split(' ')[0]}'
-                            : 'Tidak ada'),
+                        _buildProfileInfo(
+                          'Jenis Kelamin',
+                          user.gender ?? 'Tidak ada',
+                        ),
+                        _buildProfileInfo(
+                          'Tempat Tanggal Lahir',
+                          user.birthPlace != null && user.birthDate != null
+                              ? '${user.birthPlace}, ${user.birthDate!.toLocal().toString().split(' ')[0]}'
+                              : 'Tidak ada',
+                        ),
                         _buildProfileInfo('Email', user.email ?? 'Tidak ada'),
                       ],
                     ),
@@ -1130,11 +1292,14 @@ class ProfileView extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         authProvider.logout();
-                        Navigator.of(context).pushReplacementNamed('/');
+                        context.go('/');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -1171,16 +1336,10 @@ class ProfileView extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
-          Divider(
-            color: Colors.grey.shade300,
-            height: 1,
-          ),
+          Divider(color: Colors.grey.shade300, height: 1),
         ],
       ),
     );
@@ -1198,10 +1357,26 @@ class AcademicCalendarView extends StatelessWidget {
 
     // Sample academic events - you can replace with actual data
     final academicEvents = [
-      {'date': DateTime(now.year, now.month, 15), 'title': 'Ujian Tengah Semester', 'type': 'exam'},
-      {'date': DateTime(now.year, now.month, 20), 'title': 'Libur Nasional', 'type': 'holiday'},
-      {'date': DateTime(now.year, now.month + 1, 5), 'title': 'Workshop Matematika', 'type': 'event'},
-      {'date': DateTime(now.year, now.month + 1, 12), 'title': 'Ujian Akhir Semester', 'type': 'exam'},
+      {
+        'date': DateTime(now.year, now.month, 15),
+        'title': 'Ujian Tengah Semester',
+        'type': 'exam',
+      },
+      {
+        'date': DateTime(now.year, now.month, 20),
+        'title': 'Libur Nasional',
+        'type': 'holiday',
+      },
+      {
+        'date': DateTime(now.year, now.month + 1, 5),
+        'title': 'Workshop Matematika',
+        'type': 'event',
+      },
+      {
+        'date': DateTime(now.year, now.month + 1, 12),
+        'title': 'Ujian Akhir Semester',
+        'type': 'exam',
+      },
     ];
 
     return Container(
@@ -1226,7 +1401,11 @@ class AcademicCalendarView extends StatelessWidget {
               child: Column(
                 children: [
                   // Current Month Calendar
-                  _buildMonthCalendar(currentMonth, academicEvents, 'Bulan Ini'),
+                  _buildMonthCalendar(
+                    currentMonth,
+                    academicEvents,
+                    'Bulan Ini',
+                  ),
                   const SizedBox(height: 20),
                   // Next Month Calendar
                   _buildMonthCalendar(nextMonth, academicEvents, 'Bulan Depan'),
@@ -1258,49 +1437,60 @@ class AcademicCalendarView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ...academicEvents.where((event) => (event['date'] as DateTime).isAfter(now) || (event['date'] as DateTime).isAtSameMomentAs(DateTime(now.year, now.month, now.day))).map((event) {
-                          final date = event['date'] as DateTime;
-                          final title = event['title'] as String;
-                          final type = event['type'] as String;
+                        ...academicEvents
+                            .where(
+                              (event) =>
+                                  (event['date'] as DateTime).isAfter(now) ||
+                                  (event['date'] as DateTime).isAtSameMomentAs(
+                                    DateTime(now.year, now.month, now.day),
+                                  ),
+                            )
+                            .map((event) {
+                              final date = event['date'] as DateTime;
+                              final title = event['title'] as String;
+                              final type = event['type'] as String;
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: _getEventColor(type),
-                                    shape: BoxShape.circle,
-                                  ),
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        title,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14,
-                                        ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: _getEventColor(type),
+                                        shape: BoxShape.circle,
                                       ),
-                                      Text(
-                                        '${date.day}/${date.month}/${date.year}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${date.day}/${date.month}/${date.year}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          );
-                        }),
+                              );
+                            }),
                       ],
                     ),
                   ),
@@ -1313,7 +1503,11 @@ class AcademicCalendarView extends StatelessWidget {
     );
   }
 
-  Widget _buildMonthCalendar(DateTime month, List<Map<String, dynamic>> events, String title) {
+  Widget _buildMonthCalendar(
+    DateTime month,
+    List<Map<String, dynamic>> events,
+    String title,
+  ) {
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final firstDayOfMonth = DateTime(month.year, month.month, 1);
     final startingWeekday = firstDayOfMonth.weekday; // 1 = Monday, 7 = Sunday
@@ -1346,20 +1540,22 @@ class AcademicCalendarView extends StatelessWidget {
           // Day headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((day) =>
-              Container(
-                width: 32,
-                alignment: Alignment.center,
-                child: Text(
-                  day,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Colors.grey,
+            children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+                .map(
+                  (day) => Container(
+                    width: 32,
+                    alignment: Alignment.center,
+                    child: Text(
+                      day,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ),
-                ),
-              )
-            ).toList(),
+                )
+                .toList(),
           ),
           const SizedBox(height: 8),
           // Calendar grid
@@ -1373,7 +1569,9 @@ class AcademicCalendarView extends StatelessWidget {
 
               final day = index - startingWeekday + 2;
               final currentDate = DateTime(month.year, month.month, day);
-              final hasEvent = events.any((event) => event['date'] == currentDate);
+              final hasEvent = events.any(
+                (event) => event['date'] == currentDate,
+              );
 
               return Container(
                 width: 32,
@@ -1413,18 +1611,25 @@ class AcademicCalendarView extends StatelessWidget {
   }
 }
 
+// -------------------------------------------------------------------
+// PERUBAHAN: class AnnouncementsView dimodifikasi
+// -------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<DataProvider>(context);
-    final announcements = dataProvider.announcements.where((a) => a.targetRole == 'all' || a.targetRole == 'student').toList();
+    final announcements = dataProvider.announcements
+        .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
+        .toList();
 
     return Container(
       color: Colors.red.shade50,
-      child: Column(
+      // Mengganti Column -> ListView agar bisa di-scroll
+      child: ListView(
         children: [
+          // 1. Judul Pengumuman (dari DataProvider)
           Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.centerLeft,
@@ -1437,57 +1642,101 @@ class AnnouncementsView extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = announcements[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.announcement, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                announcement.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
+
+          // 2. List Pengumuman (dari DataProvider)
+          ListView.builder(
+            itemCount: announcements.length,
+            // Properti ini penting agar ListView.builder bisa ada di dalam ListView
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              final announcement = announcements[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.announcement, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              announcement.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          announcement.content,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Target: ${announcement.targetRole}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        announcement.content,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Target: ${announcement.targetRole}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+          
+          // Menangani jika tidak ada pengumuman
+          if (announcements.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Center(
+                child: Text(
+                  'Tidak ada pengumuman internal.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+
+
+          // 3. Pemisah dan Judul Blog (dari API)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Divider(thickness: 1, color: Colors.red.shade100),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Blog Terbaru (dari API)',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade900, // Warna berbeda
+              ),
             ),
           ),
+          const SizedBox(height: 8),
+
+          // 4. Widget BlogView (dari API)
+          const BlogView(),
+          
+          // 5. Padding di bagian bawah
+          const SizedBox(height: 20),
         ],
       ),
     );

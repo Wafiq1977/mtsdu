@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/user.dart';
@@ -24,35 +25,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await Future.delayed(const Duration(seconds: 2)); // Simulate loading
-    if (authProvider.currentUser == null) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-    } else {
-      switch (authProvider.currentUser!.role) {
-        case UserRole.student:
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const StudentDashboard()),
-          );
-          break;
-        case UserRole.teacher:
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const TeacherDashboard()),
-          );
-          break;
-        case UserRole.admin:
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AdminDashboard()),
-          );
-          break;
-        default:
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-      }
-    }
+    // Always navigate to login screen since no persistent login is implemented
+    if (!mounted) return;
+    context.go('/login');
   }
 
   @override
@@ -77,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               // Name
               Text(
-                'MOCH WAFIQ IZNA',
+                'Kelompok 1',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

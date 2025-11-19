@@ -1,11 +1,17 @@
-# TODO for Student Assignments Detail
+# TODO: Implement Detail Screens for Student Tools
 
-- [x] Add onTap to ListTile in student_assignments_view.dart to show assignment details in AlertDialog
+## Tasks
+- [ ] Create student_grades_screen.dart
+- [ ] Create student_attendance_screen.dart
+- [ ] Create student_assignments_screen.dart
+- [ ] Create student_materials_screen.dart
+- [ ] Update student_dashboard.dart to navigate to new screens instead of modal bottom sheets
+- [ ] Test navigation and functionality
 
-# TODO for Adding External Library to Icon
-
-- [x] Add font_awesome_flutter dependency to pubspec.yaml
-- [x] Run flutter pub get
-- [x] Import font_awesome_flutter in student_dashboard.dart
-- [x] Replace announcement icon with FontAwesome icon in bottom navigation bar
-- [x] Test the changes
+## Details
+- Move GradesView logic to GradesScreen
+- Move AttendanceView logic to AttendanceScreen
+- Move AssignmentsView logic to AssignmentsScreen
+- Move MaterialsView logic to MaterialsScreen
+- Change _navigateToView in HomeView to use Navigator.push
+- Ensure proper back navigation
