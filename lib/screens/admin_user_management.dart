@@ -346,6 +346,7 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
       return const Center(child: CircularProgressIndicator());
     }
 
+<<<<<<< HEAD
     return Scaffold(
       body: Column(
         children: [
@@ -563,19 +564,273 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
           Expanded(
             child: filteredUsers.isEmpty
                 ? Center(
+=======
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            pinned: false,
+            expandedHeight: 80,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'User Management',
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 16 : 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF667EEA),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _addUser,
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text('Tambah User', style: TextStyle(fontSize: isSmallScreen ? 12 : 14)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667EEA),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                // Search bar
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: 8),
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                    decoration: InputDecoration(
+                      hintText: 'Cari nama, username, kelas, jurusan, atau mata pelajaran...',
+                      hintStyle: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                      prefixIcon: const Icon(Icons.search, size: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: EdgeInsets.symmetric(vertical: isSmallScreen ? 8 : 12, horizontal: 16),
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
+                ),
+                // Filter by role
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Filter berdasarkan Peran:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 12 : 14)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRoleFilter = null;
+                                _selectedMajorFilter = null;
+                                _selectedClassFilter = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedRoleFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
+                              foregroundColor: _selectedRoleFilter == null ? Colors.white : Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                            ),
+                            child: Text('Semua', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRoleFilter = UserRole.student;
+                                _selectedMajorFilter = null;
+                                _selectedClassFilter = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedRoleFilter == UserRole.student ? const Color(0xFF667EEA) : Colors.grey[300],
+                              foregroundColor: _selectedRoleFilter == UserRole.student ? Colors.white : Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                            ),
+                            child: Text('Student', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRoleFilter = UserRole.teacher;
+                                _selectedMajorFilter = null;
+                                _selectedClassFilter = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedRoleFilter == UserRole.teacher ? const Color(0xFF667EEA) : Colors.grey[300],
+                              foregroundColor: _selectedRoleFilter == UserRole.teacher ? Colors.white : Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                            ),
+                            child: Text('Teacher', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRoleFilter = UserRole.admin;
+                                _selectedMajorFilter = null;
+                                _selectedClassFilter = null;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedRoleFilter == UserRole.admin ? const Color(0xFF667EEA) : Colors.grey[300],
+                              foregroundColor: _selectedRoleFilter == UserRole.admin ? Colors.white : Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                            ),
+                            child: Text('Admin', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                          ),
+                        ],
+                      ),
+                      if (_selectedRoleFilter == UserRole.student) ...[
+                        const SizedBox(height: 16),
+                        Text('Filter berdasarkan Jurusan:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 12 : 14)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedMajorFilter = null;
+                                  _selectedClassFilter = null;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _selectedMajorFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
+                                foregroundColor: _selectedMajorFilter == null ? Colors.white : Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                              ),
+                              child: Text('Semua Jurusan', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                            ),
+                            ...availableMajors.map((major) => ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedMajorFilter = major;
+                                  _selectedClassFilter = null;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _selectedMajorFilter == major ? const Color(0xFF667EEA) : Colors.grey[300],
+                                foregroundColor: _selectedMajorFilter == major ? Colors.white : Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                              ),
+                              child: Text(major, style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                            )),
+                          ],
+                        ),
+                        if (_selectedMajorFilter != null) ...[
+                          const SizedBox(height: 16),
+                          Text('Filter berdasarkan Kelas:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 12 : 14)),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedClassFilter = null;
+                                  });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _selectedClassFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
+                                  foregroundColor: _selectedClassFilter == null ? Colors.white : Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                                ),
+                                child: Text('Semua Kelas', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                              ),
+                              ...availableClasses.where((className) => _users.any((user) => user.className == className && user.major == _selectedMajorFilter)).map((className) => ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedClassFilter = className;
+                                  });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _selectedClassFilter == className ? const Color(0xFF667EEA) : Colors.grey[300],
+                                  foregroundColor: _selectedClassFilter == className ? Colors.white : Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: isSmallScreen ? 4 : 8),
+                                ),
+                                child: Text(className, style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                              )),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          filteredUsers.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.people_outline,
+<<<<<<< HEAD
                           size: 64,
+=======
+                          size: isSmallScreen ? 48 : 64,
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           color: Colors.grey[400],
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Tidak ada user ditemukan',
                           style: TextStyle(
+<<<<<<< HEAD
                             fontSize: 18,
+=======
+                            fontSize: isSmallScreen ? 14 : 18,
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             color: Colors.grey[600],
                           ),
                         ),
@@ -583,12 +838,17 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         Text(
                           'Tekan "Tambah User" untuk membuat akun baru',
                           style: TextStyle(
+<<<<<<< HEAD
                             fontSize: 14,
+=======
+                            fontSize: isSmallScreen ? 12 : 14,
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             color: Colors.grey[500],
                           ),
                         ),
                       ],
                     ),
+<<<<<<< HEAD
                   )
                 : ListView.builder(
                     itemCount: filteredUsers.length,
@@ -599,24 +859,54 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         elevation: 2,
                         child: ListTile(
                           leading: CircleAvatar(
+=======
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final user = filteredUsers[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16, vertical: 4),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: isSmallScreen ? 16 : 20,
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             backgroundColor: _getRoleColor(user.role),
                             child: Icon(
                               _getRoleIcon(user.role),
                               color: Colors.white,
+<<<<<<< HEAD
+=======
+                              size: isSmallScreen ? 16 : 20,
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             ),
                           ),
                           title: Text(
                             user.name,
+<<<<<<< HEAD
                             style: const TextStyle(fontWeight: FontWeight.bold),
+=======
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 14 : 16),
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+<<<<<<< HEAD
                               Text('${user.role.toString().split('.').last} - ${user.username}'),
                               if (user.role == UserRole.student)
                                 Text('Kelas: ${user.className} - Jurusan: ${user.major}'),
                               if (user.role == UserRole.teacher)
                                 Text('NIP: ${user.nip} - Mata Pelajaran: ${user.subject}'),
+=======
+                              Text('${user.role.toString().split('.').last} - ${user.username}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                              if (user.role == UserRole.student)
+                                Text('Kelas: ${user.className} - Jurusan: ${user.major}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+                              if (user.role == UserRole.teacher)
+                                Text('NIP: ${user.nip} - Mata Pelajaran: ${user.subject}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             ],
                           ),
                           trailing: PopupMenuButton<String>(
@@ -645,8 +935,14 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         ),
                       );
                     },
+<<<<<<< HEAD
                   ),
           ),
+=======
+                    childCount: filteredUsers.length,
+                  ),
+                ),
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
         ],
       ),
     );

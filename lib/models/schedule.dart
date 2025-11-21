@@ -13,6 +13,11 @@ class Schedule extends BaseModel {
   String _time;
   String _room;
   ScheduleType _scheduleType;
+<<<<<<< HEAD
+=======
+  String? _major; // TAMBAH INI
+  String? _grade; // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
   Schedule({
     required String id,
@@ -23,6 +28,11 @@ class Schedule extends BaseModel {
     required String time,
     required String room,
     required ScheduleType scheduleType,
+<<<<<<< HEAD
+=======
+    String? major, // TAMBAH INI
+    String? grade, // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
   })  : _subject = subject,
         _assignedToId = assignedToId,
         _className = className,
@@ -30,6 +40,11 @@ class Schedule extends BaseModel {
         _time = time,
         _room = room,
         _scheduleType = scheduleType,
+<<<<<<< HEAD
+=======
+        _major = major, // TAMBAH INI
+        _grade = grade, // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
         super(id: id);
 
   // Getters
@@ -40,6 +55,11 @@ class Schedule extends BaseModel {
   String get time => _time;
   String get room => _room;
   ScheduleType get scheduleType => _scheduleType;
+<<<<<<< HEAD
+=======
+  String? get major => _major; // TAMBAH INI
+  String? get grade => _grade; // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
   // Setters
   set subject(String value) => _subject = value;
@@ -49,6 +69,11 @@ class Schedule extends BaseModel {
   set time(String value) => _time = value;
   set room(String value) => _room = value;
   set scheduleType(ScheduleType value) => _scheduleType = value;
+<<<<<<< HEAD
+=======
+  set major(String? value) => _major = value; // TAMBAH INI
+  set grade(String? value) => _grade = value; // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
   @override
   Map<String, dynamic> toMap() {
@@ -61,6 +86,11 @@ class Schedule extends BaseModel {
       'time': _time,
       'room': _room,
       'scheduleType': _scheduleType.toString().split('.').last,
+<<<<<<< HEAD
+=======
+      'major': _major, // TAMBAH INI
+      'grade': _grade, // TAMBAH INI
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
     };
   }
 
@@ -77,6 +107,14 @@ class Schedule extends BaseModel {
         (e) => e.toString().split('.').last == (map['scheduleType'] ?? 'teacher'),
         orElse: () => ScheduleType.teacher,
       ),
+<<<<<<< HEAD
     );
   }
 }
+=======
+      major: map['major'], // TAMBAH INI
+      grade: map['grade'], // TAMBAH INI
+    );
+  }
+}
+>>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
