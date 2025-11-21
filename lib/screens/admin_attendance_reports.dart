@@ -77,12 +77,15 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
     for (final attendance in filteredAttendances) {
       final userId = attendance.studentId;
+      
+      // 1. Update inisialisasi Map untuk menyertakan 'excused'
       if (!stats.containsKey(userId)) {
-        stats[userId] = {'present': 0, 'absent': 0, 'late': 0, 'total': 0};
+        stats[userId] = {'present': 0, 'absent': 0, 'late': 0, 'excused': 0, 'total': 0};
       }
 
       stats[userId]!['total'] = stats[userId]!['total']! + 1;
 
+      // 2. Perbaikan Switch Case
       switch (attendance.status) {
         case AttendanceStatus.present:
           stats[userId]!['present'] = stats[userId]!['present']! + 1;
@@ -93,13 +96,16 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         case AttendanceStatus.late:
           stats[userId]!['late'] = stats[userId]!['late']! + 1;
           break;
+        case AttendanceStatus.excused: // Case baru ditambahkan
+          stats[userId]!['excused'] = stats[userId]!['excused']! + 1;
+          break;
       }
     }
 
     return stats;
   }
 
-  List<String> _getAvailableClasses() { //LIST
+  List<String> _getAvailableClasses() { 
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
     final classes = userList
         .map((u) => u.className)
@@ -111,7 +117,7 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     return ['All', ...classes];
   }
 
-  @override // polymorpisme
+  @override 
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -120,6 +126,9 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     final attendanceStats = _calculateAttendanceStats();
     final availableClasses = _getAvailableClasses();
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
+    
+    // Hitung total stats sekali saja agar efisien
+    final totalStats = _calculateTotalStats();
 
     return Column(
       children: [
@@ -190,14 +199,22 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
           child: Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatCard('Total Records', filteredAttendances.length.toString(), Colors.blue),
-                  _buildStatCard('Present', _calculateTotalStats()['present'].toString(), Colors.green),
-                  _buildStatCard('Absent', _calculateTotalStats()['absent'].toString(), Colors.red),
-                  _buildStatCard('Late', _calculateTotalStats()['late'].toString(), Colors.orange),
-                ],
+              child: SingleChildScrollView( // Tambahkan scroll horizontal jika layar sempit
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard('Total', filteredAttendances.length.toString(), Colors.grey.shade800),
+                    const SizedBox(width: 15),
+                    _buildStatCard('Present', totalStats['present'].toString(), Colors.green),
+                    const SizedBox(width: 15),
+                    _buildStatCard('Absent', totalStats['absent'].toString(), Colors.red),
+                    const SizedBox(width: 15),
+                    _buildStatCard('Late', totalStats['late'].toString(), Colors.orange),
+                    const SizedBox(width: 15),
+                    _buildStatCard('Excused', totalStats['excused'].toString(), Colors.blue), // UI Baru
+                  ],
+                ),
               ),
             ),
           ),
@@ -218,14 +235,22 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: ListTile(
-                  title: Text(user.name),
+                  title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (_selectedUserType == 'Students')
                         Text('Class: ${user.className}'),
-                      Text('Present: ${stats['present']} | Absent: ${stats['absent']} | Late: ${stats['late']} | Total: ${stats['total']}'),
-                      Text('Attendance Rate: ${((stats['present']! / stats['total']!) * 100).toStringAsFixed(1)}%'),
+                      const SizedBox(height: 4),
+                      // Tampilkan detail statistik termasuk Excused
+                      Text(
+                        'Hadir: ${stats['present']} | Alpha: ${stats['absent']} | Telat: ${stats['late']} | Izin: ${stats['excused']}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[800]),
+                      ),
+                      Text(
+                        'Total Kehadiran: ${((stats['present']! / stats['total']!) * 100).toStringAsFixed(1)}%',
+                        style: const TextStyle(fontSize: 12, color: Colors.blue),
+                      ),
                     ],
                   ),
                 ),
@@ -237,14 +262,16 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     );
   }
 
+  // 3. Update perhitungan total agar menghitung Excused juga
   Map<String, int> _calculateTotalStats() {
-    final stats = {'present': 0, 'absent': 0, 'late': 0};
+    final stats = {'present': 0, 'absent': 0, 'late': 0, 'excused': 0};
     final attendanceStats = _calculateAttendanceStats();
 
     for (final userStats in attendanceStats.values) {
       stats['present'] = stats['present']! + userStats['present']!;
       stats['absent'] = stats['absent']! + userStats['absent']!;
       stats['late'] = stats['late']! + userStats['late']!;
+      stats['excused'] = stats['excused']! + userStats['excused']!;
     }
 
     return stats;
@@ -256,7 +283,7 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: color,
           ),

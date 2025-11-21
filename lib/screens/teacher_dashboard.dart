@@ -15,7 +15,7 @@ import '../widgets/animated_navigation_bar.dart';
 import '../widgets/statistics_widget.dart';
 import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
-import 'teacher_bulk_attendance_view.dart';
+// import 'teacher_bulk_attendance_view.dart'; // Tidak perlu lagi jika tidak dipakai
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -572,10 +572,10 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                         Navigator.of(context).pop();
                         context.go('/');
                       },
-                      child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
+                      child: const Text('Logout'),
                     ),
                   ],
                 ),
@@ -647,13 +647,23 @@ class TeacherHomeView extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
+                  // --- BAGIAN INI YANG DIUBAH: LANGSUNG NAVIGASI KE BULK ATTENDANCE ---
                   child: _buildCompactFeatureCard(
                     context,
                     'Absen',
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
-                    () => _showAttendanceOptionsDialog(context),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          // Langsung buka halaman absen List yang baru
+                          builder: (context) =>
+                              const TeacherInputAttendanceView(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -730,42 +740,6 @@ class TeacherHomeView extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showAttendanceOptionsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Attendance Options'),
-        content: const Text('Choose how you want to input attendance:'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TeacherInputAttendanceView(),
-                ),
-              );
-            },
-            child: const Text('Single Student'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TeacherBulkAttendanceView(),
-                ),
-              );
-            },
-            child: const Text('Bulk Input'),
-          ),
-        ],
       ),
     );
   }

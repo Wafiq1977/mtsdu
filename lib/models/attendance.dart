@@ -1,4 +1,4 @@
-enum AttendanceStatus { present, absent, late }
+enum AttendanceStatus { present, absent, late, excused }
 
 class Attendance {
   final String id;
