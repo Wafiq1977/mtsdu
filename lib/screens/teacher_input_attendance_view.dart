@@ -19,11 +19,19 @@ class _TeacherInputAttendanceViewState
   final _subjectController = TextEditingController();
   final StudentService _studentService = StudentService();
 
+  // --- STATE TANGGAL MANUAL ---
+  DateTime _selectedDate = DateTime.now(); // Default hari ini
+
   bool _isLoading = true;
   List<User> _allStudents = [];
   List<User> _filteredStudents = [];
-  String _selectedClassFilter = '';
+
+  // Filter
+  String _selectedClass = 'Semua Kelas';
+  String _selectedMajor = 'Semua Jurusan';
   List<String> _availableClasses = ['Semua Kelas'];
+  List<String> _availableMajors = ['Semua Jurusan'];
+
   final Map<String, AttendanceStatus> _attendanceStatus = {};
 
   @override
@@ -38,6 +46,69 @@ class _TeacherInputAttendanceViewState
     super.dispose();
   }
 
+  // --- HELPER: FORMAT TANGGAL INDONESIA (Disesuaikan dengan _selectedDate) ---
+  String _getFormattedDate(DateTime date) {
+    final List<String> days = [
+      'Minggu',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+    ];
+    final List<String> months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    String dayName = days[date.weekday == 7 ? 0 : date.weekday];
+    String monthName = months[date.month - 1];
+
+    return "$dayName, ${date.day} $monthName ${date.year}";
+  }
+
+  // --- FUNGSI BUKA KALENDER (DATE PICKER) ---
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020), // Batas bawah tanggal
+      lastDate: DateTime.now().add(
+        const Duration(days: 30),
+      ), // Batas atas (bisa input kedepan)
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF667EEA), // Warna header kalender
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  // --- LOGIC LOAD DATA ---
   Future<void> _loadStudents() async {
     try {
       final students = await _studentService.getAllStudents();
@@ -46,26 +117,27 @@ class _TeacherInputAttendanceViewState
           .toList();
 
       final Set<String> uniqueClasses = {};
+      final Set<String> uniqueMajors = {};
+
       for (var student in validStudents) {
-        final cls = student.className ?? '';
-        if (cls.isNotEmpty) uniqueClasses.add(cls);
+        if (student.className != null && student.className!.isNotEmpty) {
+          uniqueClasses.add(student.className!);
+        }
+        if (student.major != null && student.major!.isNotEmpty) {
+          uniqueMajors.add(student.major!);
+        }
         _attendanceStatus[student.id] = AttendanceStatus.present;
       }
 
       final sortedClasses = uniqueClasses.toList()..sort();
+      final sortedMajors = uniqueMajors.toList()..sort();
 
       if (mounted) {
         setState(() {
           _allStudents = validStudents;
-          _availableClasses = sortedClasses;
-          if (sortedClasses.isNotEmpty) {
-            _selectedClassFilter = sortedClasses.first;
-            _filteredStudents = _allStudents
-                .where((s) => s.className == sortedClasses.first)
-                .toList();
-          } else {
-            _filteredStudents = [];
-          }
+          _filteredStudents = validStudents;
+          _availableClasses = ['Semua Kelas', ...sortedClasses];
+          _availableMajors = ['Semua Jurusan', ...sortedMajors];
           _isLoading = false;
         });
       }
@@ -74,15 +146,24 @@ class _TeacherInputAttendanceViewState
     }
   }
 
-  void _filterStudents(String className) {
+  // --- LOGIC FILTER ---
+  void _applyFilter() {
     setState(() {
-      _selectedClassFilter = className;
-      _filteredStudents = _allStudents
-          .where((s) => s.className == className)
-          .toList();
+      _filteredStudents = _allStudents.where((student) {
+        bool matchClass = true;
+        if (_selectedClass != 'Semua Kelas') {
+          matchClass = student.className == _selectedClass;
+        }
+        bool matchMajor = true;
+        if (_selectedMajor != 'Semua Jurusan') {
+          matchMajor = student.major == _selectedMajor;
+        }
+        return matchClass && matchMajor;
+      }).toList();
     });
   }
 
+  // --- LOGIC SET ALL ---
   void _setAllStatus(AttendanceStatus status) {
     setState(() {
       for (var student in _filteredStudents) {
@@ -98,10 +179,18 @@ class _TeacherInputAttendanceViewState
     );
   }
 
+  // --- LOGIC SUBMIT ---
   Future<void> _submit() async {
     if (_subjectController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Isi Mata Pelajaran dulu!')));
+      return;
+    }
+
+    if (_filteredStudents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi Mata Pelajaran dulu!')),
+        const SnackBar(content: Text('Tidak ada siswa yang dipilih!')),
       );
       return;
     }
@@ -121,7 +210,8 @@ class _TeacherInputAttendanceViewState
           id: DateTime.now().microsecondsSinceEpoch.toString() + student.id,
           studentId: student.id,
           subject: _subjectController.text,
-          date: DateTime.now().toString(),
+          date: _selectedDate
+              .toString(), // <--- MENGGUNAKAN TANGGAL YANG DIPILIH
           status: status,
           teacherId: teacherId,
         );
@@ -149,6 +239,8 @@ class _TeacherInputAttendanceViewState
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<AuthProvider>(context).currentUser!;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Input Absensi'),
@@ -165,10 +257,82 @@ class _TeacherInputAttendanceViewState
                   color: Colors.white,
                   child: Column(
                     children: [
+                      // 1. ROW TANGGAL & PENGAJAR
+                      Row(
+                        children: [
+                          // KOLOM TANGGAL (BISA DIKLIK/MANUAL)
+                          Expanded(
+                            child: InkWell(
+                              onTap: _pickDate, // Klik untuk buka kalender
+                              child: InputDecorator(
+                                decoration: const InputDecoration(
+                                  labelText: "Tanggal",
+                                  prefixIcon: Icon(
+                                    Icons.calendar_month,
+                                    color: Color(0xFF667EEA),
+                                  ),
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                ),
+                                child: Text(
+                                  _getFormattedDate(_selectedDate),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          // KOLOM PENGAJAR (Tetap Read-Only)
+                          Expanded(
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: "Pengajar",
+                                prefixIcon: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                ),
+                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Color(
+                                  0xFFF5F5F5,
+                                ), // Abu-abu tanda read-only
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              child: Text(
+                                currentUser.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 2. INPUT MATA PELAJARAN
                       TextField(
                         controller: _subjectController,
                         decoration: const InputDecoration(
                           labelText: 'Mata Pelajaran',
+                          prefixIcon: Icon(
+                            Icons.book,
+                            color: Color(0xFF667EEA),
+                          ),
                           border: OutlineInputBorder(),
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 12,
@@ -177,41 +341,79 @@ class _TeacherInputAttendanceViewState
                         ),
                       ),
                       const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: _availableClasses.contains(_selectedClassFilter)
-                            ? _selectedClassFilter
-                            : null,
-                        decoration: const InputDecoration(
-                          labelText: 'Kelas',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+
+                      // 3. FILTER KELAS & JURUSAN
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedClass,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Kelas',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              items: _availableClasses.map((cls) {
+                                return DropdownMenuItem(
+                                  value: cls,
+                                  child: Text(cls),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  _selectedClass = val;
+                                  _applyFilter();
+                                }
+                              },
+                            ),
                           ),
-                        ),
-                        items: _availableClasses.map((cls) {
-                          return DropdownMenuItem(value: cls, child: Text(cls));
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) _filterStudents(val);
-                        },
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedMajor,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Jurusan',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              items: _availableMajors.map((mjr) {
+                                return DropdownMenuItem(
+                                  value: mjr,
+                                  child: Text(
+                                    mjr,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  _selectedMajor = val;
+                                  _applyFilter();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 const Divider(height: 1, thickness: 1),
 
-                // --- HEADER TABEL (Full Text & Clickable) ---
+                // --- HEADER TABEL ---
                 Container(
                   color: Colors.grey[200],
-                  // PERBAIKAN: Padding horizontal diperbesar jadi 16 agar tidak mepet
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(24, 12, 16, 12),
                   child: Row(
                     children: [
-                      // PERBAIKAN: Lebar kolom No diperbesar jadi 40
                       const SizedBox(
                         width: 40,
                         child: Text(
@@ -219,7 +421,6 @@ class _TeacherInputAttendanceViewState
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-
                       const Expanded(
                         flex: 2,
                         child: Text(
@@ -252,15 +453,26 @@ class _TeacherInputAttendanceViewState
                   ),
                 ),
 
-                // --- LIST DAFTAR SISWA ---
+                // --- LIST SISWA ---
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: _filteredStudents.length,
-                    separatorBuilder: (ctx, i) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      return _buildStudentRow(index, _filteredStudents[index]);
-                    },
-                  ),
+                  child: _filteredStudents.isEmpty
+                      ? Center(
+                          child: Text(
+                            "Tidak ada siswa ditemukan",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _filteredStudents.length,
+                          separatorBuilder: (ctx, i) =>
+                              const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            return _buildStudentRow(
+                              index,
+                              _filteredStudents[index],
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -289,6 +501,29 @@ class _TeacherInputAttendanceViewState
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
+      ),
+    );
+  }
+
+  // Widget Field Read-Only (Pengajar) & Clickable (Tanggal)
+  Widget _buildReadOnlyField({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.grey),
+        border: const OutlineInputBorder(),
+        filled: true,
+        fillColor: Colors.grey[100],
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      child: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -327,11 +562,9 @@ class _TeacherInputAttendanceViewState
   Widget _buildStudentRow(int index, User student) {
     return Container(
       color: index % 2 == 0 ? Colors.white : Colors.grey[50],
-      // PERBAIKAN: Padding horizontal diperbesar jadi 16 agar sinkron dengan header
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(24, 8, 16, 8),
       child: Row(
         children: [
-          // PERBAIKAN: Lebar kolom No diperbesar jadi 40
           SizedBox(
             width: 40,
             child: Text('${index + 1}.', style: const TextStyle(fontSize: 13)),
@@ -339,11 +572,25 @@ class _TeacherInputAttendanceViewState
 
           Expanded(
             flex: 2,
-            child: Text(
-              student.name,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  student.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  "${student.className ?? ''} - ${student.major ?? ''}",
+                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
 
