@@ -45,7 +45,7 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     'English',
     'History',
     'Religion',
-  ]; // Sesuaikan dengan data kamu
+  ];
 
   @override
   void initState() {
@@ -77,13 +77,11 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
       if (!userExists) return false;
 
-      // Filter untuk Student - berdasarkan Class
       if (_selectedUserType == 'Students' && _selectedClass != 'All') {
         final user = userList.firstWhere((u) => u.id == attendance.studentId);
         if (user.className != _selectedClass) return false;
       }
 
-      // Filter untuk Teacher - berdasarkan Subject
       if (_selectedUserType == 'Teachers' && _selectedSubject != 'All') {
         final user = userList.firstWhere((u) => u.id == attendance.studentId);
         if (user.subject != _selectedSubject) return false;
@@ -127,6 +125,33 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     return stats;
   }
 
+  // STATISTIK PER BULAN UNTUK GRAFIK
+  Map<String, Map<String, int>> _getMonthlyStats() {
+    final monthlyStats = <String, Map<String, int>>{};
+
+    for (final attendance in _attendances) {
+      final month = months[DateTime.parse(attendance.date).month];
+      if (!monthlyStats.containsKey(month)) {
+        monthlyStats[month] = {'present': 0, 'absent': 0, 'late': 0};
+      }
+
+      switch (attendance.status) {
+        case AttendanceStatus.present:
+          monthlyStats[month]!['present'] =
+              monthlyStats[month]!['present']! + 1;
+          break;
+        case AttendanceStatus.absent:
+          monthlyStats[month]!['absent'] = monthlyStats[month]!['absent']! + 1;
+          break;
+        case AttendanceStatus.late:
+          monthlyStats[month]!['late'] = monthlyStats[month]!['late']! + 1;
+          break;
+      }
+    }
+
+    return monthlyStats;
+  }
+
   List<String> _getAvailableClasses() {
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
     final classes = userList
@@ -157,282 +182,578 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+
     final filteredAttendances = _getFilteredAttendances();
     final attendanceStats = _calculateAttendanceStats();
     final availableClasses = _getAvailableClasses();
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
     final totalStats = _calculateTotalStats();
+    final monthlyStats = _getMonthlyStats();
 
-    return Column(
-      children: [
-        // Modern Filters
-        Card(
-          margin: const EdgeInsets.all(16),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedUserType,
-                    decoration: const InputDecoration(
-                      labelText: 'User Type',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    items: ['Students', 'Teachers']
-                        .map(
-                          (type) =>
-                              DropdownMenuItem(value: type, child: Text(type)),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedUserType = value!;
-                        _selectedClass = 'All';
-                        _selectedSubject = 'All';
-                      });
-                    },
+                // MODERN FILTERS - RESPONSIVE
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: isMobile
+                        ? _buildMobileFilters(availableClasses)
+                        : _buildDesktopFilters(availableClasses),
                   ),
                 ),
-                const SizedBox(width: 12),
 
-                // FILTER BERBEDA UNTUK STUDENT vs TEACHER
-                if (_selectedUserType == 'Students')
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedClass,
-                      decoration: const InputDecoration(
-                        labelText: 'Class',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      items: availableClasses
-                          .map(
-                            (className) => DropdownMenuItem(
-                              value: className,
-                              child: Text(className),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedClass = value!;
-                        });
-                      },
+                const SizedBox(height: 16),
+
+                // STATISTICS CARDS - RESPONSIVE
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: isMobile ? 2 : 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: isMobile ? 1.1 : 1.2,
+                  children: [
+                    _buildModernStatCard(
+                      'Total Records',
+                      filteredAttendances.length.toString(),
+                      Icons.list_alt,
+                      Colors.blue,
                     ),
-                  )
-                else
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedSubject,
-                      decoration: const InputDecoration(
-                        labelText: 'Subject',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      items: subjects
-                          .map(
-                            (subject) => DropdownMenuItem(
-                              value: subject,
-                              child: Text(subject),
+                    _buildModernStatCard(
+                      'Present',
+                      totalStats['present'].toString(),
+                      Icons.check_circle,
+                      Colors.green,
+                    ),
+                    _buildModernStatCard(
+                      'Absent',
+                      totalStats['absent'].toString(),
+                      Icons.cancel,
+                      Colors.red,
+                    ),
+                    _buildModernStatCard(
+                      'Late',
+                      totalStats['late'].toString(),
+                      Icons.watch_later,
+                      Colors.orange,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // MONTHLY STATISTICS CHART
+                if (monthlyStats.isNotEmpty) ...[
+                  Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Monthly Attendance Overview',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
                             ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSubject = value!;
-                        });
-                      },
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 200,
+                            child: _buildMonthlyChart(monthlyStats, isMobile),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                ],
 
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedMonth,
-                    decoration: const InputDecoration(
-                      labelText: 'Month',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    items: months
-                        .map(
-                          (month) => DropdownMenuItem(
-                            value: month,
-                            child: Text(month),
+                // ATTENDANCE TABLE - RESPONSIVE
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Attendance Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedMonth = value!;
-                      });
-                    },
+                        ),
+                        const SizedBox(height: 16),
+                        attendanceStats.isEmpty
+                            ? _buildEmptyState()
+                            : isMobile
+                            ? _buildMobileTable(attendanceStats, userList)
+                            : _buildDesktopTable(attendanceStats, userList),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
+        );
+      },
+    );
+  }
 
-        // Modern Statistics Cards
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.count(
-            shrinkWrap: true,
-            crossAxisCount: 4,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.2,
-            children: [
-              _buildModernStatCard(
-                'Total Records',
-                filteredAttendances.length.toString(),
-                Icons.list_alt,
-                Colors.blue,
-              ),
-              _buildModernStatCard(
-                'Present',
-                totalStats['present'].toString(),
-                Icons.check_circle,
-                Colors.green,
-              ),
-              _buildModernStatCard(
-                'Absent',
-                totalStats['absent'].toString(),
-                Icons.cancel,
-                Colors.red,
-              ),
-              _buildModernStatCard(
-                'Late',
-                totalStats['late'].toString(),
-                Icons.watch_later,
-                Colors.orange,
-              ),
-            ],
+  // MOBILE FILTERS
+  Widget _buildMobileFilters(List<String> availableClasses) {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedUserType,
+          decoration: const InputDecoration(
+            labelText: 'User Type',
+            border: OutlineInputBorder(),
+          ),
+          items: ['Students', 'Teachers']
+              .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedUserType = value!;
+              _selectedClass = 'All';
+              _selectedSubject = 'All';
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+
+        if (_selectedUserType == 'Students')
+          DropdownButtonFormField<String>(
+            value: _selectedClass,
+            decoration: const InputDecoration(
+              labelText: 'Class',
+              border: OutlineInputBorder(),
+            ),
+            items: availableClasses
+                .map(
+                  (className) => DropdownMenuItem(
+                    value: className,
+                    child: Text(className),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _selectedClass = value!),
+          )
+        else
+          DropdownButtonFormField<String>(
+            value: _selectedSubject,
+            decoration: const InputDecoration(
+              labelText: 'Subject',
+              border: OutlineInputBorder(),
+            ),
+            items: subjects
+                .map(
+                  (subject) =>
+                      DropdownMenuItem(value: subject, child: Text(subject)),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _selectedSubject = value!),
+          ),
+
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: _selectedMonth,
+          decoration: const InputDecoration(
+            labelText: 'Month',
+            border: OutlineInputBorder(),
+          ),
+          items: months
+              .map(
+                (month) => DropdownMenuItem(value: month, child: Text(month)),
+              )
+              .toList(),
+          onChanged: (value) => setState(() => _selectedMonth = value!),
+        ),
+      ],
+    );
+  }
+
+  // DESKTOP FILTERS
+  Widget _buildDesktopFilters(List<String> availableClasses) {
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _selectedUserType,
+            decoration: const InputDecoration(
+              labelText: 'User Type',
+              border: OutlineInputBorder(),
+            ),
+            items: ['Students', 'Teachers']
+                .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedUserType = value!;
+                _selectedClass = 'All';
+                _selectedSubject = 'All';
+              });
+            },
           ),
         ),
+        const SizedBox(width: 12),
 
-        const SizedBox(height: 16),
-
-        // Modern Attendance Table
-        Expanded(
-          child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: attendanceStats.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox, size: 64, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          'No attendance records found',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
+        if (_selectedUserType == 'Students')
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _selectedClass,
+              decoration: const InputDecoration(
+                labelText: 'Class',
+                border: OutlineInputBorder(),
+              ),
+              items: availableClasses
+                  .map(
+                    (className) => DropdownMenuItem(
+                      value: className,
+                      child: Text(className),
                     ),
                   )
-                : SingleChildScrollView(
-                    child: DataTable(
-                      columns: [
-                        const DataColumn(
-                          label: Text(
-                            'Name',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        if (_selectedUserType == 'Students')
-                          const DataColumn(
-                            label: Text(
-                              'Class',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          )
-                        else
-                          const DataColumn(
-                            label: Text(
-                              'Subject',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        const DataColumn(
-                          label: Text(
-                            'Present',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const DataColumn(
-                          label: Text(
-                            'Absent',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const DataColumn(
-                          label: Text(
-                            'Late',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const DataColumn(
-                          label: Text(
-                            'Rate',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                      rows: attendanceStats.entries.map((entry) {
-                        final userId = entry.key;
-                        final user = userList.firstWhere(
-                          (u) => u.id == userId,
-                          orElse: () => User(
-                            id: '',
-                            username: '',
-                            password: '',
-                            role: UserRole.student,
-                            name: 'Unknown',
-                          ),
-                        );
-                        final stats = entry.value;
-                        final rate =
-                            ((stats['present']! / stats['total']!) * 100);
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedClass = value!),
+            ),
+          )
+        else
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _selectedSubject,
+              decoration: const InputDecoration(
+                labelText: 'Subject',
+                border: OutlineInputBorder(),
+              ),
+              items: subjects
+                  .map(
+                    (subject) =>
+                        DropdownMenuItem(value: subject, child: Text(subject)),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedSubject = value!),
+            ),
+          ),
 
-                        return DataRow(
-                          cells: [
-                            DataCell(Text(user.name)),
-                            // Tampilkan Class untuk Student, Subject untuk Teacher
-                            if (_selectedUserType == 'Students')
-                              DataCell(Text(user.className ?? '-'))
-                            else
-                              DataCell(Text(user.subject ?? '-')),
-                            DataCell(Text(stats['present'].toString())),
-                            DataCell(Text(stats['absent'].toString())),
-                            DataCell(Text(stats['late'].toString())),
-                            DataCell(Text('${rate.toStringAsFixed(1)}%')),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _selectedMonth,
+            decoration: const InputDecoration(
+              labelText: 'Month',
+              border: OutlineInputBorder(),
+            ),
+            items: months
+                .map(
+                  (month) => DropdownMenuItem(value: month, child: Text(month)),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _selectedMonth = value!),
           ),
         ),
       ],
     );
   }
 
-  // Modern Stat Card Widget
+  // MONTHLY CHART
+  Widget _buildMonthlyChart(
+    Map<String, Map<String, int>> monthlyStats,
+    bool isMobile,
+  ) {
+    final chartMonths = months
+        .where((month) => month != 'All' && monthlyStats.containsKey(month))
+        .toList();
+
+    return ListView(
+      scrollDirection: Axis.horizontal,
+      children: chartMonths.map((month) {
+        final stats = monthlyStats[month]!;
+        final total = stats['present']! + stats['absent']! + stats['late']!;
+        final presentRate = total > 0 ? (stats['present']! / total * 100) : 0;
+
+        return Container(
+          width: isMobile ? 80 : 100,
+          margin: const EdgeInsets.only(right: 12),
+          child: Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      heightFactor: presentRate / 100,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: presentRate >= 80
+                              ? Colors.green
+                              : presentRate >= 60
+                              ? Colors.orange
+                              : Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                month.substring(0, 3),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${presentRate.toStringAsFixed(0)}%',
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // MOBILE TABLE
+  Widget _buildMobileTable(
+    Map<String, Map<String, int>> attendanceStats,
+    List<User> userList,
+  ) {
+    return Column(
+      children: attendanceStats.entries.map((entry) {
+        final userId = entry.key;
+        final user = userList.firstWhere(
+          (u) => u.id == userId,
+          orElse: () => User(
+            id: '',
+            username: '',
+            password: '',
+            role: UserRole.student,
+            name: 'Unknown',
+          ),
+        );
+        final stats = entry.value;
+        final rate = ((stats['present']! / stats['total']!) * 100);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Class: ${user.className ?? '-'}'),
+                          Text('Present: ${stats['present']}'),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Absent: ${stats['absent']}'),
+                          Text('Late: ${stats['late']}'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: rate / 100,
+                  backgroundColor: Colors.grey[300],
+                  color: rate >= 80
+                      ? Colors.green
+                      : rate >= 60
+                      ? Colors.orange
+                      : Colors.red,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Attendance Rate: ${rate.toStringAsFixed(1)}%',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // DESKTOP TABLE
+  Widget _buildDesktopTable(
+    Map<String, Map<String, int>> attendanceStats,
+    List<User> userList,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columnSpacing: 20,
+        dataRowMinHeight: 40,
+        dataRowMaxHeight: 60,
+        columns: [
+          const DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          if (_selectedUserType == 'Students')
+            const DataColumn(
+              label: Text(
+                'Class',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            )
+          else
+            const DataColumn(
+              label: Text(
+                'Subject',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          const DataColumn(
+            label: Text(
+              'Present',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const DataColumn(
+            label: Text(
+              'Absent',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const DataColumn(
+            label: Text('Late', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const DataColumn(
+            label: Text('Rate', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+        rows: attendanceStats.entries.map((entry) {
+          final userId = entry.key;
+          final user = userList.firstWhere(
+            (u) => u.id == userId,
+            orElse: () => User(
+              id: '',
+              username: '',
+              password: '',
+              role: UserRole.student,
+              name: 'Unknown',
+            ),
+          );
+          final stats = entry.value;
+          final rate = ((stats['present']! / stats['total']!) * 100);
+
+          return DataRow(
+            cells: [
+              DataCell(Text(user.name)),
+              DataCell(
+                Text(
+                  _selectedUserType == 'Students'
+                      ? user.className ?? '-'
+                      : user.subject ?? '-',
+                ),
+              ),
+              DataCell(
+                Text(
+                  stats['present'].toString(),
+                  style: TextStyle(color: Colors.green.shade600),
+                ),
+              ),
+              DataCell(
+                Text(
+                  stats['absent'].toString(),
+                  style: TextStyle(color: Colors.red.shade600),
+                ),
+              ),
+              DataCell(
+                Text(
+                  stats['late'].toString(),
+                  style: TextStyle(color: Colors.orange.shade600),
+                ),
+              ),
+              DataCell(
+                Chip(
+                  label: Text('${rate.toStringAsFixed(1)}%'),
+                  backgroundColor: rate >= 80
+                      ? Colors.green.shade100
+                      : rate >= 60
+                      ? Colors.orange.shade100
+                      : Colors.red.shade100,
+                  labelStyle: TextStyle(
+                    color: rate >= 80
+                        ? Colors.green.shade800
+                        : rate >= 60
+                        ? Colors.orange.shade800
+                        : Colors.red.shade800,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // EMPTY STATE
+  Widget _buildEmptyState() {
+    return const Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.inbox, size: 64, color: Colors.grey),
+        SizedBox(height: 16),
+        Text(
+          'No attendance records found',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+        SizedBox(height: 8),
+        Text(
+          'Try changing your filters or check back later',
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  // MODERN STAT CARD
   Widget _buildModernStatCard(
     String title,
     String value,
@@ -443,16 +764,16 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
       elevation: 2,
       color: color.withOpacity(0.1),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 24),
+            Icon(icon, color: color, size: 28),
             const SizedBox(height: 8),
             Text(
               value,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -460,7 +781,11 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
             const SizedBox(height: 4),
             Text(
               title,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

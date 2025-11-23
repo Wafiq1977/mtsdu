@@ -49,7 +49,12 @@ class StatisticsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatisticsCards(BuildContext context, User user, DataProvider dataProvider, List<User> allUsers) {
+  Widget _buildStatisticsCards(
+    BuildContext context,
+    User user,
+    DataProvider dataProvider,
+    List<User> allUsers,
+  ) {
     switch (user.role) {
       case UserRole.student:
         return _buildStudentStatistics(context, user, dataProvider);
@@ -62,25 +67,44 @@ class StatisticsWidget extends StatelessWidget {
     }
   }
 
-  Widget _buildStudentStatistics(BuildContext context, User user, DataProvider dataProvider) {
-    final userAttendances = dataProvider.attendances.where((a) => a.studentId == user.id).toList();
-    final userGrades = dataProvider.grades.where((g) => g.studentId == user.id).toList();
-    final userPayments = dataProvider.payments.where((p) => p.studentId == user.id).toList();
+  Widget _buildStudentStatistics(
+    BuildContext context,
+    User user,
+    DataProvider dataProvider,
+  ) {
+    final userAttendances = dataProvider.attendances
+        .where((a) => a.studentId == user.id)
+        .toList();
+    final userGrades = dataProvider.grades
+        .where((g) => g.studentId == user.id)
+        .toList();
+    final userPayments = dataProvider.payments
+        .where((p) => p.studentId == user.id)
+        .toList();
 
     // Calculate attendance rate
     final totalAttendance = userAttendances.length;
-    final presentCount = userAttendances.where((a) => a.status == AttendanceStatus.present).length;
-    final attendanceRate = totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0.0;
+    final presentCount = userAttendances
+        .where((a) => a.status == AttendanceStatus.present)
+        .length;
+    final attendanceRate = totalAttendance > 0
+        ? (presentCount / totalAttendance) * 100
+        : 0.0;
 
     // Calculate average grade
     final averageGrade = userGrades.isNotEmpty
-        ? userGrades.map((g) => g.score).reduce((a, b) => a + b) / userGrades.length
+        ? userGrades.map((g) => g.score).reduce((a, b) => a + b) /
+              userGrades.length
         : 0.0;
 
     // Calculate payment statistics
-    final paidPayments = userPayments.where((p) => p.status == PaymentStatus.paid).length;
+    final paidPayments = userPayments
+        .where((p) => p.status == PaymentStatus.paid)
+        .length;
     final totalPayments = userPayments.length;
-    final paymentRate = totalPayments > 0 ? (paidPayments / totalPayments) * 100 : 0.0;
+    final paymentRate = totalPayments > 0
+        ? (paidPayments / totalPayments) * 100
+        : 0.0;
 
     return Column(
       children: [
@@ -135,10 +159,20 @@ class StatisticsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTeacherStatistics(BuildContext context, User user, DataProvider dataProvider) {
-    final teacherAttendances = dataProvider.attendances.where((a) => a.teacherId == user.id).toList();
-    final teacherGrades = dataProvider.grades.where((g) => g.teacherId == user.id).toList();
-    final teacherSchedules = dataProvider.schedules.where((s) => s.assignedToId == user.id).toList();
+  Widget _buildTeacherStatistics(
+    BuildContext context,
+    User user,
+    DataProvider dataProvider,
+  ) {
+    final teacherAttendances = dataProvider.attendances
+        .where((a) => a.teacherId == user.id)
+        .toList();
+    final teacherGrades = dataProvider.grades
+        .where((g) => g.teacherId == user.id)
+        .toList();
+    final teacherSchedules = dataProvider.schedules
+        .where((s) => s.assignedToId == user.id)
+        .toList();
 
     // Calculate unique students taught
     final uniqueStudents = <String>{};
@@ -148,8 +182,12 @@ class StatisticsWidget extends StatelessWidget {
 
     // Calculate average attendance rate for teacher's classes
     final totalAttendance = teacherAttendances.length;
-    final presentCount = teacherAttendances.where((a) => a.status == AttendanceStatus.present).length;
-    final avgAttendanceRate = totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0.0;
+    final presentCount = teacherAttendances
+        .where((a) => a.status == AttendanceStatus.present)
+        .length;
+    final avgAttendanceRate = totalAttendance > 0
+        ? (presentCount / totalAttendance) * 100
+        : 0.0;
 
     return Column(
       children: [
@@ -204,19 +242,33 @@ class StatisticsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminStatistics(BuildContext context, User user, DataProvider dataProvider, List<User> allUsers) {
+  Widget _buildAdminStatistics(
+    BuildContext context,
+    User user,
+    DataProvider dataProvider,
+    List<User> allUsers,
+  ) {
     final totalUsers = allUsers.length;
-    final totalStudents = allUsers.where((u) => u.role == UserRole.student).length;
-    final totalTeachers = allUsers.where((u) => u.role == UserRole.teacher).length;
+    final totalStudents = allUsers
+        .where((u) => u.role == UserRole.student)
+        .length;
+    final totalTeachers = allUsers
+        .where((u) => u.role == UserRole.teacher)
+        .length;
 
     final allAttendances = dataProvider.attendances;
     final totalAttendance = allAttendances.length;
-    final presentCount = allAttendances.where((a) => a.status == AttendanceStatus.present).length;
-    final overallAttendanceRate = totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0.0;
+    final presentCount = allAttendances
+        .where((a) => a.status == AttendanceStatus.present)
+        .length;
+    final overallAttendanceRate = totalAttendance > 0
+        ? (presentCount / totalAttendance) * 100
+        : 0.0;
 
     final allGrades = dataProvider.grades;
     final averageGrade = allGrades.isNotEmpty
-        ? allGrades.map((g) => g.score).reduce((a, b) => a + b) / allGrades.length
+        ? allGrades.map((g) => g.score).reduce((a, b) => a + b) /
+              allGrades.length
         : 0.0;
 
     return Column(
@@ -272,7 +324,13 @@ class StatisticsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String subtitle,
+  ) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -311,10 +369,7 @@ class StatisticsWidget extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
             ),
           ],
         ),
