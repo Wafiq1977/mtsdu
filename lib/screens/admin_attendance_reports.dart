@@ -20,11 +20,32 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
   String _selectedClass = 'All';
   String _selectedMonth = 'All';
   String _selectedUserType = 'Students';
+  String _selectedSubject = 'All';
 
   final List<String> months = [
-    'All', 'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'All',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
+
+  final List<String> subjects = [
+    'All',
+    'Math',
+    'Science',
+    'English',
+    'History',
+    'Religion',
+  ]; // Sesuaikan dengan data kamu
 
   @override
   void initState() {
@@ -56,9 +77,16 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
       if (!userExists) return false;
 
-      if (_selectedClass != 'All') {
+      // Filter untuk Student - berdasarkan Class
+      if (_selectedUserType == 'Students' && _selectedClass != 'All') {
         final user = userList.firstWhere((u) => u.id == attendance.studentId);
         if (user.className != _selectedClass) return false;
+      }
+
+      // Filter untuk Teacher - berdasarkan Subject
+      if (_selectedUserType == 'Teachers' && _selectedSubject != 'All') {
+        final user = userList.firstWhere((u) => u.id == attendance.studentId);
+        if (user.subject != _selectedSubject) return false;
       }
 
       if (_selectedMonth != 'All') {
@@ -99,7 +127,7 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     return stats;
   }
 
-  List<String> _getAvailableClasses() { //LIST
+  List<String> _getAvailableClasses() {
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
     final classes = userList
         .map((u) => u.className)
@@ -109,132 +137,6 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         .toList();
     classes.sort();
     return ['All', ...classes];
-  }
-
-  @override // polymorpisme
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    final filteredAttendances = _getFilteredAttendances();
-    final attendanceStats = _calculateAttendanceStats();
-    final availableClasses = _getAvailableClasses();
-    final userList = _selectedUserType == 'Students' ? _students : _teachers;
-
-    return Column(
-      children: [
-        // Filters
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedUserType,
-                      decoration: const InputDecoration(labelText: 'User Type'),
-                      items: ['Students', 'Teachers'].map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedUserType = value!;
-                          _selectedClass = 'All'; // Reset class filter
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedClass,
-                      decoration: const InputDecoration(labelText: 'Class'),
-                      items: availableClasses.map((className) => DropdownMenuItem(
-                        value: className,
-                        child: Text(className),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedClass = value!;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedMonth,
-                      decoration: const InputDecoration(labelText: 'Month'),
-                      items: months.map((month) => DropdownMenuItem(
-                        value: month,
-                        child: Text(month),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedMonth = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Summary Stats
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatCard('Total Records', filteredAttendances.length.toString(), Colors.blue),
-                  _buildStatCard('Present', _calculateTotalStats()['present'].toString(), Colors.green),
-                  _buildStatCard('Absent', _calculateTotalStats()['absent'].toString(), Colors.red),
-                  _buildStatCard('Late', _calculateTotalStats()['late'].toString(), Colors.orange),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Attendance List
-        Expanded(
-          child: ListView.builder(
-            itemCount: attendanceStats.length,
-            itemBuilder: (context, index) {
-              final userId = attendanceStats.keys.elementAt(index);
-              final user = userList.firstWhere(
-                (u) => u.id == userId,
-                orElse: () => User(id: '', username: '', password: '', role: UserRole.student, name: 'Unknown'),
-              );
-              final stats = attendanceStats[userId]!;
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: ListTile(
-                  title: Text(user.name),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_selectedUserType == 'Students')
-                        Text('Class: ${user.className}'),
-                      Text('Present: ${stats['present']} | Absent: ${stats['absent']} | Late: ${stats['late']} | Total: ${stats['total']}'),
-                      Text('Attendance Rate: ${((stats['present']! / stats['total']!) * 100).toStringAsFixed(1)}%'),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
   }
 
   Map<String, int> _calculateTotalStats() {
@@ -250,25 +152,320 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     return stats;
   }
 
-  Widget _buildStatCard(String title, String value, Color color) {
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final filteredAttendances = _getFilteredAttendances();
+    final attendanceStats = _calculateAttendanceStats();
+    final availableClasses = _getAvailableClasses();
+    final userList = _selectedUserType == 'Students' ? _students : _teachers;
+    final totalStats = _calculateTotalStats();
+
     return Column(
       children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: color,
+        // Modern Filters
+        Card(
+          margin: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedUserType,
+                    decoration: const InputDecoration(
+                      labelText: 'User Type',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: ['Students', 'Teachers']
+                        .map(
+                          (type) =>
+                              DropdownMenuItem(value: type, child: Text(type)),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedUserType = value!;
+                        _selectedClass = 'All';
+                        _selectedSubject = 'All';
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // FILTER BERBEDA UNTUK STUDENT vs TEACHER
+                if (_selectedUserType == 'Students')
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedClass,
+                      decoration: const InputDecoration(
+                        labelText: 'Class',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: availableClasses
+                          .map(
+                            (className) => DropdownMenuItem(
+                              value: className,
+                              child: Text(className),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedClass = value!;
+                        });
+                      },
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedSubject,
+                      decoration: const InputDecoration(
+                        labelText: 'Subject',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: subjects
+                          .map(
+                            (subject) => DropdownMenuItem(
+                              value: subject,
+                              child: Text(subject),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedSubject = value!;
+                        });
+                      },
+                    ),
+                  ),
+
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedMonth,
+                    decoration: const InputDecoration(
+                      labelText: 'Month',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: months
+                        .map(
+                          (month) => DropdownMenuItem(
+                            value: month,
+                            child: Text(month),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedMonth = value!;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+
+        // Modern Statistics Cards
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.count(
+            shrinkWrap: true,
+            crossAxisCount: 4,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.2,
+            children: [
+              _buildModernStatCard(
+                'Total Records',
+                filteredAttendances.length.toString(),
+                Icons.list_alt,
+                Colors.blue,
+              ),
+              _buildModernStatCard(
+                'Present',
+                totalStats['present'].toString(),
+                Icons.check_circle,
+                Colors.green,
+              ),
+              _buildModernStatCard(
+                'Absent',
+                totalStats['absent'].toString(),
+                Icons.cancel,
+                Colors.red,
+              ),
+              _buildModernStatCard(
+                'Late',
+                totalStats['late'].toString(),
+                Icons.watch_later,
+                Colors.orange,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Modern Attendance Table
+        Expanded(
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: attendanceStats.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox, size: 64, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text(
+                          'No attendance records found',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: DataTable(
+                      columns: [
+                        const DataColumn(
+                          label: Text(
+                            'Name',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        if (_selectedUserType == 'Students')
+                          const DataColumn(
+                            label: Text(
+                              'Class',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        else
+                          const DataColumn(
+                            label: Text(
+                              'Subject',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        const DataColumn(
+                          label: Text(
+                            'Present',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const DataColumn(
+                          label: Text(
+                            'Absent',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const DataColumn(
+                          label: Text(
+                            'Late',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const DataColumn(
+                          label: Text(
+                            'Rate',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                      rows: attendanceStats.entries.map((entry) {
+                        final userId = entry.key;
+                        final user = userList.firstWhere(
+                          (u) => u.id == userId,
+                          orElse: () => User(
+                            id: '',
+                            username: '',
+                            password: '',
+                            role: UserRole.student,
+                            name: 'Unknown',
+                          ),
+                        );
+                        final stats = entry.value;
+                        final rate =
+                            ((stats['present']! / stats['total']!) * 100);
+
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(user.name)),
+                            // Tampilkan Class untuk Student, Subject untuk Teacher
+                            if (_selectedUserType == 'Students')
+                              DataCell(Text(user.className ?? '-'))
+                            else
+                              DataCell(Text(user.subject ?? '-')),
+                            DataCell(Text(stats['present'].toString())),
+                            DataCell(Text(stats['absent'].toString())),
+                            DataCell(Text(stats['late'].toString())),
+                            DataCell(Text('${rate.toStringAsFixed(1)}%')),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  // Modern Stat Card Widget
+  Widget _buildModernStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Card(
+      elevation: 2,
+      color: color.withOpacity(0.1),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
