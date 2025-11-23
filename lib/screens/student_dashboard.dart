@@ -10,10 +10,6 @@ import '../models/attendance.dart' as attendance_model;
 
 import '../widgets/statistics_widget.dart';
 import '../widgets/animated_navigation_bar.dart';
-import 'student_grades_screen.dart';
-import 'student_attendance_screen.dart';
-import 'student_assignments_screen.dart';
-import 'student_materials_screen.dart';
 
 // -------------------------------------------------------------------
 // PERUBAHAN: Pastikan import untuk BlogView sudah ada
@@ -50,7 +46,7 @@ class _StudentDashboardState extends State<StudentDashboard>
     setState(() {
       _selectedIndex = index;
     });
-    // Navigate to the corresponding sub-route
+    // Navigate to the corresponding sub-route using GoRouter to keep URL in sync
     switch (index) {
       case 0:
         context.go('/student-dashboard/pengumuman');
@@ -81,8 +77,8 @@ class _StudentDashboardState extends State<StudentDashboard>
   @override
   void initState() {
     super.initState();
+    // Set initial index from constructor (passed by GoRouter)
     _selectedIndex = widget.initialIndex;
-    // Theme is already loaded in ThemeProvider constructor
 
     // Initialize animations
     _fabAnimationController = AnimationController(
@@ -206,114 +202,101 @@ class _StudentDashboardState extends State<StudentDashboard>
     );
   }
 
-  // Example usage of intl package to format current date
-  String getFormattedDate() {
-    final now = DateTime.now();
-    final formatter = DateFormat.yMMMMd('en_US');
-    return formatter.format(now);
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+
     if (user == null) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF667EEA),
-                Color(0xFF764BA2),
-                Color(0xFFF093FB),
-                Color(0xFFF5576C),
-              ],
-            ),
-          ),
-          child: const Center(child: CircularProgressIndicator()),
-        ),
-      );
+      return Scaffold(body: const Center(child: CircularProgressIndicator()));
     }
+
+    // Cek apakah sedang di halaman profil
+    final bool isProfilePage = _selectedIndex == 3;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667EEA),
-              Color(0xFF764BA2),
-              Color(0xFFF093FB),
-              Color(0xFFF5576C),
-            ],
-          ),
-        ),
+        // Hapus gradient jika di halaman profil agar warna biru dari ProfileView terlihat full
+        decoration: isProfilePage
+            ? null
+            : const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF667EEA),
+                    Color(0xFF764BA2),
+                    Color(0xFFF093FB),
+                    Color(0xFFF5576C),
+                  ],
+                ),
+              ),
         child: SafeArea(
           child: FadeTransition(
             opacity: _contentAnimation,
             child: Column(
               children: [
-                // Header with slide animation
-                SlideTransition(
-                  position:
-                      Tween<Offset>(
-                        begin: const Offset(0, -0.5),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: _contentAnimationController,
-                          curve: const Interval(
-                            0.1,
-                            0.6,
-                            curve: Curves.easeOutCubic,
-                          ),
-                        ),
-                      ),
-                  child: FadeTransition(
-                    opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                      CurvedAnimation(
-                        parent: _contentAnimationController,
-                        curve: const Interval(0.1, 0.5, curve: Curves.easeIn),
-                      ),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () =>
-                                _showProfileDialog(context, user, authProvider),
-                            child: user.profileImagePath != null
-                                ? CircleAvatar(
-                                    radius: 20,
-                                    backgroundImage: AssetImage(
-                                      user.profileImagePath!,
-                                    ),
-                                  )
-                                : const CircleAvatar(
-                                    radius: 20,
-                                    child: Icon(Icons.person),
-                                  ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Welcome, ${user.name}!',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                // Header: Sembunyikan jika di halaman profil
+                if (!isProfilePage)
+                  SlideTransition(
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, -0.5),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _contentAnimationController,
+                            curve: const Interval(
+                              0.1,
+                              0.6,
+                              curve: Curves.easeOutCubic,
                             ),
                           ),
-                        ],
+                        ),
+                    child: FadeTransition(
+                      opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+                        CurvedAnimation(
+                          parent: _contentAnimationController,
+                          curve: const Interval(0.1, 0.5, curve: Curves.easeIn),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setState(() => _selectedIndex = 3);
+                                context.go('/student-dashboard/profil');
+                              },
+                              child: user.profileImagePath != null
+                                  ? CircleAvatar(
+                                      radius: 20,
+                                      backgroundImage: AssetImage(
+                                        user.profileImagePath!,
+                                      ),
+                                    )
+                                  : const CircleAvatar(
+                                      radius: 20,
+                                      child: Icon(Icons.person),
+                                    ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Welcome, ${user.name}!',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Content Area with scale animation
+                // Content Area
                 Expanded(
                   child: ScaleTransition(
                     scale: Tween<double>(begin: 0.9, end: 1.0).animate(
@@ -333,80 +316,16 @@ class _StudentDashboardState extends State<StudentDashboard>
                           curve: const Interval(0.3, 0.8, curve: Curves.easeIn),
                         ),
                       ),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                            child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 150),
-                            transitionBuilder:
-                                (Widget child, Animation<double> animation) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: SlideTransition(
-                                      position:
-                                          Tween<Offset>(
-                                            begin: const Offset(0.5, 0.0),
-                                            end: Offset.zero,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeOutCubic,
-                                            ),
-                                          ),
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                            child: _widgetOptions.elementAt(_selectedIndex),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Collapsible Tools Section with smooth animation
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOutCubic,
-                  child: _showTools
-                      ? FadeTransition(
-                          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                            CurvedAnimation(
-                              parent: _fabAnimationController,
-                              curve: Curves.easeIn,
-                            ),
-                          ),
-                          child: SlideTransition(
-                            position:
-                                Tween<Offset>(
-                                  begin: const Offset(0, 0.3),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: _fabAnimationController,
-                                    curve: Curves.easeOutCubic,
-                                  ),
-                                ),
-                            child: Container(
+                      // Jika Profile: Full screen. Jika Bukan: Pakai Container putih melengkung.
+                      child: isProfilePage
+                          ? AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 400),
+                              child: _widgetOptions.elementAt(_selectedIndex),
+                            )
+                          : Container(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 20,
                               ),
-                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
@@ -418,71 +337,159 @@ class _StudentDashboardState extends State<StudentDashboard>
                                   ),
                                 ],
                               ),
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    'Schedule Tools',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF667EEA),
-                                    ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 400),
+                                  transitionBuilder:
+                                      (
+                                        Widget child,
+                                        Animation<double> animation,
+                                      ) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: SlideTransition(
+                                            position:
+                                                Tween<Offset>(
+                                                  begin: const Offset(0.5, 0.0),
+                                                  end: Offset.zero,
+                                                ).animate(
+                                                  CurvedAnimation(
+                                                    parent: animation,
+                                                    curve: Curves.easeOutCubic,
+                                                  ),
+                                                ),
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                  child: _widgetOptions.elementAt(
+                                    _selectedIndex,
                                   ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      _buildDayButton('Monday'),
-                                      _buildDayButton('Tuesday'),
-                                      _buildDayButton('Wednesday'),
-                                      _buildDayButton('Thursday'),
-                                      _buildDayButton('Friday'),
-                                    ],
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
+                    ),
+                  ),
                 ),
 
-                const SizedBox(height: 10),
+                if (!isProfilePage) const SizedBox(height: 10),
+
+                // Collapsible Tools Section
+                if (!isProfilePage)
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOutCubic,
+                    child: _showTools
+                        ? FadeTransition(
+                            opacity: Tween<double>(begin: 0.0, end: 1.0)
+                                .animate(
+                                  CurvedAnimation(
+                                    parent: _fabAnimationController,
+                                    curve: Curves.easeIn,
+                                  ),
+                                ),
+                            child: SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(0, 0.3),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: _fabAnimationController,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                                  ),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 20,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'Schedule Tools',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF667EEA),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildDayButton('Monday'),
+                                        _buildDayButton('Tuesday'),
+                                        _buildDayButton('Wednesday'),
+                                        _buildDayButton('Thursday'),
+                                        _buildDayButton('Friday'),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+
+                if (!isProfilePage) const SizedBox(height: 10),
               ],
             ),
           ),
         ),
       ),
-      floatingActionButton: ScaleTransition(
-        scale: _fabAnimation,
-        child: FadeTransition(
-          opacity: Tween<double>(
-            begin: 0.7,
-            end: 1.0,
-          ).animate(_fabAnimationController),
-          child: FloatingActionButton(
-            onPressed: _toggleTools,
-            backgroundColor: const Color(0xFF667EEA),
-            elevation: 8,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return RotationTransition(
-                  turns: Tween<double>(begin: 0.0, end: 0.25).animate(
-                    CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+      floatingActionButton: !isProfilePage
+          ? ScaleTransition(
+              scale: _fabAnimation,
+              child: FadeTransition(
+                opacity: Tween<double>(
+                  begin: 0.7,
+                  end: 1.0,
+                ).animate(_fabAnimationController),
+                child: FloatingActionButton(
+                  onPressed: _toggleTools,
+                  backgroundColor: const Color(0xFF667EEA),
+                  elevation: 8,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return RotationTransition(
+                            turns: Tween<double>(begin: 0.0, end: 0.25).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            ),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
+                    child: Icon(
+                      _showTools ? Icons.close : Icons.build,
+                      key: ValueKey<bool>(_showTools),
+                    ),
                   ),
-                  child: FadeTransition(opacity: animation, child: child),
-                );
-              },
-              child: Icon(
-                _showTools ? Icons.close : Icons.build,
-                key: ValueKey<bool>(_showTools),
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
+            )
+          : null,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
@@ -529,84 +536,12 @@ class _StudentDashboardState extends State<StudentDashboard>
     User user,
     AuthProvider authProvider,
   ) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Consumer<ThemeProvider>(
-          builder: (context, themeProvider, child) {
-            return AlertDialog(
-              title: const Text('Profile'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: user.profileImagePath != null
-                          ? CircleAvatar(
-                              radius: 40,
-                              backgroundImage: AssetImage(
-                                user.profileImagePath!,
-                              ),
-                            )
-                          : const CircleAvatar(
-                              radius: 40,
-                              child: Icon(Icons.person, size: 40),
-                            ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Name: ${user.name}'),
-                    Text('Class: ${user.className}'),
-                    Text('Major: ${user.major}'),
-                    const SizedBox(height: 20),
-                    // Theme Toggle Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Dark Mode',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Switch(
-                          value: themeProvider.isDarkMode,
-                          onChanged: (value) {
-                            themeProvider.toggleTheme();
-                          },
-                          activeColor: const Color(0xFF667EEA),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Statistics Section
-                    const StatisticsWidget(),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        authProvider.logout();
-                        Navigator.of(context).pop();
-                        context.go('/');
-                      },
-                      child: const Text('Logout'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+    // We don't need this anymore as profile is a tab, but kept for reference
+    context.go('/student-dashboard/profil');
   }
 }
+
+// --- WIDGETS ---
 
 class GradesView extends StatelessWidget {
   const GradesView({super.key});
@@ -639,7 +574,6 @@ class GradesView extends StatelessWidget {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
-                // Simulate refresh
                 await Future.delayed(const Duration(seconds: 1));
               },
               child: ListView.builder(
@@ -928,7 +862,7 @@ class HomeView extends StatelessWidget {
                     Icons.grade,
                     Colors.green,
                     grades.length,
-                    () => _navigateToView(context, 0), // Grades
+                    () => _navigateToView(context, 0),
                   ),
                   _buildFeatureCard(
                     context,
@@ -936,7 +870,7 @@ class HomeView extends StatelessWidget {
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
-                    () => _navigateToView(context, 1), // Attendance
+                    () => _navigateToView(context, 1),
                   ),
                   _buildFeatureCard(
                     context,
@@ -944,15 +878,15 @@ class HomeView extends StatelessWidget {
                     Icons.assignment,
                     Colors.purple,
                     assignments.length,
-                    () => _navigateToView(context, 2), // Assignments
+                    () => _navigateToView(context, 2),
                   ),
                   _buildFeatureCard(
                     context,
                     'Materi',
                     Icons.library_books,
                     Colors.teal,
-                    0, // Placeholder for materials count
-                    () => _navigateToView(context, 3), // Materials
+                    0,
+                    () => _navigateToView(context, 4),
                   ),
                 ],
               ),
@@ -1005,8 +939,6 @@ class HomeView extends StatelessWidget {
   }
 
   void _navigateToView(BuildContext context, int index) {
-    // Cards navigate to specific tool views
-    // Card indices: 0=Grades, 1=Attendance, 2=Assignments, 3=Materials, 4=Announcements
     switch (index) {
       case 0:
         context.go('/student-dashboard/beranda/grades');
@@ -1017,90 +949,10 @@ class HomeView extends StatelessWidget {
       case 2:
         context.go('/student-dashboard/beranda/assignments');
         break;
-      case 3:
+      case 4:
         context.go('/student-dashboard/beranda/materials');
         break;
-      case 4:
-        // Announcements: Keep modal since no separate screen exists
-        _showToolView(context, index);
-        break;
-      default:
-        break;
     }
-  }
-
-  void _showToolView(BuildContext context, int toolIndex) {
-    Widget toolView = const SizedBox.shrink();
-    String title = '';
-
-    switch (toolIndex) {
-      case 0:
-        toolView = const GradesView();
-        title = 'Nilai';
-        break;
-      case 1:
-        toolView = const AttendanceView();
-        title = 'Kehadiran';
-        break;
-      case 2:
-        toolView = const AssignmentsView();
-        title = 'Tugas';
-        break;
-      case 3:
-        toolView = const MaterialsView();
-        title = 'Materi';
-        break;
-      case 4:
-        toolView = const AnnouncementsView();
-        title = 'Pengumuman';
-        break;
-      default:
-        return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.8,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                color: Colors.white,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF667EEA),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(child: toolView),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -1109,7 +961,6 @@ class MaterialsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Placeholder for materials - you can expand this with actual materials data
     final materials = [
       {'title': 'Matematika Dasar', 'subject': 'Matematika', 'type': 'PDF'},
       {'title': 'Fisika Mekanika', 'subject': 'Fisika', 'type': 'Video'},
@@ -1167,7 +1018,6 @@ class MaterialsView extends StatelessWidget {
                     trailing: IconButton(
                       icon: const Icon(Icons.download, color: Colors.teal),
                       onPressed: () {
-                        // TODO: Implement download functionality
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Downloading ${material['title']}'),
@@ -1207,7 +1057,6 @@ class ProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
 
     return Container(
@@ -1355,7 +1204,6 @@ class AcademicCalendarView extends StatelessWidget {
     final currentMonth = DateTime(now.year, now.month, 1);
     final nextMonth = DateTime(now.year, now.month + 1, 1);
 
-    // Sample academic events - you can replace with actual data
     final academicEvents = [
       {
         'date': DateTime(now.year, now.month, 15),
@@ -1400,17 +1248,14 @@ class AcademicCalendarView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  // Current Month Calendar
                   _buildMonthCalendar(
                     currentMonth,
                     academicEvents,
                     'Bulan Ini',
                   ),
                   const SizedBox(height: 20),
-                  // Next Month Calendar
                   _buildMonthCalendar(nextMonth, academicEvents, 'Bulan Depan'),
                   const SizedBox(height: 20),
-                  // Upcoming Events
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -1510,7 +1355,7 @@ class AcademicCalendarView extends StatelessWidget {
   ) {
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final firstDayOfMonth = DateTime(month.year, month.month, 1);
-    final startingWeekday = firstDayOfMonth.weekday; // 1 = Monday, 7 = Sunday
+    final startingWeekday = firstDayOfMonth.weekday;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1537,7 +1382,6 @@ class AcademicCalendarView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Day headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
@@ -1558,7 +1402,6 @@ class AcademicCalendarView extends StatelessWidget {
                 .toList(),
           ),
           const SizedBox(height: 8),
-          // Calendar grid
           Wrap(
             spacing: 4,
             runSpacing: 4,

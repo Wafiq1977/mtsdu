@@ -9,6 +9,7 @@ class HiveService {
   static const String assignmentBox = 'assignments';
   static const String announcementBox = 'announcements';
   static const String paymentBox = 'payments';
+  static const String calendarEventBox = 'calendar_events'; // TAMBAH INI
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -20,6 +21,7 @@ class HiveService {
     await Hive.openBox(assignmentBox);
     await Hive.openBox(announcementBox);
     await Hive.openBox(paymentBox);
+    await Hive.openBox(calendarEventBox); // TAMBAH INI
   }
 
   static Box getUserBox() {
@@ -48,5 +50,10 @@ class HiveService {
 
   static Box getPaymentBox() {
     return Hive.box(paymentBox);
+  }
+
+  // TAMBAH INI - Calendar Events Box
+  static Box getCalendarEventBox() {
+    return Hive.box(calendarEventBox);
   }
 }

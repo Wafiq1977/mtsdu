@@ -13,6 +13,8 @@ class Schedule extends BaseModel {
   String _time;
   String _room;
   ScheduleType _scheduleType;
+  String? _major; // TAMBAH INI
+  String? _grade; // TAMBAH INI
 
   Schedule({
     required String id,
@@ -23,6 +25,8 @@ class Schedule extends BaseModel {
     required String time,
     required String room,
     required ScheduleType scheduleType,
+    String? major, // TAMBAH INI
+    String? grade, // TAMBAH INI
   })  : _subject = subject,
         _assignedToId = assignedToId,
         _className = className,
@@ -30,6 +34,8 @@ class Schedule extends BaseModel {
         _time = time,
         _room = room,
         _scheduleType = scheduleType,
+        _major = major, // TAMBAH INI
+        _grade = grade, // TAMBAH INI
         super(id: id);
 
   // Getters
@@ -40,6 +46,8 @@ class Schedule extends BaseModel {
   String get time => _time;
   String get room => _room;
   ScheduleType get scheduleType => _scheduleType;
+  String? get major => _major; // TAMBAH INI
+  String? get grade => _grade; // TAMBAH INI
 
   // Setters
   set subject(String value) => _subject = value;
@@ -49,6 +57,8 @@ class Schedule extends BaseModel {
   set time(String value) => _time = value;
   set room(String value) => _room = value;
   set scheduleType(ScheduleType value) => _scheduleType = value;
+  set major(String? value) => _major = value; // TAMBAH INI
+  set grade(String? value) => _grade = value; // TAMBAH INI
 
   @override
   Map<String, dynamic> toMap() {
@@ -61,6 +71,8 @@ class Schedule extends BaseModel {
       'time': _time,
       'room': _room,
       'scheduleType': _scheduleType.toString().split('.').last,
+      'major': _major, // TAMBAH INI
+      'grade': _grade, // TAMBAH INI
     };
   }
 
@@ -77,6 +89,8 @@ class Schedule extends BaseModel {
         (e) => e.toString().split('.').last == (map['scheduleType'] ?? 'teacher'),
         orElse: () => ScheduleType.teacher,
       ),
+      major: map['major'], // TAMBAH INI
+      grade: map['grade'], // TAMBAH INI
     );
   }
 }
