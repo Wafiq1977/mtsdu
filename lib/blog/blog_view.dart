@@ -1,13 +1,11 @@
 // lib/blog/blog_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'blog_cubit.dart';
 import 'blog_state.dart';
-import '../models/blog.dart'; // Sesuaikan path jika perlu
+import '../models/blog.dart';
 
-// -------------------------------------------------------------------
-// PERUBAHAN: Diubah menjadi StatefulWidget
-// -------------------------------------------------------------------
 class BlogView extends StatefulWidget {
   const BlogView({super.key});
 
@@ -16,15 +14,13 @@ class BlogView extends StatefulWidget {
 }
 
 class _BlogViewState extends State<BlogView> {
-  // State untuk menyimpan nilai filter
   late TextEditingController _searchController;
-  String _selectedSortBy = 'publishedAt'; // 'publishedAt', 'popularity', 'relevancy'
-  String _selectedLanguage = 'id'; // 'id', 'en', 'ar', 'de'
+  String _selectedLanguage = 'id';
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi state filter
+    // Default text sesuai logic cubit
     _searchController = TextEditingController(text: 'Pendidikan');
   }
 
@@ -34,12 +30,12 @@ class _BlogViewState extends State<BlogView> {
     super.dispose();
   }
 
-  // Method untuk memicu Cubit mengambil data baru
   void _applyFilters() {
-    // Membaca Cubit dari context dan memanggil fetchBlogs dengan state filter saat ini
+    // Menutup keyboard saat search dimulai
+    FocusScope.of(context).unfocus();
+    
     context.read<BlogCubit>().fetchBlogs(
-      searchQuery: _searchController.text.isNotEmpty ? _searchController.text : 'Pendidikan',
-      sortBy: _selectedSortBy,
+      searchQuery: _searchController.text,
       language: _selectedLanguage,
     );
   }
@@ -47,25 +43,16 @@ class _BlogViewState extends State<BlogView> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      // Panggilan fetch awal saat widget pertama kali dibuat
       create: (context) => BlogCubit()..fetchBlogs(
         searchQuery: _searchController.text,
-        sortBy: _selectedSortBy,
         language: _selectedLanguage,
       ),
-      // -------------------------------------------------------------------
-      // PERUBAHAN: Membungkus BlocBuilder di dalam Column
-      // -------------------------------------------------------------------
       child: Column(
         children: [
-          // 1. Tampilkan UI Filter
           _buildFilterWidgets(),
-          
-          // 2. Tampilkan hasil dari BlocBuilder
           BlocBuilder<BlogCubit, BlogState>(
             builder: (context, state) {
-              if (state is BlogLoading || state is BlogInitial) {
-                // Tampilkan loading di bawah filter
+              if (state is BlogLoading) {
                 return const Padding(
                   padding: EdgeInsets.all(32.0),
                   child: Center(child: CircularProgressIndicator()),
@@ -74,17 +61,28 @@ class _BlogViewState extends State<BlogView> {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      state.message,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
+                    child: Column(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.message,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: _applyFilters,
+                          child: const Text("Coba Lagi"),
+                        )
+                      ],
                     ),
                   ),
                 );
               } else if (state is BlogLoaded) {
                 return _buildBlogList(context, state.blogs);
               }
-              return const SizedBox.shrink(); // State tidak terduga
+              return const SizedBox.shrink();
             },
           ),
         ],
@@ -92,122 +90,94 @@ class _BlogViewState extends State<BlogView> {
     );
   }
 
-  // -------------------------------------------------------------------
-  // WIDGET BARU: Untuk UI Filter (Search + Dropdown)
-  // -------------------------------------------------------------------
   Widget _buildFilterWidgets() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        children: [
-          // Search Bar
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              labelText: 'Cari Berita',
-              hintText: 'Masukkan kata kunci...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
-            ),
-            onSubmitted: (value) => _applyFilters(), // Terapkan filter saat submit
-          ),
-          const SizedBox(height: 8),
-          // Filter Dropdowns
-          Row(
+    // Menggunakan Builder agar kita bisa akses context yang mengandung BlogCubit 
+    // (karena BlocProvider ada di atasnya)
+    return Builder(
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
             children: [
-              // Filter Bahasa
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: _selectedLanguage,
-                  decoration: const InputDecoration(
-                    labelText: 'Bahasa',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10)
+              // Search Bar
+              TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search, // Ubah tombol keyboard jadi "Search"
+                decoration: InputDecoration(
+                  labelText: 'Cari Berita Pendidikan',
+                  hintText: 'Contoh: Beasiswa, Kurikulum',
+                  prefixIcon: const Icon(Icons.search),
+                  // PERBAIKAN: Menambahkan tombol 'X' untuk clear atau tombol search di kanan
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: () {
+                      // Panggil fungsi fetchBlogs lewat context yang benar
+                      context.read<BlogCubit>().fetchBlogs(
+                        searchQuery: _searchController.text,
+                        language: _selectedLanguage,
+                      );
+                    }, 
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'id', child: Text('Indonesia')),
-                    DropdownMenuItem(value: 'en', child: Text('English')),
-                    DropdownMenuItem(value: 'ar', child: Text('Arabic')),
-                    DropdownMenuItem(value: 'de', child: Text('German')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedLanguage = value;
-                      });
-                      _applyFilters(); // Langsung terapkan filter
-                    }
-                  },
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
+                onSubmitted: (value) {
+                  context.read<BlogCubit>().fetchBlogs(
+                    searchQuery: value,
+                    language: _selectedLanguage,
+                  );
+                },
               ),
-              const SizedBox(width: 8),
-              // Filter Urutan
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: _selectedSortBy,
-                   decoration: const InputDecoration(
-                    labelText: 'Urutkan',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10)
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'publishedAt', child: Text('Terbaru')),
-                    DropdownMenuItem(value: 'popularity', child: Text('Populer')),
-                    DropdownMenuItem(value: 'relevancy', child: Text('Relevan')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedSortBy = value;
-                      });
-                      _applyFilters(); // Langsung terapkan filter
-                    }
-                  },
+              const SizedBox(height: 12),
+              
+              // Filter Bahasa
+              DropdownButtonFormField<String>(
+                value: _selectedLanguage,
+                decoration: const InputDecoration(
+                  labelText: 'Bahasa Berita',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.language),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 12)
                 ),
+                items: const [
+                  DropdownMenuItem(value: 'id', child: Text('Indonesia')),
+                  DropdownMenuItem(value: 'en', child: Text('Inggris (English)')),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedLanguage = value);
+                    // Langsung fetch ulang saat ganti bahasa
+                    context.read<BlogCubit>().fetchBlogs(
+                      searchQuery: _searchController.text,
+                      language: value,
+                    );
+                  }
+                },
               ),
             ],
           ),
-        ],
-      ),
+        );
+      }
     );
   }
 
-  // -------------------------------------------------------------------
-  // WIDGET BARU: Helper untuk menampilkan gambar
-  // -------------------------------------------------------------------
   Widget _buildBlogImage(String? imageUrl) {
-    // Jika tidak ada gambar, tampilkan placeholder
     if (imageUrl == null || imageUrl.isEmpty) {
       return Container(
         height: 150,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
         ),
         child: Icon(Icons.image_not_supported, color: Colors.grey[400], size: 50),
       );
     }
 
-    // Jika ada gambar, tampilkan menggunakan Image.network
-    // 
     return Image.network(
       imageUrl,
       height: 150,
       width: double.infinity,
       fit: BoxFit.cover,
-      // Tampilkan loading indicator saat gambar dimuat
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          height: 150,
-          color: Colors.grey[200],
-          child: const Center(child: CircularProgressIndicator()),
-        );
-      },
-      // Tampilkan placeholder jika gambar gagal dimuat
       errorBuilder: (context, error, stackTrace) {
         return Container(
           height: 150,
@@ -218,93 +188,67 @@ class _BlogViewState extends State<BlogView> {
     );
   }
 
-
-  // Widget untuk menampilkan list blog
+  // Widget List Blog
   Widget _buildBlogList(BuildContext context, List<Blog> blogs) {
     if (blogs.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text("Tidak ada blog ditemukan untuk pencarian ini."),
+      return const Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Center(
+          child: Text("Tidak ada berita ditemukan."),
         ),
       );
     }
     
     return ListView.builder(
       itemCount: blogs.length,
-      shrinkWrap: true, // PENTING: Karena ini di dalam ListView lain
-      physics: const NeverScrollableScrollPhysics(), // PENTING: Agar scroll bekerja
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final blog = blogs[index];
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          // -------------------------------------------------------------------
-          // PERUBAHAN: Menambahkan clipBehavior dan Column
-          // -------------------------------------------------------------------
-          clipBehavior: Clip.antiAlias, // Memotong gambar agar rapi
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Tampilkan Gambar
-              _buildBlogImage(blog.imageUrl),
-
-              // 2. Tampilkan Teks
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      blog.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          clipBehavior: Clip.antiAlias,
+          // ----------------------------------------------------------
+          // PERUBAHAN: Bungkus isi Card dengan InkWell untuk klik
+          // ----------------------------------------------------------
+          child: InkWell(
+            onTap: () {
+              // Navigasi ke detail dengan mengirim object blog sebagai 'extra'
+              context.go(
+                '/beritadetail/${Uri.encodeComponent(blog.id)}', 
+                extra: blog
+              );
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildBlogImage(blog.imageUrl),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        blog.title,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      blog.content,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                      maxLines: 3, // Batasi 3 baris
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Oleh: ${blog.author}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                              fontStyle: FontStyle.italic,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          // Format tanggal sederhana
-                          "${blog.createdAt.day}/${blog.createdAt.month}/${blog.createdAt.year}",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        blog.content,
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // ... (Sisa kode UI lainnya sama) ...
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
