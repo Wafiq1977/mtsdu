@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart'; // Tambahkan ini untuk Scaffold, Icon, dll
 import 'package:go_router/go_router.dart';
+import '../models/blog.dart'; // Sesuaikan path relative jika perlu
+import '../screens/blog_detail_screen.dart'; // Sesuaikan path relative jika perlu
 import '../screens/splash_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/student_dashboard.dart';
@@ -22,6 +25,61 @@ class AppRouter {
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      
+      // -----------------------------------------------------------------
+      // ROUTE DETAIL BERITA (DIPERBARUI UNTUK WEB)
+      // -----------------------------------------------------------------
+      GoRoute(
+        path: '/beritadetail/:id',
+        builder: (context, state) {
+          // 1. Cek apakah objek 'blog' ada di state.extra
+          // Ini terjadi jika user masuk lewat klik di aplikasi
+          if (state.extra != null && state.extra is Blog) {
+            final blog = state.extra as Blog;
+            return BlogDetailScreen(blog: blog);
+          } 
+          
+          // 2. HANDLING ERROR WEB (Refresh Page):
+          // Jika user refresh halaman di browser, state.extra akan hilang (null).
+          // Kita tampilkan halaman error yang ramah user.
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Artikel Tidak Ditemukan"),
+              backgroundColor: const Color(0xFF667EEA),
+              foregroundColor: Colors.white,
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.link_off, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Data artikel tidak tersedia saat refresh.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Silakan kembali ke dashboard untuk memilih berita.",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => context.go('/student-dashboard'),
+                    icon: const Icon(Icons.dashboard),
+                    label: const Text("Kembali ke Dashboard"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667EEA),
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+
       // Student routes
       GoRoute(
         path: '/student-dashboard',
@@ -63,6 +121,7 @@ class AppRouter {
           ),
         ],
       ),
+      
       // Teacher routes
       GoRoute(
         path: '/teacher-dashboard',
@@ -104,6 +163,7 @@ class AppRouter {
           ),
         ],
       ),
+      
       // Admin routes
       GoRoute(
         path: '/admin-dashboard',
