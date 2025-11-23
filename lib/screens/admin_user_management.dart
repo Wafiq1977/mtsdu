@@ -346,225 +346,6 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
       return const Center(child: CircularProgressIndicator());
     }
 
-<<<<<<< HEAD
-    return Scaffold(
-      body: Column(
-        children: [
-          // Header with Add User button
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'User Management',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF667EEA),
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _addUser,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah User'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF667EEA),
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Search bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari nama, username, kelas, jurusan, atau mata pelajaran...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.grey[100],
-              ),
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-          ),
-          // Filter by role
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Filter berdasarkan Peran:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedRoleFilter = null;
-                          _selectedMajorFilter = null;
-                          _selectedClassFilter = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedRoleFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
-                        foregroundColor: _selectedRoleFilter == null ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text('Semua'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedRoleFilter = UserRole.student;
-                          _selectedMajorFilter = null;
-                          _selectedClassFilter = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedRoleFilter == UserRole.student ? const Color(0xFF667EEA) : Colors.grey[300],
-                        foregroundColor: _selectedRoleFilter == UserRole.student ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text('Student'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedRoleFilter = UserRole.teacher;
-                          _selectedMajorFilter = null;
-                          _selectedClassFilter = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedRoleFilter == UserRole.teacher ? const Color(0xFF667EEA) : Colors.grey[300],
-                        foregroundColor: _selectedRoleFilter == UserRole.teacher ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text('Teacher'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedRoleFilter = UserRole.admin;
-                          _selectedMajorFilter = null;
-                          _selectedClassFilter = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedRoleFilter == UserRole.admin ? const Color(0xFF667EEA) : Colors.grey[300],
-                        foregroundColor: _selectedRoleFilter == UserRole.admin ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Text('Admin'),
-                    ),
-                  ],
-                ),
-                if (_selectedRoleFilter == UserRole.student) ...[
-                  const SizedBox(height: 16),
-                  const Text('Filter berdasarkan Jurusan:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedMajorFilter = null;
-                            _selectedClassFilter = null;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _selectedMajorFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
-                          foregroundColor: _selectedMajorFilter == null ? Colors.white : Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: const Text('Semua Jurusan'),
-                      ),
-                      ...availableMajors.map((major) => ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedMajorFilter = major;
-                            _selectedClassFilter = null;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _selectedMajorFilter == major ? const Color(0xFF667EEA) : Colors.grey[300],
-                          foregroundColor: _selectedMajorFilter == major ? Colors.white : Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        child: Text(major),
-                      )),
-                    ],
-                  ),
-                  if (_selectedMajorFilter != null) ...[
-                    const SizedBox(height: 16),
-                    const Text('Filter berdasarkan Kelas:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedClassFilter = null;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _selectedClassFilter == null ? const Color(0xFF667EEA) : Colors.grey[300],
-                            foregroundColor: _selectedClassFilter == null ? Colors.white : Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: const Text('Semua Kelas'),
-                        ),
-                        ...availableClasses.where((className) => _users.any((user) => user.className == className && user.major == _selectedMajorFilter)).map((className) => ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedClassFilter = className;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _selectedClassFilter == className ? const Color(0xFF667EEA) : Colors.grey[300],
-                            foregroundColor: _selectedClassFilter == className ? Colors.white : Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                          child: Text(className),
-                        )),
-                      ],
-                    ),
-                  ],
-                ],
-              ],
-            ),
-          ),
-          Expanded(
-            child: filteredUsers.isEmpty
-                ? Center(
-=======
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 600;
 
@@ -809,28 +590,19 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
           filteredUsers.isEmpty
               ? SliverFillRemaining(
                   child: Center(
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.people_outline,
-<<<<<<< HEAD
-                          size: 64,
-=======
                           size: isSmallScreen ? 48 : 64,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           color: Colors.grey[400],
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Tidak ada user ditemukan',
                           style: TextStyle(
-<<<<<<< HEAD
-                            fontSize: 18,
-=======
                             fontSize: isSmallScreen ? 14 : 18,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             color: Colors.grey[600],
                           ),
                         ),
@@ -838,28 +610,12 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         Text(
                           'Tekan "Tambah User" untuk membuat akun baru',
                           style: TextStyle(
-<<<<<<< HEAD
-                            fontSize: 14,
-=======
                             fontSize: isSmallScreen ? 12 : 14,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             color: Colors.grey[500],
                           ),
                         ),
                       ],
                     ),
-<<<<<<< HEAD
-                  )
-                : ListView.builder(
-                    itemCount: filteredUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = filteredUsers[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        elevation: 2,
-                        child: ListTile(
-                          leading: CircleAvatar(
-=======
                   ),
                 )
               : SliverList(
@@ -872,41 +628,25 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         child: ListTile(
                           leading: CircleAvatar(
                             radius: isSmallScreen ? 16 : 20,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             backgroundColor: _getRoleColor(user.role),
                             child: Icon(
                               _getRoleIcon(user.role),
                               color: Colors.white,
-<<<<<<< HEAD
-=======
                               size: isSmallScreen ? 16 : 20,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             ),
                           ),
                           title: Text(
                             user.name,
-<<<<<<< HEAD
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-=======
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 14 : 16),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-<<<<<<< HEAD
-                              Text('${user.role.toString().split('.').last} - ${user.username}'),
-                              if (user.role == UserRole.student)
-                                Text('Kelas: ${user.className} - Jurusan: ${user.major}'),
-                              if (user.role == UserRole.teacher)
-                                Text('NIP: ${user.nip} - Mata Pelajaran: ${user.subject}'),
-=======
                               Text('${user.role.toString().split('.').last} - ${user.username}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
                               if (user.role == UserRole.student)
                                 Text('Kelas: ${user.className} - Jurusan: ${user.major}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
                               if (user.role == UserRole.teacher)
                                 Text('NIP: ${user.nip} - Mata Pelajaran: ${user.subject}', style: TextStyle(fontSize: isSmallScreen ? 10 : 12)),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             ],
                           ),
                           trailing: PopupMenuButton<String>(
@@ -935,14 +675,9 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
                         ),
                       );
                     },
-<<<<<<< HEAD
-                  ),
-          ),
-=======
                     childCount: filteredUsers.length,
                   ),
                 ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
         ],
       ),
     );

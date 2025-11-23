@@ -20,14 +20,6 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
   String _selectedClass = 'All';
   String _selectedMonth = 'All';
   String _selectedUserType = 'Students';
-<<<<<<< HEAD
-
-  final List<String> months = [
-    'All', 'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-=======
   String _selectedSubject = 'All';
 
   final List<String> months = [
@@ -55,7 +47,6 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     'Religion',
   ]; // Sesuaikan dengan data kamu
 
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
   @override
   void initState() {
     super.initState();
@@ -86,25 +77,18 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
       if (!userExists) return false;
 
-<<<<<<< HEAD
-      if (_selectedClass != 'All') {
-=======
       // Filter untuk Student - berdasarkan Class
       if (_selectedUserType == 'Students' && _selectedClass != 'All') {
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
         final user = userList.firstWhere((u) => u.id == attendance.studentId);
         if (user.className != _selectedClass) return false;
       }
 
-<<<<<<< HEAD
-=======
       // Filter untuk Teacher - berdasarkan Subject
       if (_selectedUserType == 'Teachers' && _selectedSubject != 'All') {
         final user = userList.firstWhere((u) => u.id == attendance.studentId);
         if (user.subject != _selectedSubject) return false;
       }
 
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
       if (_selectedMonth != 'All') {
         final attendanceMonth = DateTime.parse(attendance.date).month;
         final selectedMonthIndex = months.indexOf(_selectedMonth);
@@ -121,23 +105,12 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
     for (final attendance in filteredAttendances) {
       final userId = attendance.studentId;
-<<<<<<< HEAD
-      
-      // 1. Update inisialisasi Map untuk menyertakan 'excused'
-      if (!stats.containsKey(userId)) {
-        stats[userId] = {'present': 0, 'absent': 0, 'late': 0, 'excused': 0, 'total': 0};
-=======
       if (!stats.containsKey(userId)) {
         stats[userId] = {'present': 0, 'absent': 0, 'late': 0, 'total': 0};
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
       }
 
       stats[userId]!['total'] = stats[userId]!['total']! + 1;
 
-<<<<<<< HEAD
-      // 2. Perbaikan Switch Case
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
       switch (attendance.status) {
         case AttendanceStatus.present:
           stats[userId]!['present'] = stats[userId]!['present']! + 1;
@@ -148,23 +121,13 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         case AttendanceStatus.late:
           stats[userId]!['late'] = stats[userId]!['late']! + 1;
           break;
-<<<<<<< HEAD
-        case AttendanceStatus.excused: // Case baru ditambahkan
-          stats[userId]!['excused'] = stats[userId]!['excused']! + 1;
-          break;
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
       }
     }
 
     return stats;
   }
 
-<<<<<<< HEAD
-  List<String> _getAvailableClasses() { 
-=======
   List<String> _getAvailableClasses() {
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
     final classes = userList
         .map((u) => u.className)
@@ -176,9 +139,6 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     return ['All', ...classes];
   }
 
-<<<<<<< HEAD
-  @override 
-=======
   Map<String, int> _calculateTotalStats() {
     final stats = {'present': 0, 'absent': 0, 'late': 0};
     final attendanceStats = _calculateAttendanceStats();
@@ -193,7 +153,6 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
   }
 
   @override
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -202,49 +161,10 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     final attendanceStats = _calculateAttendanceStats();
     final availableClasses = _getAvailableClasses();
     final userList = _selectedUserType == 'Students' ? _students : _teachers;
-<<<<<<< HEAD
-    
-    // Hitung total stats sekali saja agar efisien
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
     final totalStats = _calculateTotalStats();
 
     return Column(
       children: [
-<<<<<<< HEAD
-        // Filters
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedUserType,
-                      decoration: const InputDecoration(labelText: 'User Type'),
-                      items: ['Students', 'Teachers'].map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedUserType = value!;
-                          _selectedClass = 'All'; // Reset class filter
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedClass,
-                      decoration: const InputDecoration(labelText: 'Class'),
-                      items: availableClasses.map((className) => DropdownMenuItem(
-                        value: className,
-                        child: Text(className),
-                      )).toList(),
-=======
         // Modern Filters
         Card(
           margin: const EdgeInsets.all(16),
@@ -301,28 +221,12 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
                             ),
                           )
                           .toList(),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                       onChanged: (value) {
                         setState(() {
                           _selectedClass = value!;
                         });
                       },
                     ),
-<<<<<<< HEAD
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedMonth,
-                      decoration: const InputDecoration(labelText: 'Month'),
-                      items: months.map((month) => DropdownMenuItem(
-                        value: month,
-                        child: Text(month),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedMonth = value!;
-=======
                   )
                 else
                   Expanded(
@@ -347,14 +251,10 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
                       onChanged: (value) {
                         setState(() {
                           _selectedSubject = value!;
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                         });
                       },
                     ),
                   ),
-<<<<<<< HEAD
-                ],
-=======
 
                 const SizedBox(width: 12),
                 Expanded(
@@ -420,120 +320,11 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
                 totalStats['late'].toString(),
                 Icons.watch_later,
                 Colors.orange,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
               ),
             ],
           ),
         ),
 
-<<<<<<< HEAD
-        // Summary Stats
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView( // Tambahkan scroll horizontal jika layar sempit
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatCard('Total', filteredAttendances.length.toString(), Colors.grey.shade800),
-                    const SizedBox(width: 15),
-                    _buildStatCard('Present', totalStats['present'].toString(), Colors.green),
-                    const SizedBox(width: 15),
-                    _buildStatCard('Absent', totalStats['absent'].toString(), Colors.red),
-                    const SizedBox(width: 15),
-                    _buildStatCard('Late', totalStats['late'].toString(), Colors.orange),
-                    const SizedBox(width: 15),
-                    _buildStatCard('Excused', totalStats['excused'].toString(), Colors.blue), // UI Baru
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Attendance List
-        Expanded(
-          child: ListView.builder(
-            itemCount: attendanceStats.length,
-            itemBuilder: (context, index) {
-              final userId = attendanceStats.keys.elementAt(index);
-              final user = userList.firstWhere(
-                (u) => u.id == userId,
-                orElse: () => User(id: '', username: '', password: '', role: UserRole.student, name: 'Unknown'),
-              );
-              final stats = attendanceStats[userId]!;
-
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: ListTile(
-                  title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_selectedUserType == 'Students')
-                        Text('Class: ${user.className}'),
-                      const SizedBox(height: 4),
-                      // Tampilkan detail statistik termasuk Excused
-                      Text(
-                        'Hadir: ${stats['present']} | Alpha: ${stats['absent']} | Telat: ${stats['late']} | Izin: ${stats['excused']}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[800]),
-                      ),
-                      Text(
-                        'Total Kehadiran: ${((stats['present']! / stats['total']!) * 100).toStringAsFixed(1)}%',
-                        style: const TextStyle(fontSize: 12, color: Colors.blue),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 3. Update perhitungan total agar menghitung Excused juga
-  Map<String, int> _calculateTotalStats() {
-    final stats = {'present': 0, 'absent': 0, 'late': 0, 'excused': 0};
-    final attendanceStats = _calculateAttendanceStats();
-
-    for (final userStats in attendanceStats.values) {
-      stats['present'] = stats['present']! + userStats['present']!;
-      stats['absent'] = stats['absent']! + userStats['absent']!;
-      stats['late'] = stats['late']! + userStats['late']!;
-      stats['excused'] = stats['excused']! + userStats['excused']!;
-    }
-
-    return stats;
-  }
-
-  Widget _buildStatCard(String title, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-}
-=======
         const SizedBox(height: 16),
 
         // Modern Attendance Table
@@ -678,4 +469,3 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
     );
   }
 }
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
