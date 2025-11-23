@@ -704,4 +704,8 @@ class _AdminUserManagementState extends State<AdminUserManagement> {
         return Icons.admin_panel_settings;
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

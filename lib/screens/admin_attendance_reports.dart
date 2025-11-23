@@ -121,9 +121,12 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         case AttendanceStatus.late:
           stats[userId]!['late'] = stats[userId]!['late']! + 1;
           break;
+<<<<<<< HEAD
         case AttendanceStatus.excused:
           // TODO: Handle this case.
           throw UnimplementedError();
+=======
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       }
     }
 
@@ -471,4 +474,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
       ),
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

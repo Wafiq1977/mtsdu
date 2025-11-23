@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 import 'package:go_router/go_router.dart';
+=======
+import 'package:flutter/material.dart'; // Tambahkan ini untuk Scaffold, Icon, dll
+import 'package:go_router/go_router.dart';
+import '../models/blog.dart'; // Sesuaikan path relative jika perlu
+import '../screens/blog_detail_screen.dart'; // Sesuaikan path relative jika perlu
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 import '../screens/splash_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/student_dashboard.dart';
@@ -6,6 +13,7 @@ import '../screens/student_grades_screen.dart';
 import '../screens/student_attendance_screen.dart';
 import '../screens/student_assignments_screen.dart';
 import '../screens/student_materials_screen.dart';
+<<<<<<< HEAD
 import '../screens/teacher_dashboard.dart'; 
 import '../screens/admin_dashboard.dart';
 // import '../screens/admin_user_management.dart'; 
@@ -16,16 +24,88 @@ import '../screens/teacher_input_attendance_view.dart';
 import '../screens/teacher_input_assignment_view.dart';
 
 // HAPUS BARIS IMPORT BULK ATTENDANCE DI SINI JIKA MASIH ADA
+=======
+import '../screens/teacher_dashboard.dart';
+import '../screens/admin_dashboard.dart';
+import '../screens/admin_user_management.dart';
+import '../screens/admin_schedule_management.dart';
+import '../screens/admin_attendance_reports.dart';
+import '../screens/teacher_grades_input.dart';
+import '../screens/teacher_input_attendance_view.dart';
+import '../screens/teacher_input_assignment_view.dart';
+import '../screens/teacher_bulk_attendance_view.dart';
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
+<<<<<<< HEAD
       // 1. Public Routes
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
       // 2. Student Routes
+=======
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      
+      // -----------------------------------------------------------------
+      // ROUTE DETAIL BERITA (DIPERBARUI UNTUK WEB)
+      // -----------------------------------------------------------------
+      GoRoute(
+        path: '/beritadetail/:id',
+        builder: (context, state) {
+          // 1. Cek apakah objek 'blog' ada di state.extra
+          // Ini terjadi jika user masuk lewat klik di aplikasi
+          if (state.extra != null && state.extra is Blog) {
+            final blog = state.extra as Blog;
+            return BlogDetailScreen(blog: blog);
+          } 
+          
+          // 2. HANDLING ERROR WEB (Refresh Page):
+          // Jika user refresh halaman di browser, state.extra akan hilang (null).
+          // Kita tampilkan halaman error yang ramah user.
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Artikel Tidak Ditemukan"),
+              backgroundColor: const Color(0xFF667EEA),
+              foregroundColor: Colors.white,
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.link_off, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Data artikel tidak tersedia saat refresh.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Silakan kembali ke dashboard untuk memilih berita.",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => context.go('/student-dashboard'),
+                    icon: const Icon(Icons.dashboard),
+                    label: const Text("Kembali ke Dashboard"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667EEA),
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+
+      // Student routes
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/student-dashboard',
         builder: (context, state) => const StudentDashboard(),
@@ -66,8 +146,13 @@ class AppRouter {
           ),
         ],
       ),
+<<<<<<< HEAD
 
       // 3. Teacher Routes
+=======
+      
+      // Teacher routes
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/teacher-dashboard',
         builder: (context, state) => const TeacherDashboard(),
@@ -82,9 +167,14 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'input-grades',
+<<<<<<< HEAD
                 builder: (context, state) => const TeacherInputGradesView(),
               ),
               // Halaman Absen yang Baru
+=======
+                builder: (context, state) => const TeacherGradesInput(),
+              ),
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
               GoRoute(
                 path: 'input-attendance',
                 builder: (context, state) => const TeacherInputAttendanceView(),
@@ -93,7 +183,14 @@ class AppRouter {
                 path: 'input-assignments',
                 builder: (context, state) => const TeacherInputAssignmentView(),
               ),
+<<<<<<< HEAD
               // PASTIKAN ROUTE 'bulk-attendance' SUDAH DIHAPUS DARI SINI
+=======
+              GoRoute(
+                path: 'bulk-attendance',
+                builder: (context, state) => const TeacherBulkAttendanceView(),
+              ),
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
             ],
           ),
           GoRoute(
@@ -106,8 +203,13 @@ class AppRouter {
           ),
         ],
       ),
+<<<<<<< HEAD
 
       // 4. Admin Routes
+=======
+      
+      // Admin routes
+>>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/admin-dashboard',
         redirect: (context, state) => '/admin-dashboard/usermanagements',
