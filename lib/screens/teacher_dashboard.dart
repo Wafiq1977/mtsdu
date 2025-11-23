@@ -15,11 +15,7 @@ import '../widgets/animated_navigation_bar.dart';
 import '../widgets/statistics_widget.dart';
 import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
-<<<<<<< HEAD
-// import 'teacher_bulk_attendance_view.dart'; // Tidak perlu lagi jika tidak dipakai
-=======
 import 'teacher_bulk_attendance_view.dart';
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -576,17 +572,10 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                         Navigator.of(context).pop();
                         context.go('/');
                       },
-<<<<<<< HEAD
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text('Logout'),
-=======
                       child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                     ),
                   ],
                 ),
@@ -658,30 +647,13 @@ class TeacherHomeView extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-<<<<<<< HEAD
-                  // --- BAGIAN INI YANG DIUBAH: LANGSUNG NAVIGASI KE BULK ATTENDANCE ---
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   child: _buildCompactFeatureCard(
                     context,
                     'Absen',
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
-<<<<<<< HEAD
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          // Langsung buka halaman absen List yang baru
-                          builder: (context) =>
-                              const TeacherInputAttendanceView(),
-                        ),
-                      );
-                    },
-=======
                     () => _showAttendanceOptionsDialog(context),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -761,8 +733,6 @@ class TeacherHomeView extends StatelessWidget {
       ),
     );
   }
-<<<<<<< HEAD
-=======
 
   void _showAttendanceOptionsDialog(BuildContext context) {
     showDialog(
@@ -799,7 +769,6 @@ class TeacherHomeView extends StatelessWidget {
       ),
     );
   }
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 }
 
 // Assignment List Page (New Page)

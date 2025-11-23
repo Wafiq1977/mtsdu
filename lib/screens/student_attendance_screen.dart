@@ -44,11 +44,6 @@ class StudentAttendanceScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final attendance = attendances[index];
                   Color statusColor;
-<<<<<<< HEAD
-
-                  // --- PERBAIKAN DI SINI ---
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   switch (attendance.status) {
                     case attendance_model.AttendanceStatus.present:
                       statusColor = Colors.green;
@@ -59,18 +54,7 @@ class StudentAttendanceScreen extends StatelessWidget {
                     case attendance_model.AttendanceStatus.late:
                       statusColor = Colors.orange;
                       break;
-<<<<<<< HEAD
-                    case attendance_model
-                        .AttendanceStatus
-                        .excused: // Tambahan case baru
-                      statusColor = Colors.blue;
-                      break;
                   }
-                  // ------------------------
-
-=======
-                  }
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   return Card(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 16,

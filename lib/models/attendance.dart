@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-enum AttendanceStatus { present, absent, late, excused }
-=======
 enum AttendanceStatus { present, absent, late }
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
 class Attendance {
   final String id;

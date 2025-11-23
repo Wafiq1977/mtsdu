@@ -16,11 +16,7 @@ import 'student_assignments_screen.dart';
 import 'student_materials_screen.dart';
 
 // -------------------------------------------------------------------
-<<<<<<< HEAD
-// 1. IMPORT BLOG VIEW (Pastikan file ini ada)
-=======
 // PERUBAHAN: Pastikan import untuk BlogView sudah ada
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 // -------------------------------------------------------------------
 import '../blog/blog_view.dart';
 
@@ -86,10 +82,7 @@ class _StudentDashboardState extends State<StudentDashboard>
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-<<<<<<< HEAD
-=======
     // Theme is already loaded in ThemeProvider constructor
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     // Initialize animations
     _fabAnimationController = AnimationController(
@@ -213,8 +206,6 @@ class _StudentDashboardState extends State<StudentDashboard>
     );
   }
 
-<<<<<<< HEAD
-=======
   // Example usage of intl package to format current date
   String getFormattedDate() {
     final now = DateTime.now();
@@ -222,7 +213,6 @@ class _StudentDashboardState extends State<StudentDashboard>
     return formatter.format(now);
   }
 
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -294,26 +284,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                       child: Row(
                         children: [
                           GestureDetector(
-<<<<<<< HEAD
-                            onTap:
-                                () => _showProfileDialog(
-                                  context,
-                                  user,
-                                  authProvider,
-                                ),
-                            child:
-                                user.profileImagePath != null
-                                    ? CircleAvatar(
-                                      radius: 20,
-                                      backgroundImage: AssetImage(
-                                        user.profileImagePath!,
-                                      ),
-                                    )
-                                    : const CircleAvatar(
-                                      radius: 20,
-                                      child: Icon(Icons.person),
-                                    ),
-=======
                             onTap: () =>
                                 _showProfileDialog(context, user, authProvider),
                             child: user.profileImagePath != null
@@ -327,7 +297,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                                     radius: 20,
                                     child: Icon(Icons.person),
                                   ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           ),
                           const SizedBox(width: 12),
                           Text(
@@ -379,30 +348,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-<<<<<<< HEAD
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 150),
-                            transitionBuilder: (
-                              Widget child,
-                              Animation<double> animation,
-                            ) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0.5, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeOutCubic,
-                                    ),
-                                  ),
-                                  child: child,
-                                ),
-                              );
-                            },
-=======
                             child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 150),
                             transitionBuilder:
@@ -424,7 +369,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                                     ),
                                   );
                                 },
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                             child: _widgetOptions.elementAt(_selectedIndex),
                           ),
                         ),
@@ -439,71 +383,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                 AnimatedSize(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeInOutCubic,
-<<<<<<< HEAD
-                  child:
-                      _showTools
-                          ? FadeTransition(
-                            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                              CurvedAnimation(
-                                parent: _fabAnimationController,
-                                curve: Curves.easeIn,
-                              ),
-                            ),
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: _fabAnimationController,
-                                  curve: Curves.easeOutCubic,
-                                ),
-                              ),
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'Schedule Tools',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF667EEA),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        _buildDayButton('Monday'),
-                                        _buildDayButton('Tuesday'),
-                                        _buildDayButton('Wednesday'),
-                                        _buildDayButton('Thursday'),
-                                        _buildDayButton('Friday'),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                          : const SizedBox.shrink(),
-=======
                   child: _showTools
                       ? FadeTransition(
                           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -567,7 +446,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                           ),
                         )
                       : const SizedBox.shrink(),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                 ),
 
                 const SizedBox(height: 10),
@@ -592,14 +470,7 @@ class _StudentDashboardState extends State<StudentDashboard>
               transitionBuilder: (Widget child, Animation<double> animation) {
                 return RotationTransition(
                   turns: Tween<double>(begin: 0.0, end: 0.25).animate(
-<<<<<<< HEAD
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeInOut,
-                    ),
-=======
                     CurvedAnimation(parent: animation, curve: Curves.easeInOut),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   ),
                   child: FadeTransition(opacity: animation, child: child),
                 );
@@ -671,20 +542,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-<<<<<<< HEAD
-                      child:
-                          user.profileImagePath != null
-                              ? CircleAvatar(
-                                radius: 40,
-                                backgroundImage: AssetImage(
-                                  user.profileImagePath!,
-                                ),
-                              )
-                              : const CircleAvatar(
-                                radius: 40,
-                                child: Icon(Icons.person, size: 40),
-                              ),
-=======
                       child: user.profileImagePath != null
                           ? CircleAvatar(
                               radius: 40,
@@ -696,7 +553,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                               radius: 40,
                               child: Icon(Icons.person, size: 40),
                             ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                     ),
                     const SizedBox(height: 16),
                     Text('Name: ${user.name}'),
@@ -730,17 +586,10 @@ class _StudentDashboardState extends State<StudentDashboard>
                         Navigator.of(context).pop();
                         context.go('/');
                       },
-<<<<<<< HEAD
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text('Logout'),
-=======
                       child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                     ),
                   ],
                 ),
@@ -767,14 +616,9 @@ class GradesView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-<<<<<<< HEAD
-    final grades =
-        dataProvider.grades.where((g) => g.studentId == user.id).toList();
-=======
     final grades = dataProvider.grades
         .where((g) => g.studentId == user.id)
         .toList();
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     return Container(
       color: Colors.green.shade50,
@@ -826,20 +670,11 @@ class GradesView extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-<<<<<<< HEAD
-                          color:
-                              grade.score >= 80
-                                  ? Colors.green
-                                  : grade.score >= 60
-                                  ? Colors.orange
-                                  : Colors.red,
-=======
                           color: grade.score >= 80
                               ? Colors.green
                               : grade.score >= 60
                               ? Colors.orange
                               : Colors.red,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -870,14 +705,9 @@ class AttendanceView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-<<<<<<< HEAD
-    final attendances =
-        dataProvider.attendances.where((a) => a.studentId == user.id).toList();
-=======
     final attendances = dataProvider.attendances
         .where((a) => a.studentId == user.id)
         .toList();
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     return Container(
       color: Colors.orange.shade50,
@@ -901,12 +731,6 @@ class AttendanceView extends StatelessWidget {
               itemBuilder: (context, index) {
                 final attendance = attendances[index];
                 Color statusColor;
-<<<<<<< HEAD
-                // -------------------------------------------------------------------
-                // 2. FIX: Switch case sudah lengkap dengan 'excused'
-                // -------------------------------------------------------------------
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                 switch (attendance.status) {
                   case attendance_model.AttendanceStatus.present:
                     statusColor = Colors.green;
@@ -917,12 +741,6 @@ class AttendanceView extends StatelessWidget {
                   case attendance_model.AttendanceStatus.late:
                     statusColor = Colors.orange;
                     break;
-<<<<<<< HEAD
-                  case attendance_model.AttendanceStatus.excused:
-                    statusColor = Colors.blue; // Warna untuk Izin/Sakit
-                    break;
-=======
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                 }
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -976,14 +794,9 @@ class AssignmentsView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-<<<<<<< HEAD
-    final assignments =
-        dataProvider.assignments.where((a) => a.className == user.className).toList();
-=======
     final assignments = dataProvider.assignments
         .where((a) => a.className == user.className)
         .toList();
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     return Container(
       color: Colors.purple.shade50,
@@ -1075,16 +888,6 @@ class HomeView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-<<<<<<< HEAD
-    final grades =
-        dataProvider.grades.where((g) => g.studentId == user.id).toList();
-    final attendances =
-        dataProvider.attendances.where((a) => a.studentId == user.id).toList();
-    final assignments =
-        dataProvider.assignments
-            .where((a) => a.className == user.className)
-            .toList();
-=======
     final grades = dataProvider.grades
         .where((g) => g.studentId == user.id)
         .toList();
@@ -1094,7 +897,6 @@ class HomeView extends StatelessWidget {
     final assignments = dataProvider.assignments
         .where((a) => a.className == user.className)
         .toList();
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     return Container(
       color: Colors.white,
@@ -1263,47 +1065,6 @@ class HomeView extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-<<<<<<< HEAD
-      builder:
-          (context) => DraggableScrollableSheet(
-            expand: false,
-            initialChildSize: 0.8,
-            minChildSize: 0.5,
-            maxChildSize: 0.95,
-            builder:
-                (context, scrollController) => Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        color: Colors.white,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF667EEA),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(child: toolView),
-                  ],
-                ),
-          ),
-=======
       builder: (context) => DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.8,
@@ -1339,7 +1100,6 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
     );
   }
 }
@@ -1473,18 +1233,6 @@ class ProfileView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
-<<<<<<< HEAD
-                    child:
-                        user.profileImagePath != null
-                            ? CircleAvatar(
-                              radius: 60,
-                              backgroundImage: AssetImage(user.profileImagePath!),
-                            )
-                            : const CircleAvatar(
-                              radius: 60,
-                              child: Icon(Icons.person, size: 60),
-                            ),
-=======
                     child: user.profileImagePath != null
                         ? CircleAvatar(
                             radius: 60,
@@ -1494,7 +1242,6 @@ class ProfileView extends StatelessWidget {
                             radius: 60,
                             child: Icon(Icons.person, size: 60),
                           ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   ),
                   const SizedBox(height: 30),
                   Container(
@@ -1704,13 +1451,9 @@ class AcademicCalendarView extends StatelessWidget {
                               final type = event['type'] as String;
 
                               return Padding(
-<<<<<<< HEAD
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-=======
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
                                 ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                                 child: Row(
                                   children: [
                                     Container(
@@ -1797,25 +1540,6 @@ class AcademicCalendarView extends StatelessWidget {
           // Day headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-<<<<<<< HEAD
-            children:
-                ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
-                    .map(
-                      (day) => Container(
-                        width: 32,
-                        alignment: Alignment.center,
-                        child: Text(
-                          day,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-=======
             children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
                 .map(
                   (day) => Container(
@@ -1832,7 +1556,6 @@ class AcademicCalendarView extends StatelessWidget {
                   ),
                 )
                 .toList(),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
           ),
           const SizedBox(height: 8),
           // Calendar grid
@@ -1855,27 +1578,15 @@ class AcademicCalendarView extends StatelessWidget {
                 height: 32,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-<<<<<<< HEAD
-                  color:
-                      hasEvent ? Colors.purple.shade100 : Colors.transparent,
-=======
                   color: hasEvent ? Colors.purple.shade100 : Colors.transparent,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   day.toString(),
                   style: TextStyle(
                     fontSize: 14,
-<<<<<<< HEAD
-                    fontWeight:
-                        hasEvent ? FontWeight.bold : FontWeight.normal,
-                    color:
-                        hasEvent ? Colors.purple.shade900 : Colors.black87,
-=======
                     fontWeight: hasEvent ? FontWeight.bold : FontWeight.normal,
                     color: hasEvent ? Colors.purple.shade900 : Colors.black87,
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                   ),
                 ),
               );
@@ -1901,11 +1612,7 @@ class AcademicCalendarView extends StatelessWidget {
 }
 
 // -------------------------------------------------------------------
-<<<<<<< HEAD
-// 3. MODIFIKASI AnnouncementsView UNTUK MENAMPILKAN BLOG
-=======
 // PERUBAHAN: class AnnouncementsView dimodifikasi
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 // -------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
@@ -1913,16 +1620,9 @@ class AnnouncementsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<DataProvider>(context);
-<<<<<<< HEAD
-    final announcements =
-        dataProvider.announcements
-            .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
-            .toList();
-=======
     final announcements = dataProvider.announcements
         .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
         .toList();
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
 
     return Container(
       color: Colors.red.shade50,
@@ -1952,14 +1652,10 @@ class AnnouncementsView extends StatelessWidget {
             itemBuilder: (context, index) {
               final announcement = announcements[index];
               return Card(
-<<<<<<< HEAD
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-=======
                 margin: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -2003,11 +1699,7 @@ class AnnouncementsView extends StatelessWidget {
               );
             },
           ),
-<<<<<<< HEAD
-
-=======
           
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
           // Menangani jika tidak ada pengumuman
           if (announcements.isEmpty)
             const Padding(
@@ -2020,19 +1712,10 @@ class AnnouncementsView extends StatelessWidget {
               ),
             ),
 
-<<<<<<< HEAD
-          // 3. Pemisah dan Judul Blog (dari API)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 16.0,
-            ),
-=======
 
           // 3. Pemisah dan Judul Blog (dari API)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
             child: Divider(thickness: 1, color: Colors.red.shade100),
           ),
           Container(
@@ -2051,11 +1734,7 @@ class AnnouncementsView extends StatelessWidget {
 
           // 4. Widget BlogView (dari API)
           const BlogView(),
-<<<<<<< HEAD
-
-=======
           
->>>>>>> 1693423c50ed70637638d99e5a1ee57200c6c6bb
           // 5. Padding di bagian bawah
           const SizedBox(height: 20),
         ],
