@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/splash_screen.dart';
 import '../screens/login_screen.dart';
@@ -29,11 +30,13 @@ class AppRouter {
         routes: [
           GoRoute(
             path: 'pengumuman',
-            builder: (context, state) => const StudentDashboard(initialIndex: 0),
+            builder: (context, state) =>
+                const StudentDashboard(initialIndex: 0),
           ),
           GoRoute(
             path: 'beranda',
-            builder: (context, state) => const StudentDashboard(initialIndex: 1),
+            builder: (context, state) =>
+                const StudentDashboard(initialIndex: 1),
             routes: [
               GoRoute(
                 path: 'grades',
@@ -55,11 +58,13 @@ class AppRouter {
           ),
           GoRoute(
             path: 'kalender',
-            builder: (context, state) => const StudentDashboard(initialIndex: 2),
+            builder: (context, state) =>
+                const StudentDashboard(initialIndex: 2),
           ),
           GoRoute(
             path: 'profil',
-            builder: (context, state) => const StudentDashboard(initialIndex: 3),
+            builder: (context, state) =>
+                const StudentDashboard(initialIndex: 3),
           ),
         ],
       ),
@@ -70,11 +75,13 @@ class AppRouter {
         routes: [
           GoRoute(
             path: 'pengumuman',
-            builder: (context, state) => const TeacherDashboard(initialIndex: 0),
+            builder: (context, state) =>
+                const TeacherDashboard(initialIndex: 0),
           ),
           GoRoute(
             path: 'beranda',
-            builder: (context, state) => const TeacherDashboard(initialIndex: 1),
+            builder: (context, state) =>
+                const TeacherDashboard(initialIndex: 1),
             routes: [
               GoRoute(
                 path: 'input-grades',
@@ -96,31 +103,65 @@ class AppRouter {
           ),
           GoRoute(
             path: 'kalender',
-            builder: (context, state) => const TeacherDashboard(initialIndex: 2),
+            builder: (context, state) =>
+                const TeacherDashboard(initialIndex: 2),
           ),
           GoRoute(
             path: 'profil',
-            builder: (context, state) => const TeacherDashboard(initialIndex: 3),
+            builder: (context, state) =>
+                const TeacherDashboard(initialIndex: 3),
           ),
         ],
       ),
-      // Admin routes
+      // Admin routes - FIXED VERSION
       GoRoute(
         path: '/admin-dashboard',
-        redirect: (context, state) => '/admin-dashboard/usermanagements',
-      ),
-      GoRoute(
-        path: '/admin-dashboard/usermanagements',
-        builder: (context, state) => const AdminDashboard(initialIndex: 0),
-      ),
-      GoRoute(
-        path: '/admin-dashboard/academic',
-        builder: (context, state) => const AdminDashboard(initialIndex: 1),
-      ),
-      GoRoute(
-        path: '/admin-dashboard/reports',
-        builder: (context, state) => const AdminDashboard(initialIndex: 2),
+        builder: (context, state) => const AdminDashboard(),
+        routes: [
+          GoRoute(
+            path: 'usermanagements',
+            builder: (context, state) => const AdminDashboard(initialIndex: 0),
+          ),
+          GoRoute(
+            path: 'academic',
+            builder: (context, state) => const AdminDashboard(initialIndex: 1),
+          ),
+          GoRoute(
+            path: 'reports',
+            builder: (context, state) => const AdminDashboard(initialIndex: 2),
+          ),
+          GoRoute(
+            path: 'calendar',
+            builder: (context, state) => const AdminDashboard(initialIndex: 3),
+          ),
+        ],
       ),
     ],
+    errorBuilder: (context, state) => _ErrorScreen(routeError: state.uri.path),
   );
+}
+
+class _ErrorScreen extends StatelessWidget {
+  final String routeError;
+
+  const _ErrorScreen({required this.routeError});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Page Not Found'),
+            Text('GoException: no routes for location: $routeError'),
+            ElevatedButton(
+              onPressed: () => context.go('/'),
+              child: Text('Home'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -38,8 +38,50 @@ Future<void> _addSampleData() async {
     await userBox.put(admin.id, admin.toMap());
 
     // Add 20 teachers
-    final subjects = ['B. Indo', 'Matematika', 'B. Inggris', 'Agama', 'PKN', 'Olahraga', 'Sistem Komputer', 'Produk Kreatif dan Kewirausahaan', 'Arsitektur Jaringan dan Komputer', 'Desain Grafis Percetakan', 'Desain Media Interaktif', 'Teknik Animasi 2D dan 3D', 'Pemrograman Dasar', 'Basis Data', 'Pemrograman Perangkat Lunak', 'Otomatisasi Tata Kelola Perkantoran', 'Pengelolaan Sistem Informasi', 'Ekonomi dan Bisnis', 'Teknologi Dasar Otomotif', 'Pemeliharaan AC Kendaraan Ringan'];
-    final teacherNames = ['Egin', 'Iqbal', 'Izaz', 'Ahmad', 'Budi', 'Cici', 'Dedi', 'Eka', 'Fani', 'Gina', 'Hadi', 'Ika', 'Joko', 'Kiki', 'Lina', 'Miko', 'Nina', 'Oki', 'Pipi', 'Rina'];
+    final subjects = [
+      'B. Indo',
+      'Matematika',
+      'B. Inggris',
+      'Agama',
+      'PKN',
+      'Olahraga',
+      'Sistem Komputer',
+      'Produk Kreatif dan Kewirausahaan',
+      'Arsitektur Jaringan dan Komputer',
+      'Desain Grafis Percetakan',
+      'Desain Media Interaktif',
+      'Teknik Animasi 2D dan 3D',
+      'Pemrograman Dasar',
+      'Basis Data',
+      'Pemrograman Perangkat Lunak',
+      'Otomatisasi Tata Kelola Perkantoran',
+      'Pengelolaan Sistem Informasi',
+      'Ekonomi dan Bisnis',
+      'Teknologi Dasar Otomotif',
+      'Pemeliharaan AC Kendaraan Ringan',
+    ];
+    final teacherNames = [
+      'Egin',
+      'Iqbal',
+      'Izaz',
+      'Ahmad',
+      'Budi',
+      'Cici',
+      'Dedi',
+      'Eka',
+      'Fani',
+      'Gina',
+      'Hadi',
+      'Ika',
+      'Joko',
+      'Kiki',
+      'Lina',
+      'Miko',
+      'Nina',
+      'Oki',
+      'Pipi',
+      'Rina',
+    ];
     for (int i = 1; i <= 20; i++) {
       final teacher = User(
         id: 'teacher$i',
@@ -54,13 +96,50 @@ Future<void> _addSampleData() async {
     }
 
     // Add students for classes 10A, 11A, 12A for each major
-    final majors = ['Multimedia', 'Rekayasa Perangkat Lunak', 'Teknik Komputer dan Jaringan', 'Manajemen', 'Teknik Kendaraan Ringan Otomotif'];
+    final majors = [
+      'Multimedia',
+      'Rekayasa Perangkat Lunak',
+      'Teknik Komputer dan Jaringan',
+      'Manajemen',
+      'Teknik Kendaraan Ringan Otomotif',
+    ];
     final classes = [
       for (final major in majors)
         for (int grade = 10; grade <= 12; grade++)
-          {'name': '${grade}A', 'major': major}
+          {'name': '${grade}A', 'major': major},
     ];
-    final studentNames = ['Egin', 'Iqbal', 'Izaz', 'Ahmad', 'Budi', 'Cici', 'Dedi', 'Eka', 'Fani', 'Gina', 'Hadi', 'Ika', 'Joko', 'Kiki', 'Lina', 'Miko', 'Nina', 'Oki', 'Pipi', 'Rina', 'Sari', 'Tono', 'Umi', 'Vivi', 'Wawan', 'Xena', 'Yudi', 'Zara', 'Ali', 'Bella'];
+    final studentNames = [
+      'Egin',
+      'Iqbal',
+      'Izaz',
+      'Ahmad',
+      'Budi',
+      'Cici',
+      'Dedi',
+      'Eka',
+      'Fani',
+      'Gina',
+      'Hadi',
+      'Ika',
+      'Joko',
+      'Kiki',
+      'Lina',
+      'Miko',
+      'Nina',
+      'Oki',
+      'Pipi',
+      'Rina',
+      'Sari',
+      'Tono',
+      'Umi',
+      'Vivi',
+      'Wawan',
+      'Xena',
+      'Yudi',
+      'Zara',
+      'Ali',
+      'Bella',
+    ];
     int studentId = 1;
     for (final classInfo in classes) {
       for (int j = 1; j <= 5; j++) {

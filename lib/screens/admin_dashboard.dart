@@ -8,6 +8,7 @@ import '../widgets/statistics_widget.dart';
 import 'admin_user_management.dart';
 import 'admin_schedule_management.dart';
 import 'admin_attendance_reports.dart';
+import 'admin_academic_calendar.dart'; // IMPORT BARU
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key, this.initialIndex = 0});
@@ -27,21 +28,30 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _selectedIndex = widget.initialIndex;
   }
 
+  // UPDATE: Tambahkan Academic Calendar dan reorder menu
   static const List<Widget> _widgetOptions = <Widget>[
-    AdminUserManagement(),
-    AdminScheduleManagement(),
-    AdminAttendanceReports(),
+    AdminUserManagement(),           // Index 0 - User Management
+    AdminAcademicCalendar(),         // Index 1 - Academic Calendar (BARU)
+    AdminScheduleManagement(),       // Index 2 - Schedule Management  
+    AdminAttendanceReports(),        // Index 3 - Attendance Reports
   ];
 
   void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    
     switch (index) {
       case 0:
         GoRouter.of(context).go('/admin-dashboard/usermanagements');
         break;
       case 1:
-        GoRouter.of(context).go('/admin-dashboard/academic');
+        GoRouter.of(context).go('/admin-dashboard/calendar'); // ROUTE BARU
         break;
       case 2:
+        GoRouter.of(context).go('/admin-dashboard/academic');
+        break;
+      case 3:
         GoRouter.of(context).go('/admin-dashboard/reports');
         break;
     }
@@ -63,10 +73,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 40,
-                    backgroundColor: Color(0xFF667EEA),
-                    child: Icon(
+                    backgroundColor: const Color(0xFF667EEA),
+                    child: const Icon(
                       Icons.admin_panel_settings,
                       size: 40,
                       color: Colors.white,
@@ -108,8 +118,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Navigator.of(context).pop();
                     context.go('/');
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Logout'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
               ],
             ),
@@ -172,6 +185,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Profile Avatar (Kiri)
                     Row(
                       children: [
                         GestureDetector(
@@ -180,7 +194,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           child: CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.white,
-                            child: const Icon(
+                            child: Icon(
                               Icons.admin_panel_settings,
                               color: Color(0xFF667EEA),
                             ),
@@ -189,35 +203,63 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         const SizedBox(width: 10),
                       ],
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'LPMMTSDU Admin',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                    
+                    // Title dan Welcome Message (Tengah)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'LPMMTSDU Admin',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Welcome, ${user.name}!',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
+                          Text(
+                            'Welcome, ${user.name}!',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
                           ),
-                        ),
-                        const Text(
-                          'Administrator',
-                          style: TextStyle(fontSize: 14, color: Colors.white60),
-                        ),
-                      ],
+                          const Text(
+                            'Administrator',
+                            style: TextStyle(fontSize: 14, color: Colors.white60),
+                          ),
+                        ],
+                      ),
                     ),
+                    
+                    // Logout Button (Kanan)
                     IconButton(
                       icon: const Icon(Icons.logout, color: Colors.white),
                       onPressed: () {
-                        authProvider.logout();
-                        context.go('/');
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Logout'),
+                            content: const Text('Are you sure you want to logout?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  authProvider.logout();
+                                  Navigator.of(context).pop();
+                                  context.go('/');
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Logout'),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -252,6 +294,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
       ),
 
+      // UPDATE: Bottom Navigation Bar dengan 4 item
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
@@ -268,17 +311,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: AnimatedNavigationBar(
+            // UPDATE: Tambah item Calendar dan reorder labels
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
-                icon: Icon(Icons.people),
-                label: 'User Management',
+                icon: Icon(Icons.people_outline),
+                activeIcon: Icon(Icons.people),
+                label: 'Users',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.school),
-                label: 'Academic',
+                icon: Icon(Icons.calendar_today_outlined),
+                activeIcon: Icon(Icons.calendar_today),
+                label: 'Calendar',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.analytics),
+                icon: Icon(Icons.schedule_outlined),
+                activeIcon: Icon(Icons.schedule),
+                label: 'Schedule',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics_outlined),
+                activeIcon: Icon(Icons.analytics),
                 label: 'Reports',
               ),
             ],
