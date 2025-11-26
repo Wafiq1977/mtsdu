@@ -114,7 +114,7 @@ class AppRouter {
             ],
           ),
           GoRoute(
-            path: 'kalender',
+            path: 'jadwal',
             builder: (context, state) =>
                 const StudentDashboard(initialIndex: 2),
           ),

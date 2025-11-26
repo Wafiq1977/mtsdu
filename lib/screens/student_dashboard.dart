@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../providers/auth_provider.dart';
 import '../providers/data_provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/user.dart';
+import '../models/schedule.dart';
+import '../models/grade.dart';
 import '../models/attendance.dart' as attendance_model;
-
-import '../widgets/statistics_widget.dart';
+import '../models/assignment.dart';
+import '../models/announcement.dart';
 import '../widgets/animated_navigation_bar.dart';
-
-// -------------------------------------------------------------------
-// PERUBAHAN: Pastikan import untuk BlogView sudah ada
-// -------------------------------------------------------------------
-import '../blog/blog_view.dart';
+import '../widgets/statistics_widget.dart';
+import 'teacher_input_grades_view.dart';
+import 'teacher_input_attendance_view.dart';
+import 'teacher_bulk_attendance_view.dart';
 
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key, this.initialIndex = 0});
@@ -38,7 +40,7 @@ class _StudentDashboardState extends State<StudentDashboard>
   static const List<Widget> _widgetOptions = <Widget>[
     AnnouncementsView(),
     HomeView(),
-    AcademicCalendarView(),
+    StudentScheduleView(),
     ProfileView(),
   ];
 
@@ -55,7 +57,7 @@ class _StudentDashboardState extends State<StudentDashboard>
         context.go('/student-dashboard/beranda');
         break;
       case 2:
-        context.go('/student-dashboard/kalender');
+        context.go('/student-dashboard/jadwal');
         break;
       case 3:
         context.go('/student-dashboard/profil');
@@ -265,10 +267,8 @@ class _StudentDashboardState extends State<StudentDashboard>
                         child: Row(
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                setState(() => _selectedIndex = 3);
-                                context.go('/student-dashboard/profil');
-                              },
+                              onTap: () =>
+                                  _showProfileDialog(context, user, authProvider),
                               child: user.profileImagePath != null
                                   ? CircleAvatar(
                                       radius: 20,
@@ -323,9 +323,7 @@ class _StudentDashboardState extends State<StudentDashboard>
                               child: _widgetOptions.elementAt(_selectedIndex),
                             )
                           : Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
+                              margin: EdgeInsets.zero,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
@@ -401,9 +399,7 @@ class _StudentDashboardState extends State<StudentDashboard>
                                     ),
                                   ),
                               child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
+                                margin: EdgeInsets.zero,
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -491,7 +487,7 @@ class _StudentDashboardState extends State<StudentDashboard>
             )
           : null,
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        margin: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -514,7 +510,7 @@ class _StudentDashboardState extends State<StudentDashboard>
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.calendar_today),
-                label: 'Kalender',
+                label: 'Jadwal',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
@@ -533,11 +529,83 @@ class _StudentDashboardState extends State<StudentDashboard>
 
   void _showProfileDialog(
     BuildContext context,
-    User user,
+    user,
     AuthProvider authProvider,
   ) {
-    // We don't need this anymore as profile is a tab, but kept for reference
-    context.go('/student-dashboard/profil');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return AlertDialog(
+              title: const Text('Profile'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: user.profileImagePath != null
+                          ? CircleAvatar(
+                              radius: 40,
+                              backgroundImage: AssetImage(
+                                user.profileImagePath!,
+                              ),
+                            )
+                          : const CircleAvatar(
+                              radius: 40,
+                              child: Icon(Icons.person, size: 40),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Name: ${user.name}'),
+                    Text('Role: Student'),
+                    Text('Class: ${user.className ?? "N/A"}'),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Dark Mode',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Switch(
+                          value: themeProvider.isDarkMode,
+                          onChanged: (value) {
+                            themeProvider.toggleTheme();
+                          },
+                          activeColor: const Color(0xFF667EEA),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const StatisticsWidget(),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        authProvider.logout();
+                        Navigator.of(context).pop();
+                        context.go('/');
+                      },
+                      child: const Text('Logout'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -787,6 +855,50 @@ class AssignmentsView extends StatelessWidget {
                                 },
                                 child: const Text('Tutup'),
                               ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  final TextEditingController answerController = TextEditingController();
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Kumpulkan Tugas: ${assignment.title}'),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextField(
+                                              controller: answerController,
+                                              decoration: const InputDecoration(
+                                                labelText: 'Jawaban/Komentar',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              maxLines: 3,
+                                            ),
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: const Text('Batal'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // Logic to submit assignment
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Tugas berhasil dikumpulkan')),
+                                              );
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop(); // Close detail dialog
+                                            },
+                                            child: const Text('Kumpulkan'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: const Text('Kumpulkan Tugas'),
+                              ),
                             ],
                           );
                         },
@@ -812,6 +924,7 @@ class AssignmentsView extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class HomeView extends StatelessWidget {
@@ -848,31 +961,34 @@ class HomeView extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                children: [
-                  _buildFeatureCard(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
-                    'Nilai',
+                    'Lihat Nilai',
                     Icons.grade,
                     Colors.green,
                     grades.length,
                     () => _navigateToView(context, 0),
                   ),
-                  _buildFeatureCard(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
-                    'Kehadiran',
+                    'Lihat Kehadiran',
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
                     () => _navigateToView(context, 1),
                   ),
-                  _buildFeatureCard(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildCompactFeatureCard(
                     context,
                     'Tugas',
                     Icons.assignment,
@@ -880,19 +996,65 @@ class HomeView extends StatelessWidget {
                     assignments.length,
                     () => _navigateToView(context, 2),
                   ),
-                  _buildFeatureCard(
-                    context,
-                    'Materi',
-                    Icons.library_books,
-                    Colors.teal,
-                    0,
-                    () => _navigateToView(context, 4),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: const Center(
+                child: Text(
+                  'Selamat datang di Dashboard Siswa',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCompactFeatureCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    int count,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 32, color: color),
+              const SizedBox(height: 6),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                '$count',
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1195,37 +1357,36 @@ class ProfileView extends StatelessWidget {
   }
 }
 
-class AcademicCalendarView extends StatelessWidget {
-  const AcademicCalendarView({super.key});
+class StudentScheduleView extends StatelessWidget {
+  const StudentScheduleView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final currentMonth = DateTime(now.year, now.month, 1);
-    final nextMonth = DateTime(now.year, now.month + 1, 1);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final dataProvider = Provider.of<DataProvider>(context);
+    final user = authProvider.currentUser;
 
-    final academicEvents = [
-      {
-        'date': DateTime(now.year, now.month, 15),
-        'title': 'Ujian Tengah Semester',
-        'type': 'exam',
-      },
-      {
-        'date': DateTime(now.year, now.month, 20),
-        'title': 'Libur Nasional',
-        'type': 'holiday',
-      },
-      {
-        'date': DateTime(now.year, now.month + 1, 5),
-        'title': 'Workshop Matematika',
-        'type': 'event',
-      },
-      {
-        'date': DateTime(now.year, now.month + 1, 12),
-        'title': 'Ujian Akhir Semester',
-        'type': 'exam',
-      },
-    ];
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final schedules = dataProvider.schedules
+        .where((s) => s.className == user.className)
+        .toList();
+
+    final Map<String, List<Schedule>> schedulesByDay = {
+      'Monday': [],
+      'Tuesday': [],
+      'Wednesday': [],
+      'Thursday': [],
+      'Friday': [],
+    };
+
+    for (var schedule in schedules) {
+      if (schedulesByDay.containsKey(schedule.day)) {
+        schedulesByDay[schedule.day]!.add(schedule);
+      }
+    }
 
     return Container(
       color: Colors.purple.shade50,
@@ -1235,7 +1396,7 @@ class AcademicCalendarView extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             alignment: Alignment.centerLeft,
             child: Text(
-              'Kalender Akademik',
+              'Jadwal Kelas',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -1244,219 +1405,58 @@ class AcademicCalendarView extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _buildMonthCalendar(
-                    currentMonth,
-                    academicEvents,
-                    'Bulan Ini',
+              children: schedulesByDay.entries.map((entry) {
+                final day = entry.key;
+                final daySchedules = entry.value;
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 20),
-                  _buildMonthCalendar(nextMonth, academicEvents, 'Bulan Depan'),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Acara Mendatang',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF667EEA),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ...academicEvents
-                            .where(
-                              (event) =>
-                                  (event['date'] as DateTime).isAfter(now) ||
-                                  (event['date'] as DateTime).isAtSameMomentAs(
-                                    DateTime(now.year, now.month, now.day),
-                                  ),
-                            )
-                            .map((event) {
-                              final date = event['date'] as DateTime;
-                              final title = event['title'] as String;
-                              final type = event['type'] as String;
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        color: _getEventColor(type),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            title,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${date.day}/${date.month}/${date.year}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMonthCalendar(
-    DateTime month,
-    List<Map<String, dynamic>> events,
-    String title,
-  ) {
-    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(month.year, month.month, 1);
-    final startingWeekday = firstDayOfMonth.weekday;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF667EEA),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
-                .map(
-                  (day) => Container(
-                    width: 32,
-                    alignment: Alignment.center,
-                    child: Text(
+                  child: ExpansionTile(
+                    title: Text(
                       day,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.grey,
+                        fontSize: 18,
                       ),
                     ),
+                    subtitle: Text('${daySchedules.length} kelas'),
+                    children: daySchedules.isEmpty
+                        ? [
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text('Tidak ada jadwal'),
+                            ),
+                          ]
+                        : daySchedules.map((schedule) {
+                            return ListTile(
+                              leading: const Icon(
+                                Icons.class_,
+                                color: Color(0xFF667EEA),
+                              ),
+                              title: Text(schedule.subject),
+                              subtitle: Text(
+                                'Class: ${schedule.className}\n${schedule.time} - Room: ${schedule.room}',
+                              ),
+                              isThreeLine: true,
+                            );
+                          }).toList(),
                   ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: List.generate(daysInMonth + startingWeekday - 1, (index) {
-              if (index < startingWeekday - 1) {
-                return const SizedBox(width: 32, height: 32);
-              }
-
-              final day = index - startingWeekday + 2;
-              final currentDate = DateTime(month.year, month.month, day);
-              final hasEvent = events.any(
-                (event) => event['date'] == currentDate,
-              );
-
-              return Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: hasEvent ? Colors.purple.shade100 : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  day.toString(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: hasEvent ? FontWeight.bold : FontWeight.normal,
-                    color: hasEvent ? Colors.purple.shade900 : Colors.black87,
-                  ),
-                ),
-              );
-            }),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
     );
   }
-
-  Color _getEventColor(String type) {
-    switch (type) {
-      case 'exam':
-        return Colors.red;
-      case 'holiday':
-        return Colors.green;
-      case 'event':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
 }
 
-// -------------------------------------------------------------------
-// PERUBAHAN: class AnnouncementsView dimodifikasi
-// -------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
 
@@ -1469,10 +1469,8 @@ class AnnouncementsView extends StatelessWidget {
 
     return Container(
       color: Colors.red.shade50,
-      // Mengganti Column -> ListView agar bisa di-scroll
-      child: ListView(
+      child: Column(
         children: [
-          // 1. Judul Pengumuman (dari DataProvider)
           Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.centerLeft,
@@ -1485,101 +1483,69 @@ class AnnouncementsView extends StatelessWidget {
               ),
             ),
           ),
-
-          // 2. List Pengumuman (dari DataProvider)
-          ListView.builder(
-            itemCount: announcements.length,
-            // Properti ini penting agar ListView.builder bisa ada di dalam ListView
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final announcement = announcements[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.announcement, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              announcement.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        announcement.content,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Target: ${announcement.targetRole}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
+          Expanded(
+            child: announcements.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.announcement, size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('Belum ada pengumuman'),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: announcements.length,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemBuilder: (context, index) {
+                      final announcement = announcements[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                    ],
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.announcement, color: Colors.red),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      announcement.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                announcement.content,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Target: ${announcement.targetRole}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              );
-            },
           ),
-          
-          // Menangani jika tidak ada pengumuman
-          if (announcements.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Center(
-                child: Text(
-                  'Tidak ada pengumuman internal.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
-
-
-          // 3. Pemisah dan Judul Blog (dari API)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-            child: Divider(thickness: 1, color: Colors.red.shade100),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Blog Terbaru (dari API)',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade900, // Warna berbeda
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 4. Widget BlogView (dari API)
-          const BlogView(),
-          
-          // 5. Padding di bagian bawah
-          const SizedBox(height: 20),
         ],
       ),
     );
