@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-import 'package:go_router/go_router.dart';
-=======
 import 'package:flutter/material.dart'; // Tambahkan ini untuk Scaffold, Icon, dll
 import 'package:go_router/go_router.dart';
 import '../models/blog.dart'; // Sesuaikan path relative jika perlu
 import '../screens/blog_detail_screen.dart'; // Sesuaikan path relative jika perlu
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 import '../screens/splash_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/student_dashboard.dart';
@@ -13,18 +9,6 @@ import '../screens/student_grades_screen.dart';
 import '../screens/student_attendance_screen.dart';
 import '../screens/student_assignments_screen.dart';
 import '../screens/student_materials_screen.dart';
-<<<<<<< HEAD
-import '../screens/teacher_dashboard.dart'; 
-import '../screens/admin_dashboard.dart';
-// import '../screens/admin_user_management.dart'; 
-// import '../screens/admin_schedule_management.dart';
-// import '../screens/admin_attendance_reports.dart';
-import '../screens/teacher_input_grades_view.dart';
-import '../screens/teacher_input_attendance_view.dart';
-import '../screens/teacher_input_assignment_view.dart';
-
-// HAPUS BARIS IMPORT BULK ATTENDANCE DI SINI JIKA MASIH ADA
-=======
 import '../screens/teacher_dashboard.dart';
 import '../screens/admin_dashboard.dart';
 import '../screens/admin_user_management.dart';
@@ -34,19 +18,11 @@ import '../screens/teacher_grades_input.dart';
 import '../screens/teacher_input_attendance_view.dart';
 import '../screens/teacher_input_assignment_view.dart';
 import '../screens/teacher_bulk_attendance_view.dart';
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
-<<<<<<< HEAD
-      // 1. Public Routes
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-
-      // 2. Student Routes
-=======
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       
@@ -105,7 +81,6 @@ class AppRouter {
       ),
 
       // Student routes
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/student-dashboard',
         builder: (context, state) => const StudentDashboard(),
@@ -146,13 +121,8 @@ class AppRouter {
           ),
         ],
       ),
-<<<<<<< HEAD
-
-      // 3. Teacher Routes
-=======
       
       // Teacher routes
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/teacher-dashboard',
         builder: (context, state) => const TeacherDashboard(),
@@ -167,14 +137,8 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: 'input-grades',
-<<<<<<< HEAD
-                builder: (context, state) => const TeacherInputGradesView(),
-              ),
-              // Halaman Absen yang Baru
-=======
                 builder: (context, state) => const TeacherGradesInput(),
               ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
               GoRoute(
                 path: 'input-attendance',
                 builder: (context, state) => const TeacherInputAttendanceView(),
@@ -183,14 +147,10 @@ class AppRouter {
                 path: 'input-assignments',
                 builder: (context, state) => const TeacherInputAssignmentView(),
               ),
-<<<<<<< HEAD
-              // PASTIKAN ROUTE 'bulk-attendance' SUDAH DIHAPUS DARI SINI
-=======
               GoRoute(
                 path: 'bulk-attendance',
                 builder: (context, state) => const TeacherBulkAttendanceView(),
               ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
             ],
           ),
           GoRoute(
@@ -203,13 +163,8 @@ class AppRouter {
           ),
         ],
       ),
-<<<<<<< HEAD
-
-      // 4. Admin Routes
-=======
       
       // Admin routes
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       GoRoute(
         path: '/admin-dashboard',
         redirect: (context, state) => '/admin-dashboard/usermanagements',

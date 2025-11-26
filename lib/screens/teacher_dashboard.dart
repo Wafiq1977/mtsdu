@@ -11,19 +11,11 @@ import '../models/grade.dart';
 import '../models/attendance.dart';
 import '../models/assignment.dart';
 import '../models/announcement.dart';
-<<<<<<< HEAD
-import '../models/user.dart'; // Pastikan import ini ada
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 import '../widgets/animated_navigation_bar.dart';
 import '../widgets/statistics_widget.dart';
 import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
-<<<<<<< HEAD
-// import 'teacher_bulk_attendance_view.dart'; // SUDAH DIHAPUS
-=======
 import 'teacher_bulk_attendance_view.dart';
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -52,13 +44,6 @@ class _TeacherDashboardState extends State<TeacherDashboard>
   ];
 
   void _onItemTapped(int index) {
-<<<<<<< HEAD
-    setState(() {
-      _selectedIndex = index;
-    });
-
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
     switch (index) {
       case 0:
         GoRouter.of(context).go('/teacher-dashboard/pengumuman');
@@ -587,17 +572,10 @@ class _TeacherDashboardState extends State<TeacherDashboard>
                         Navigator.of(context).pop();
                         context.go('/');
                       },
-<<<<<<< HEAD
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text('Logout'),
-=======
                       child: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                     ),
                   ],
                 ),
@@ -616,14 +594,7 @@ class _TeacherDashboardState extends State<TeacherDashboard>
   }
 }
 
-<<<<<<< HEAD
-// ==========================================
-// 2. HALAMAN BERANDA (TeacherHomeView)
-// Bagian ini yang DIUBAH sesuai request
-// ==========================================
-=======
 // Teacher Home View
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 class TeacherHomeView extends StatelessWidget {
   const TeacherHomeView({super.key});
 
@@ -675,11 +646,6 @@ class TeacherHomeView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-<<<<<<< HEAD
-
-                // --- BAGIAN ABSEN YANG DIPERBAIKI (TANPA DIALOG) ---
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                 Expanded(
                   child: _buildCompactFeatureCard(
                     context,
@@ -687,26 +653,17 @@ class TeacherHomeView extends StatelessWidget {
                     Icons.check_circle,
                     Colors.orange,
                     attendances.length,
-<<<<<<< HEAD
-                    () {
-                      // Langsung buka halaman input absen baru
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const TeacherInputAttendanceView(),
-                        ),
-                      );
-                    },
+                    // --- PERUBAHAN DI SINI: Navigasi langsung ke TeacherInputAttendanceView ---
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const TeacherInputAttendanceView(),
+                      ),
+                    ),
+                    // ------------------------------------------------------------------------
                   ),
                 ),
-
-                // ---------------------------------------------------
-=======
-                    () => _showAttendanceOptionsDialog(context),
-                  ),
-                ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildCompactFeatureCard(
@@ -784,50 +741,7 @@ class TeacherHomeView extends StatelessWidget {
       ),
     );
   }
-<<<<<<< HEAD
 }
-
-// --- SISA KODE DI BAWAH TIDAK DIUBAH (TUGAS, PENGUMUMAN, JADWAL, DLL) ---
-// ... (Kode AssignmentListPage, CreateAssignmentPage, TeacherAnnouncementsView, dll tetap ada) ...
-=======
-
-  void _showAttendanceOptionsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Attendance Options'),
-        content: const Text('Choose how you want to input attendance:'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TeacherInputAttendanceView(),
-                ),
-              );
-            },
-            child: const Text('Single Student'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TeacherBulkAttendanceView(),
-                ),
-              );
-            },
-            child: const Text('Bulk Input'),
-          ),
-        ],
-      ),
-    );
-  }
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 // Assignment List Page (New Page)
 class AssignmentListPage extends StatelessWidget {
@@ -1034,11 +948,7 @@ class AssignmentListPage extends StatelessWidget {
   }
 }
 
-<<<<<<< HEAD
-// Create Assignment Page
-=======
 // Create Assignment Page (New Page)
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 class CreateAssignmentPage extends StatefulWidget {
   const CreateAssignmentPage({super.key});
 
@@ -1550,7 +1460,10 @@ class TeacherAnnouncementsView extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.announcement, color: Colors.red),
+                                  const Icon(
+                                    Icons.announcement,
+                                    color: Colors.red,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -1924,8 +1837,4 @@ class TeacherProfileView extends StatelessWidget {
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

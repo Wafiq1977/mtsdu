@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/data_provider.dart';
 import '../models/attendance.dart';
 import '../models/user.dart';
-<<<<<<< HEAD
-import '../services/student_service.dart';
-=======
-import '../widgets/user_card.dart';
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 class TeacherInputAttendanceView extends StatefulWidget {
   const TeacherInputAttendanceView({super.key});
 
   @override
-<<<<<<< HEAD
   State<TeacherInputAttendanceView> createState() =>
       _TeacherInputAttendanceViewState();
 }
@@ -22,39 +17,27 @@ class TeacherInputAttendanceView extends StatefulWidget {
 class _TeacherInputAttendanceViewState
     extends State<TeacherInputAttendanceView> {
   final _subjectController = TextEditingController();
-  final StudentService _studentService = StudentService();
-
-  // --- STATE TANGGAL MANUAL ---
-  DateTime _selectedDate = DateTime.now(); // Default hari ini
 
   bool _isLoading = true;
+  DateTime _selectedDate = DateTime.now();
+
   List<User> _allStudents = [];
   List<User> _filteredStudents = [];
 
-  // Filter
-  String _selectedClass = 'Semua Kelas';
-  String _selectedMajor = 'Semua Jurusan';
-  List<String> _availableClasses = ['Semua Kelas'];
-  List<String> _availableMajors = ['Semua Jurusan'];
+  String _selectedClassFilter = '';
+  String _selectedMajorFilter = 'Semua Jurusan';
+
+  List<String> _availableClasses = [];
+  List<String> _availableMajors = [];
 
   final Map<String, AttendanceStatus> _attendanceStatus = {};
-=======
-  State<TeacherInputAttendanceView> createState() => _TeacherInputAttendanceViewState();
-}
 
-class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView> {
-  final _formKey = GlobalKey<FormState>();
-  User? _selectedStudent;
-  final _subjectController = TextEditingController();
-  AttendanceStatus? _status;
-  List<User> _students = [];
-  bool _isLoading = true;
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
+  String teacherName = '';
 
   @override
   void initState() {
     super.initState();
-    _loadStudents();
+    _loadInitialData();
   }
 
   @override
@@ -63,74 +46,20 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
     super.dispose();
   }
 
-<<<<<<< HEAD
-  // --- HELPER: FORMAT TANGGAL INDONESIA (Disesuaikan dengan _selectedDate) ---
-  String _getFormattedDate(DateTime date) {
-    final List<String> days = [
-      'Minggu',
-      'Senin',
-      'Selasa',
-      'Rabu',
-      'Kamis',
-      'Jumat',
-      'Sabtu',
-    ];
-    final List<String> months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
+  Future<void> _loadInitialData() async {
+    setState(() => _isLoading = true);
 
-    String dayName = days[date.weekday == 7 ? 0 : date.weekday];
-    String monthName = months[date.month - 1];
-
-    return "$dayName, ${date.day} $monthName ${date.year}";
-  }
-
-  // --- FUNGSI BUKA KALENDER (DATE PICKER) ---
-  Future<void> _pickDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020), // Batas bawah tanggal
-      lastDate: DateTime.now().add(
-        const Duration(days: 30),
-      ), // Batas atas (bisa input kedepan)
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF667EEA), // Warna header kalender
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  // --- LOGIC LOAD DATA ---
-  Future<void> _loadStudents() async {
     try {
-      final students = await _studentService.getAllStudents();
-      final validStudents = students
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final currentUser = authProvider.currentUser;
+
+      if (currentUser != null) {
+        _subjectController.text = currentUser.subject ?? '';
+        teacherName = currentUser.name;
+      }
+
+      final allUsers = await authProvider.getAllUsers();
+      final validStudents = allUsers
           .where((u) => u.role == UserRole.student)
           .toList();
 
@@ -138,10 +67,10 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
       final Set<String> uniqueMajors = {};
 
       for (var student in validStudents) {
-        if (student.className != null && student.className!.isNotEmpty) {
+        if ((student.className ?? '').isNotEmpty) {
           uniqueClasses.add(student.className!);
         }
-        if (student.major != null && student.major!.isNotEmpty) {
+        if ((student.major ?? '').isNotEmpty) {
           uniqueMajors.add(student.major!);
         }
         _attendanceStatus[student.id] = AttendanceStatus.present;
@@ -153,9 +82,15 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
       if (mounted) {
         setState(() {
           _allStudents = validStudents;
-          _filteredStudents = validStudents;
-          _availableClasses = ['Semua Kelas', ...sortedClasses];
-          _availableMajors = ['Semua Jurusan', ...sortedMajors];
+          _availableClasses = sortedClasses;
+
+          _availableMajors = ["Semua Jurusan", ...sortedMajors];
+
+          if (sortedClasses.isNotEmpty) {
+            _selectedClassFilter = sortedClasses.first;
+            _applyFilters();
+          }
+
           _isLoading = false;
         });
       }
@@ -164,87 +99,92 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
     }
   }
 
-  // --- LOGIC FILTER ---
-  void _applyFilter() {
+  void _applyFilters() {
     setState(() {
-      _filteredStudents = _allStudents.where((student) {
-        bool matchClass = true;
-        if (_selectedClass != 'Semua Kelas') {
-          matchClass = student.className == _selectedClass;
-        }
-        bool matchMajor = true;
-        if (_selectedMajor != 'Semua Jurusan') {
-          matchMajor = student.major == _selectedMajor;
-        }
+      _filteredStudents = _allStudents.where((s) {
+        final matchClass = s.className == _selectedClassFilter;
+
+        final matchMajor = _selectedMajorFilter == "Semua Jurusan"
+            ? true
+            : s.major == _selectedMajorFilter;
+
         return matchClass && matchMajor;
       }).toList();
     });
   }
 
-  // --- LOGIC SET ALL ---
   void _setAllStatus(AttendanceStatus status) {
     setState(() {
       for (var student in _filteredStudents) {
         _attendanceStatus[student.id] = status;
       }
     });
+
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Semua diset ke: ${status.toString().split('.').last}"),
+        content: Text("Semua siswa di kelas ini diset ke: ${status.name}"),
         duration: const Duration(milliseconds: 800),
       ),
     );
   }
 
-  // --- LOGIC SUBMIT ---
+  Future<void> _pickDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
   Future<void> _submit() async {
     if (_subjectController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Isi Mata Pelajaran dulu!')));
-      return;
-    }
-
-    if (_filteredStudents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak ada siswa yang dipilih!')),
+        const SnackBar(content: Text('Harap isi Mata Pelajaran dulu!')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final teacher = authProvider.currentUser;
-    if (teacher == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('User tidak ditemukan.')));
-      setState(() => _isLoading = false);
-      return;
-    }
-    final teacherId = teacher.id;
     final dataProvider = Provider.of<DataProvider>(context, listen: false);
+    final teacherId = authProvider.currentUser?.id ?? 'unknown_teacher';
+
+    final String dateString = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
     try {
+      int count = 0;
+
       for (var student in _filteredStudents) {
         final status =
             _attendanceStatus[student.id] ?? AttendanceStatus.present;
+
+        final attendanceId =
+            'att_${DateTime.now().millisecondsSinceEpoch}_${student.id}';
+
         final attendance = Attendance(
-          id: DateTime.now().microsecondsSinceEpoch.toString() + student.id,
+          id: attendanceId,
           studentId: student.id,
           subject: _subjectController.text,
-          date: _selectedDate.toIso8601String(),
+          date: dateString,
           status: status,
           teacherId: teacherId,
         );
+
         await dataProvider.addAttendance(attendance);
+        count++;
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Absensi berhasil disimpan!'),
+          SnackBar(
+            content: Text('Berhasil menyimpan $count data absensi!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -253,285 +193,168 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
-=======
-  Future<void> _loadStudents() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final allUsers = await authProvider.getAllUsers();
-    setState(() {
-      _students = allUsers.where((u) => u.role == UserRole.student).toList();
-      _isLoading = false;
-    });
-  }
-
-  void _submit() async {
-    if (_formKey.currentState!.validate() && _status != null && _selectedStudent != null) {
-      _formKey.currentState!.save();
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      final user = authProvider.currentUser!;
-
-      final attendance = Attendance(
-        id: DateTime.now().toString(),
-        studentId: _selectedStudent!.id,
-        subject: _subjectController.text,
-        date: DateTime.now().toString(),
-        status: _status!,
-        teacherId: user.id,
-      );
-
-      await dataProvider.addAttendance(attendance);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Attendance added successfully')),
-      );
-      _formKey.currentState!.reset();
-      _subjectController.clear();
-      setState(() {
-        _selectedStudent = null;
-        _status = null;
-      });
-    } else if (_selectedStudent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a student')),
-      );
-    } else if (_status == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select attendance status')),
-      );
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-<<<<<<< HEAD
-    final currentUser = authProvider.currentUser;
-    if (currentUser == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-=======
-    final user = authProvider.currentUser!;
-
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
-    }
-
     return Scaffold(
       appBar: AppBar(
-<<<<<<< HEAD
         title: const Text('Input Absensi'),
         backgroundColor: const Color(0xFF667EEA),
-        elevation: 0,
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // HEADER INPUT
                 Container(
                   padding: const EdgeInsets.all(16),
                   color: Colors.white,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 1. ROW TANGGAL & PENGAJAR
+                      Text(
+                        "Guru: $teacherName",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
                       Row(
                         children: [
-                          // KOLOM TANGGAL (BISA DIKLIK/MANUAL)
+                          Expanded(
+                            child: TextField(
+                              controller: _subjectController,
+                              decoration: const InputDecoration(
+                                labelText: 'Mata Pelajaran',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: InkWell(
-                              onTap: _pickDate, // Klik untuk buka kalender
+                              onTap: _pickDate,
                               child: InputDecorator(
                                 decoration: const InputDecoration(
-                                  labelText: "Tanggal",
-                                  prefixIcon: Icon(
-                                    Icons.calendar_month,
-                                    color: Color(0xFF667EEA),
-                                  ),
+                                  labelText: 'Tanggal',
                                   border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
+                                  prefixIcon: Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
                                   ),
                                 ),
                                 child: Text(
-                                  _getFormattedDate(_selectedDate),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                  ).format(_selectedDate),
                                 ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          // KOLOM PENGAJAR (Tetap Read-Only)
-                          Expanded(
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: "Pengajar",
-                                prefixIcon: Icon(
-                                  Icons.person,
-                                  color: Colors.grey,
-                                ),
-                                border: OutlineInputBorder(),
-                                filled: true,
-                                fillColor: Color(
-                                  0xFFF5F5F5,
-                                ), // Abu-abu tanda read-only
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              child: Text(
-                                currentUser.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 12),
 
-                      // 2. INPUT MATA PELAJARAN
-                      TextField(
-                        controller: _subjectController,
+                      /// FILTER KELAS
+                      DropdownButtonFormField<String>(
+                        value: _selectedClassFilter.isNotEmpty
+                            ? _selectedClassFilter
+                            : null,
                         decoration: const InputDecoration(
-                          labelText: 'Mata Pelajaran',
-                          prefixIcon: Icon(
-                            Icons.book,
-                            color: Color(0xFF667EEA),
-                          ),
+                          labelText: 'Pilih Kelas',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
                         ),
+                        items: _availableClasses
+                            .map(
+                              (cls) => DropdownMenuItem(
+                                value: cls,
+                                child: Text(cls),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedClassFilter = val);
+                            _applyFilters();
+                          }
+                        },
                       ),
+
                       const SizedBox(height: 12),
 
-                      // 3. FILTER KELAS & JURUSAN
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedClass,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Kelas',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
+                      /// FILTER JURUSAN
+                      DropdownButtonFormField<String>(
+                        value: _selectedMajorFilter,
+                        decoration: const InputDecoration(
+                          labelText: 'Pilih Jurusan',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _availableMajors
+                            .map(
+                              (mjr) => DropdownMenuItem(
+                                value: mjr,
+                                child: Text(mjr),
                               ),
-                              items: _availableClasses.map((cls) {
-                                return DropdownMenuItem(
-                                  value: cls,
-                                  child: Text(cls),
-                                );
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedClass = val;
-                                  });
-                                  _applyFilter();
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedMajor,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'Jurusan',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              items: _availableMajors.map((mjr) {
-                                return DropdownMenuItem(
-                                  value: mjr,
-                                  child: Text(
-                                    mjr,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedMajor = val;
-                                  });
-                                  _applyFilter();
-                                }
-                              },
-                            ),
-                          ),
-                        ],
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedMajorFilter = val);
+                            _applyFilters();
+                          }
+                        },
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1, thickness: 1),
 
-                // --- HEADER TABEL ---
+                const Divider(height: 1),
+
+                /// HEADER
                 Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   color: Colors.grey[200],
-                  padding: const EdgeInsets.fromLTRB(24, 12, 16, 12),
                   child: Row(
                     children: [
                       const SizedBox(
                         width: 40,
                         child: Text(
-                          'No',
+                          "No",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                       const Expanded(
                         flex: 2,
                         child: Text(
-                          'Nama Siswa',
+                          "Nama Siswa",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-
                       _buildClickableHeader(
-                        'Hadir',
+                        "Hadir",
                         AttendanceStatus.present,
                         Colors.green,
                       ),
                       _buildClickableHeader(
-                        'Sakit',
-                        AttendanceStatus.excused,
-                        Colors.blue,
-                      ),
-                      _buildClickableHeader(
-                        'Alpha',
+                        "Alpha",
                         AttendanceStatus.absent,
                         Colors.red,
                       ),
                       _buildClickableHeader(
-                        'Telat',
+                        "Telat",
                         AttendanceStatus.late,
                         Colors.orange,
                       ),
@@ -539,19 +362,18 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
                   ),
                 ),
 
-                // --- LIST SISWA ---
+                /// LIST SISWA
                 Expanded(
                   child: _filteredStudents.isEmpty
-                      ? Center(
+                      ? const Center(
                           child: Text(
-                            "Tidak ada siswa ditemukan",
-                            style: TextStyle(color: Colors.grey),
+                            "Tidak ada data siswa",
+                            style: TextStyle(fontSize: 16),
                           ),
                         )
                       : ListView.separated(
                           itemCount: _filteredStudents.length,
-                          separatorBuilder: (ctx, i) =>
-                              const Divider(height: 1),
+                          separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             return _buildStudentRow(
                               index,
@@ -563,27 +385,17 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
               ],
             ),
 
-      // TOMBOL SIMPAN
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
         child: ElevatedButton(
           onPressed: _isLoading ? null : _submit,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF667EEA),
             padding: const EdgeInsets.symmetric(vertical: 16),
+            foregroundColor: Colors.white,
           ),
           child: Text(
-            'SIMPAN ABSENSI (${_filteredStudents.length})',
+            'SIMPAN ABSENSI (${_filteredStudents.length} SISWA)',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
@@ -591,28 +403,9 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
     );
   }
 
-  // Widget Field Read-Only (Pengajar) & Clickable (Tanggal)
-  Widget _buildReadOnlyField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.grey),
-        border: const OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.grey[100],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      child: Text(
-        value,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
+  /// =======================
+  ///   UI BUILDER
+  /// =======================
 
   Widget _buildClickableHeader(
     String text,
@@ -620,7 +413,6 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
     Color color,
   ) {
     return Expanded(
-      flex: 1,
       child: InkWell(
         onTap: () => _setAllStatus(status),
         child: Column(
@@ -628,17 +420,12 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
             Text(
               text,
               style: TextStyle(
+                color: color,
                 fontWeight: FontWeight.bold,
                 fontSize: 11,
-                color: color,
               ),
-              textAlign: TextAlign.center,
             ),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 16,
-              color: color.withOpacity(0.5),
-            ),
+            Icon(Icons.arrow_drop_down, size: 18, color: color),
           ],
         ),
       ),
@@ -646,16 +433,22 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
   }
 
   Widget _buildStudentRow(int index, User student) {
+    final currentStatus =
+        _attendanceStatus[student.id] ?? AttendanceStatus.present;
+
     return Container(
-      color: index % 2 == 0 ? Colors.white : Colors.grey[50],
-      padding: const EdgeInsets.fromLTRB(24, 8, 16, 8),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       child: Row(
         children: [
           SizedBox(
             width: 40,
-            child: Text('${index + 1}.', style: const TextStyle(fontSize: 13)),
+            child: Text(
+              "${index + 1}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
 
+          /// NAMA SISWA
           Expanded(
             flex: 2,
             child: Column(
@@ -665,158 +458,67 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
                   student.name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 15,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  "${student.className ?? ''} - ${student.major ?? ''}",
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  "${student.className ?? ''} — ${student.major ?? ''}",
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
             ),
           ),
 
-          _buildRadioCell(student.id, AttendanceStatus.present, Colors.green),
-          _buildRadioCell(student.id, AttendanceStatus.excused, Colors.blue),
-          _buildRadioCell(student.id, AttendanceStatus.absent, Colors.red),
-          _buildRadioCell(student.id, AttendanceStatus.late, Colors.orange),
-=======
-        title: const Text('Input Student Attendance'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Column(
-        children: [
-          UserCard(user: user),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            DropdownButtonFormField<User>(
-                              value: _selectedStudent,
-                              decoration: const InputDecoration(
-                                labelText: 'Select Student',
-                                prefixIcon: Icon(Icons.person, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: _students.map((student) {
-                                return DropdownMenuItem<User>(
-                                  value: student,
-                                  child: Text('${student.name} (ID: ${student.id})'),
-                                );
-                              }).toList(),
-                              onChanged: (User? newValue) {
-                                setState(() {
-                                  _selectedStudent = newValue;
-                                });
-                              },
-                              validator: (value) => value == null ? 'Please select a student' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _subjectController,
-                              decoration: const InputDecoration(
-                                labelText: 'Subject',
-                                prefixIcon: Icon(Icons.subject, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) =>
-                                  value == null || value.isEmpty ? 'Subject is required' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<AttendanceStatus>(
-                              value: _status,
-                              decoration: const InputDecoration(
-                                labelText: 'Attendance Status',
-                                prefixIcon: Icon(Icons.check_circle, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: AttendanceStatus.values.map((AttendanceStatus status) {
-                                return DropdownMenuItem<AttendanceStatus>(
-                                  value: status,
-                                  child: Text(status.toString().split('.').last),
-                                );
-                              }).toList(),
-                              onChanged: (AttendanceStatus? newValue) {
-                                setState(() {
-                                  _status = newValue;
-                                });
-                              },
-                              validator: (value) =>
-                                  value == null ? 'Select attendance status' : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _submit,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Add Attendance'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          _buildStatusButton(
+            student.id,
+            AttendanceStatus.present,
+            Colors.green,
+            currentStatus,
           ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
+          _buildStatusButton(
+            student.id,
+            AttendanceStatus.absent,
+            Colors.red,
+            currentStatus,
+          ),
+          _buildStatusButton(
+            student.id,
+            AttendanceStatus.late,
+            Colors.orange,
+            currentStatus,
+          ),
         ],
       ),
     );
   }
-<<<<<<< HEAD
 
-  Widget _buildRadioCell(
+  Widget _buildStatusButton(
     String studentId,
-    AttendanceStatus value,
+    AttendanceStatus selectedStatus,
     Color color,
+    AttendanceStatus currentStatus,
   ) {
+    final isSelected = currentStatus == selectedStatus;
+
     return Expanded(
-      flex: 1,
-      child: Center(
-        child: Transform.scale(
-          scale: 1.1,
-          child: Radio<AttendanceStatus>(
-            value: value,
-            groupValue: _attendanceStatus[studentId],
-            activeColor: color,
-            onChanged: (val) {
-              setState(() {
-                _attendanceStatus[studentId] = val!;
-              });
-            },
+      child: InkWell(
+        onTap: () {
+          setState(() => _attendanceStatus[studentId] = selectedStatus);
+        },
+        child: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: color,
+            size: 20,
           ),
         ),
       ),
     );
   }
 }
-// update
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

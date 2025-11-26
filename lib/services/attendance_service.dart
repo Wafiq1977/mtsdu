@@ -57,12 +57,6 @@ class AttendanceService {
         case AttendanceStatus.late:
           late++;
           break;
-<<<<<<< HEAD
-        case AttendanceStatus.excused:
-          // TODO: Handle this case.
-          throw UnimplementedError();
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
       }
     }
 
@@ -96,8 +90,4 @@ class AttendanceService {
     final box = HiveService.getAttendanceBox();
     await box.delete(id);
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

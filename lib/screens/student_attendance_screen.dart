@@ -54,12 +54,6 @@ class StudentAttendanceScreen extends StatelessWidget {
                     case attendance_model.AttendanceStatus.late:
                       statusColor = Colors.orange;
                       break;
-<<<<<<< HEAD
-                    case attendance_model.AttendanceStatus.excused:
-                      // TODO: Handle this case.
-                      throw UnimplementedError();
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                   }
                   return Card(
                     margin: const EdgeInsets.symmetric(
@@ -104,8 +98,4 @@ class StudentAttendanceScreen extends StatelessWidget {
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

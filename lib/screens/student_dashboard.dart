@@ -10,14 +10,10 @@ import '../models/attendance.dart' as attendance_model;
 
 import '../widgets/statistics_widget.dart';
 import '../widgets/animated_navigation_bar.dart';
-<<<<<<< HEAD
-// removed unused screen imports (local inline widgets used instead)
-=======
 import 'student_grades_screen.dart';
 import 'student_attendance_screen.dart';
 import 'student_assignments_screen.dart';
 import 'student_materials_screen.dart';
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 // -------------------------------------------------------------------
 // PERUBAHAN: Pastikan import untuk BlogView sudah ada
@@ -352,11 +348,7 @@ class _StudentDashboardState extends State<StudentDashboard>
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-<<<<<<< HEAD
                           child: AnimatedSwitcher(
-=======
-                            child: AnimatedSwitcher(
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                             duration: const Duration(milliseconds: 150),
                             transitionBuilder:
                                 (Widget child, Animation<double> animation) {
@@ -622,13 +614,8 @@ class GradesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-<<<<<<< HEAD
-    final user = authProvider.currentUser!;
-    final dataProvider = Provider.of<DataProvider>(context);
-=======
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
     final grades = dataProvider.grades
         .where((g) => g.studentId == user.id)
         .toList();
@@ -754,13 +741,6 @@ class AttendanceView extends StatelessWidget {
                   case attendance_model.AttendanceStatus.late:
                     statusColor = Colors.orange;
                     break;
-<<<<<<< HEAD
-                  case attendance_model.AttendanceStatus.excused:
-                    statusColor = Colors.blue;
-                    break;
-                  // no default needed; all enum cases handled
-=======
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                 }
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -1672,14 +1652,7 @@ class AnnouncementsView extends StatelessWidget {
             itemBuilder: (context, index) {
               final announcement = announcements[index];
               return Card(
-<<<<<<< HEAD
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-=======
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1712,14 +1685,7 @@ class AnnouncementsView extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         'Target: ${announcement.targetRole}',
-<<<<<<< HEAD
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-=======
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
                       ),
                     ],
                   ),
@@ -1727,11 +1693,7 @@ class AnnouncementsView extends StatelessWidget {
               );
             },
           ),
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
           // Menangani jika tidak ada pengumuman
           if (announcements.isEmpty)
             const Padding(
@@ -1744,19 +1706,12 @@ class AnnouncementsView extends StatelessWidget {
               ),
             ),
 
-<<<<<<< HEAD
           // 3. Pemisah dan Judul Blog (dari API)
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 16.0,
             ),
-=======
-
-          // 3. Pemisah dan Judul Blog (dari API)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
             child: Divider(thickness: 1, color: Colors.red.shade100),
           ),
           Container(
@@ -1775,19 +1730,11 @@ class AnnouncementsView extends StatelessWidget {
 
           // 4. Widget BlogView (dari API)
           const BlogView(),
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
           // 5. Padding di bagian bawah
           const SizedBox(height: 20),
         ],
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b

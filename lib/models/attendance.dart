@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-enum AttendanceStatus { present, absent, late, excused }
-=======
 enum AttendanceStatus { present, absent, late }
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
 
 class Attendance {
   final String id;
@@ -42,8 +38,4 @@ class Attendance {
       teacherId: map['teacherId'],
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3174971bac5fe2e2c72c9febc82ac280622d863b
