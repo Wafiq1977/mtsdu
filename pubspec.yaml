@@ -80,6 +80,7 @@ dependencies:
   flutter_bloc: ^8.1.5  # Untuk Cubit
   equatable: ^2.0.5     # Untuk perbandingan state BLoC
   http: ^1.2.1          # Untuk melakukan panggilan API
+  get_it: ^8.0.0        # Dependency Injection
 
 
 dev_dependencies:

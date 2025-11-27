@@ -1,6 +1,6 @@
 // lib/blog/blog_state.dart
 import 'package:equatable/equatable.dart';
-import '../models/blog.dart'; // Sesuaikan path jika perlu
+import '../data/model/blog.dart'; // Sesuaikan path jika perlu
 
 abstract class BlogState extends Equatable {
   const BlogState();

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'blog_cubit.dart';
 import 'blog_state.dart';
-import '../models/blog.dart';
+import '../data/model/blog.dart';
 
 class BlogView extends StatefulWidget {
   const BlogView({super.key});
