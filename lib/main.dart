@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'services/hive_service.dart';
-import 'providers/auth_provider.dart';
-import 'providers/data_provider.dart';
-import 'providers/theme_provider.dart';
-import 'routes/app_router.dart';
-import 'models/user.dart';
-import 'models/schedule.dart';
-import 'models/grade.dart';
-import 'models/attendance.dart';
-import 'models/assignment.dart';
-import 'models/announcement.dart';
-import 'models/payment.dart';
+import 'package:provider/provider.dart';
+import 'data/source/hive_service.dart';
+import 'injector.dart';
+import 'presentation/routes/app_router.dart';
+import 'presentation/bloc/auth_cubit.dart';
+import 'presentation/provider/auth_provider.dart';
+import 'presentation/provider/data_provider.dart';
+import 'data/model/user.dart';
+import 'data/model/schedule.dart';
+import 'data/model/grade.dart';
+import 'data/model/attendance.dart';
+import 'data/model/assignment.dart';
+import 'data/model/announcement.dart';
+import 'data/model/payment.dart';
+import 'domain/entity/user_entity.dart';
+import 'domain/entity/attendance_entity.dart';
+import 'domain/entity/schedule_entity.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   usePathUrlStrategy();
   await HiveService.init();
   await _addSampleData();
+  setupInjector();
   runApp(const MyApp());
 }
 
@@ -345,19 +351,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        BlocProvider(create: (_) => injector<AuthCubit>()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DataProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp.router(
-            title: 'LPMMTSDU',
-            theme: themeProvider.currentTheme,
-            routerConfig: AppRouter.router,
-            debugShowCheckedModeBanner: false,
-          );
-        },
+      child: MaterialApp.router(
+        title: 'LPMMTSDU',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        routerConfig: AppRouter.router,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

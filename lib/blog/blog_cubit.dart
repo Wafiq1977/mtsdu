@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'blog_state.dart';
-import '../models/blog.dart';
+import '../data/model/blog.dart';
 
 class BlogCubit extends Cubit<BlogState> {
   final String _apiKey = 'pub_995e693ea40d47dc8d79482124903dc3';
