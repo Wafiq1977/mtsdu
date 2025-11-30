@@ -20,7 +20,9 @@ import '../../../presentation/page/admin/admin_attendance_reports.dart';
 import '../../../presentation/page/student/student_grades_view.dart';
 import '../../../presentation/page/student/student_attendance_view.dart';
 import '../../../presentation/page/student/student_assignments_view.dart';
-import '../../../presentation/page/student/student_materials_screen.dart';
+import '../../../presentation/page/student/student_materials_view.dart';
+import '../../../presentation/page/student/academic_calendar_view.dart';
+import '../../../presentation/page/student/academic_year_detail_view.dart';
 import '../../../presentation/page/teacher/teacher_input_assignment_view.dart';
 import '../../../presentation/page/shared/about_team_screen.dart';
 
@@ -28,15 +30,9 @@ class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+
       // --- Student Dashboard ---
       GoRoute(
         path: '/student-dashboard',
@@ -51,30 +47,46 @@ class AppRouter {
         builder: (context, state) => const StudentDashboard(initialIndex: 1),
       ),
       GoRoute(
-        path: '/student-dashboard/jadwal',
+        path: '/student-dashboard/calendar',
         builder: (context, state) => const StudentDashboard(initialIndex: 2),
       ),
       GoRoute(
         path: '/student-dashboard/profil',
         builder: (context, state) => const StudentDashboard(initialIndex: 3),
       ),
-      
+
       // Sub-routes Student Beranda
       GoRoute(
         path: '/student-dashboard/beranda/grades',
-        builder: (context, state) => const GradesView(), // Pastikan nama class sesuai
+        builder: (context, state) =>
+            const GradesView(), // Pastikan nama class sesuai
       ),
       GoRoute(
         path: '/student-dashboard/beranda/attendance',
-        builder: (context, state) => const AttendanceView(), // Pastikan nama class sesuai
+        builder: (context, state) =>
+            const AttendanceView(), // Pastikan nama class sesuai
       ),
       GoRoute(
         path: '/student-dashboard/beranda/assignments',
-        builder: (context, state) => const AssignmentsView(), // Pastikan nama class sesuai
+        builder: (context, state) =>
+            const AssignmentsView(), // Pastikan nama class sesuai
       ),
       GoRoute(
         path: '/student-dashboard/beranda/materials',
-        builder: (context, state) => const MaterialsView(),
+        builder: (context, state) => const StudentMaterialsView(),
+      ),
+
+      // --- Academic Calendar Routes ---
+      GoRoute(
+        path: '/student-dashboard/calendar',
+        builder: (context, state) => const AcademicCalendarView(),
+      ),
+      GoRoute(
+        path: '/student-dashboard/calendar/:year',
+        builder: (context, state) {
+          final year = state.pathParameters['year']!;
+          return AcademicYearDetailView(academicYear: year);
+        },
       ),
 
       // --- Teacher Dashboard ---
@@ -147,7 +159,9 @@ class AppRouter {
                 foregroundColor: Colors.white,
               ),
               body: const Center(
-                child: Text("Data berita tidak ditemukan. Silakan akses dari halaman list."),
+                child: Text(
+                  "Data berita tidak ditemukan. Silakan akses dari halaman list.",
+                ),
               ),
             );
           }
