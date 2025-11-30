@@ -22,6 +22,7 @@ import '../../../presentation/page/student/student_attendance_view.dart';
 import '../../../presentation/page/student/student_assignments_view.dart';
 import '../../../presentation/page/student/student_materials_screen.dart';
 import '../../../presentation/page/teacher/teacher_input_assignment_view.dart';
+import '../../../presentation/page/shared/about_team_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -151,6 +152,10 @@ class AppRouter {
             );
           }
         },
+      ),
+      GoRoute(
+        path: '/about-team',
+        builder: (context, state) => const AboutTeamScreen(),
       ),
     ],
   );

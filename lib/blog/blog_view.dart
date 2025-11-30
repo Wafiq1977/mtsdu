@@ -20,7 +20,6 @@ class _BlogViewState extends State<BlogView> {
   @override
   void initState() {
     super.initState();
-    // Default text sesuai logic cubit
     _searchController = TextEditingController(text: 'Pendidikan');
   }
 
@@ -31,9 +30,7 @@ class _BlogViewState extends State<BlogView> {
   }
 
   void _applyFilters() {
-    // Menutup keyboard saat search dimulai
     FocusScope.of(context).unfocus();
-    
     context.read<BlogCubit>().fetchBlogs(
       searchQuery: _searchController.text,
       language: _selectedLanguage,
@@ -80,7 +77,7 @@ class _BlogViewState extends State<BlogView> {
                   ),
                 );
               } else if (state is BlogLoaded) {
-                return _buildBlogList(context, state.blogs);
+                return _buildResponsiveBlogList(context, state.blogs);
               }
               return const SizedBox.shrink();
             },
@@ -91,8 +88,6 @@ class _BlogViewState extends State<BlogView> {
   }
 
   Widget _buildFilterWidgets() {
-    // Menggunakan Builder agar kita bisa akses context yang mengandung BlogCubit 
-    // (karena BlocProvider ada di atasnya)
     return Builder(
       builder: (context) {
         return Padding(
@@ -102,16 +97,14 @@ class _BlogViewState extends State<BlogView> {
               // Search Bar
               TextField(
                 controller: _searchController,
-                textInputAction: TextInputAction.search, // Ubah tombol keyboard jadi "Search"
+                textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   labelText: 'Cari Berita Pendidikan',
                   hintText: 'Contoh: Beasiswa, Kurikulum',
                   prefixIcon: const Icon(Icons.search),
-                  // PERBAIKAN: Menambahkan tombol 'X' untuk clear atau tombol search di kanan
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward),
                     onPressed: () {
-                      // Panggil fungsi fetchBlogs lewat context yang benar
                       context.read<BlogCubit>().fetchBlogs(
                         searchQuery: _searchController.text,
                         language: _selectedLanguage,
@@ -146,7 +139,6 @@ class _BlogViewState extends State<BlogView> {
                 onChanged: (value) {
                   if (value != null) {
                     setState(() => _selectedLanguage = value);
-                    // Langsung fetch ulang saat ganti bahasa
                     context.read<BlogCubit>().fetchBlogs(
                       searchQuery: _searchController.text,
                       language: value,
@@ -188,8 +180,8 @@ class _BlogViewState extends State<BlogView> {
     );
   }
 
-  // Widget List Blog
-  Widget _buildBlogList(BuildContext context, List<Blog> blogs) {
+  // Fungsi Baru: Menangani Logika Responsif (Grid vs List)
+  Widget _buildResponsiveBlogList(BuildContext context, List<Blog> blogs) {
     if (blogs.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(32.0),
@@ -198,60 +190,91 @@ class _BlogViewState extends State<BlogView> {
         ),
       );
     }
-    
-    return ListView.builder(
-      itemCount: blogs.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final blog = blogs[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          clipBehavior: Clip.antiAlias,
-          // ----------------------------------------------------------
-          // PERUBAHAN: Bungkus isi Card dengan InkWell untuk klik
-          // ----------------------------------------------------------
-          child: InkWell(
-            onTap: () {
-              // Navigasi ke detail dengan mengirim object blog sebagai 'extra'
-              context.go(
-                '/blog/${Uri.encodeComponent(blog.id)}', 
-                extra: blog
-              );
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildBlogImage(blog.imageUrl),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        blog.title,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        blog.content,
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      // ... (Sisa kode UI lainnya sama) ...
-                    ],
-                  ),
-                ),
-              ],
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Anggap Desktop jika lebar > 900 pixel
+        bool isDesktop = constraints.maxWidth > 900;
+
+        if (isDesktop) {
+          // --- TAMPILAN GRID (DESKTOP) ---
+          return GridView.builder(
+            itemCount: blogs.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 2 Kolom
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              mainAxisExtent: 320, // Tinggi tetap agar kartu rapi
             ),
-          ),
-        );
+            itemBuilder: (context, index) {
+              return _buildBlogCard(context, blogs[index], isGrid: true);
+            },
+          );
+        } else {
+          // --- TAMPILAN LIST (TABLET & HP) ---
+          return ListView.builder(
+            itemCount: blogs.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            itemBuilder: (context, index) {
+              return _buildBlogCard(context, blogs[index], isGrid: false);
+            },
+          );
+        }
       },
+    );
+  }
+
+  // Widget Kartu Berita yang diekstrak agar bisa dipakai ulang
+  Widget _buildBlogCard(BuildContext context, Blog blog, {required bool isGrid}) {
+    return Card(
+      // Jika di Grid, margin ditangani oleh GridDelegate (spacing).
+      // Jika di List, kita beri margin manual.
+      margin: isGrid 
+          ? EdgeInsets.zero 
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          context.go(
+            '/blog/${Uri.encodeComponent(blog.id)}', 
+            extra: blog
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBlogImage(blog.imageUrl),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    blog.title,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    blog.content,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
