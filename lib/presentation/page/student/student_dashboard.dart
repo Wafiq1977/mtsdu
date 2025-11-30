@@ -15,6 +15,9 @@ import '../../../data/model/announcement.dart';
 import '../../widgets/animated_navigation_bar.dart';
 import '../../widgets/statistics_widget.dart';
 
+// [IMPORT BARU] Import BlogView untuk menampilkan API berita
+import '../../../blog/blog_view.dart'; 
+
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key, this.initialIndex = 0});
 
@@ -35,7 +38,7 @@ class _StudentDashboardState extends State<StudentDashboard>
   late Animation<double> _contentAnimation;
 
   static const List<Widget> _widgetOptions = <Widget>[
-    AnnouncementsView(),
+    AnnouncementsView(), // Widget ini yang akan kita modifikasi
     HomeView(),
     StudentScheduleView(),
     ProfileView(),
@@ -45,7 +48,6 @@ class _StudentDashboardState extends State<StudentDashboard>
     setState(() {
       _selectedIndex = index;
     });
-    // Navigate to the corresponding sub-route using GoRouter to keep URL in sync
     switch (index) {
       case 0:
         context.go('/student-dashboard/pengumuman');
@@ -76,10 +78,8 @@ class _StudentDashboardState extends State<StudentDashboard>
   @override
   void initState() {
     super.initState();
-    // Set initial index from constructor (passed by GoRouter)
     _selectedIndex = widget.initialIndex;
 
-    // Initialize animations
     _fabAnimationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -102,7 +102,6 @@ class _StudentDashboardState extends State<StudentDashboard>
       ),
     );
 
-    // Staggered animation for different elements
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) _contentAnimationController.forward();
     });
@@ -195,7 +194,7 @@ class _StudentDashboardState extends State<StudentDashboard>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       child: Text(
-        day.substring(0, 3), // Show first 3 letters
+        day.substring(0, 3),
         style: const TextStyle(fontSize: 12),
       ),
     );
@@ -210,12 +209,10 @@ class _StudentDashboardState extends State<StudentDashboard>
       return Scaffold(body: const Center(child: CircularProgressIndicator()));
     }
 
-    // Cek apakah sedang di halaman profil
     final bool isProfilePage = _selectedIndex == 3;
 
     return Scaffold(
       body: Container(
-        // Hapus gradient jika di halaman profil agar warna biru dari ProfileView terlihat full
         decoration: isProfilePage
             ? null
             : const BoxDecoration(
@@ -235,7 +232,6 @@ class _StudentDashboardState extends State<StudentDashboard>
             opacity: _contentAnimation,
             child: Column(
               children: [
-                // Header: Sembunyikan jika di halaman profil
                 if (!isProfilePage)
                   SlideTransition(
                     position: Tween<Offset>(
@@ -292,7 +288,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                     ),
                   ),
 
-                // Content Area
                 Expanded(
                   child: ScaleTransition(
                     scale: Tween<double>(begin: 0.9, end: 1.0).animate(
@@ -312,7 +307,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                           curve: const Interval(0.3, 0.8, curve: Curves.easeIn),
                         ),
                       ),
-                      // Jika Profile: Full screen. Jika Bukan: Pakai Container putih melengkung.
                       child: isProfilePage
                           ? AnimatedSwitcher(
                               duration: const Duration(milliseconds: 400),
@@ -333,32 +327,7 @@ class _StudentDashboardState extends State<StudentDashboard>
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 400),
-                                  transitionBuilder: (
-                                    Widget child,
-                                    Animation<double> animation,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0.5, 0.0),
-                                          end: Offset.zero,
-                                        ).animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOutCubic,
-                                          ),
-                                        ),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: _widgetOptions.elementAt(
-                                    _selectedIndex,
-                                  ),
-                                ),
+                                child: _widgetOptions.elementAt(_selectedIndex),
                               ),
                             ),
                     ),
@@ -367,7 +336,6 @@ class _StudentDashboardState extends State<StudentDashboard>
 
                 if (!isProfilePage) const SizedBox(height: 10),
 
-                // Collapsible Tools Section
                 if (!isProfilePage)
                   AnimatedSize(
                     duration: const Duration(milliseconds: 500),
@@ -1060,47 +1028,6 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-    int count,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$count item${count != 1 ? 's' : ''}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _navigateToView(BuildContext context, int index) {
     switch (index) {
       case 0:
@@ -1458,96 +1385,145 @@ class StudentScheduleView extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// MODIFIED AnnouncementsView: Menggunakan TabBar untuk memisahkan API Berita
+// ---------------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<DataProvider>(context);
+    // Mengambil data pengumuman internal (sekolah)
     final announcements = dataProvider.announcements
         .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
         .toList();
 
-    return Container(
-      color: Colors.red.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Pengumuman',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade900,
+    return DefaultTabController(
+      length: 2, // Dua tab: Sekolah dan Berita
+      child: Container(
+        color: Colors.red.shade50,
+        child: Column(
+          children: [
+            // Header Judul
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Pengumuman',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade900,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: announcements.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.announcement, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('Belum ada pengumuman'),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: announcements.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemBuilder: (context, index) {
-                      final announcement = announcements[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
+            
+            // TabBar Menu
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TabBar(
+                labelColor: Colors.red.shade900,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.red.shade900,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: const [
+                  Tab(text: 'Info Sekolah'),
+                  Tab(text: 'Berita Pendidikan'),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 10),
+
+            // Isi Konten Tab
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // --- TAB 1: PENGUMUMAN SEKOLAH (INTERNAL) ---
+                  announcements.isEmpty
+                      ? const Center(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.announcement, color: Colors.red),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      announcement.title,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                announcement.content,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Target: ${announcement.targetRole}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
+                              Icon(Icons.announcement,
+                                  size: 80, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text('Belum ada pengumuman sekolah'),
                             ],
                           ),
+                        )
+                      : ListView.builder(
+                          itemCount: announcements.length,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (context, index) {
+                            final announcement = announcements[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.announcement,
+                                            color: Colors.red),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            announcement.title,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      announcement.content,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Target: ${announcement.targetRole}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
+
+                  const SingleChildScrollView(
+                    child: BlogView(),
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -217,7 +217,7 @@ class _BlogViewState extends State<BlogView> {
             onTap: () {
               // Navigasi ke detail dengan mengirim object blog sebagai 'extra'
               context.go(
-                '/beritadetail/${Uri.encodeComponent(blog.id)}', 
+                '/blog/${Uri.encodeComponent(blog.id)}', 
                 extra: blog
               );
             },
