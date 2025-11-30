@@ -17,6 +17,7 @@ import '../../../presentation/widgets/statistics_widget.dart';
 import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
 import 'teacher_bulk_attendance_view.dart';
+import 'assignment_detail_page.dart';
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -866,7 +867,13 @@ class AssignmentListPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _showAssignmentDetail(context, assignment),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AssignmentDetailPage(assignment: assignment),
+                      ),
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.all(16),

@@ -5,6 +5,7 @@ import 'dart:io';
 import '../../../presentation/provider/auth_provider.dart';
 import '../../../presentation/provider/data_provider.dart';
 import '../../../data/model/material.dart' as model;
+import 'package:url_launcher/link.dart';
 
 class TeacherMaterialsView extends StatefulWidget {
   const TeacherMaterialsView({super.key});
@@ -552,6 +553,22 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class MaterialDetailScreen extends StatelessWidget {
+  final model.Material material;
+
+  const MaterialDetailScreen({super.key, required this.material});
+
+  @override
+  Widget build(BuildContext context) {
+    final _filePath = material.filePath;
+    final _fileName = _filePath != null ? _filePath.split('/').last : null;
+    return Scaffold(
+      appBar: AppBar(title: Text(material.title)),
+      body: Center(child: Text('Detail for ${_fileName ?? 'material'}')),
     );
   }
 }

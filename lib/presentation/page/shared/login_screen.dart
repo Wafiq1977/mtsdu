@@ -121,9 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     width: 100,
                     height: 100,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: Image.asset(
                       'assets/gambar.png',
                       fit: BoxFit.cover,
@@ -358,12 +356,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   size: 24,
                                 ),
                                 const SizedBox(width: 10),
-                                const Text(
-                                  'Login with Google',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                Expanded(
+                                  child: Text(
+                                    'Login with Google',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],

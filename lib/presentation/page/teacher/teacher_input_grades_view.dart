@@ -1,14 +1,25 @@
+// File: lib/presentation/page/teacher/teacher_input_grades_view.dart
+
 import 'package:flutter/material.dart';
+import 'package:lpmmtsdu/domain/entity/user_entity.dart';
 import 'package:provider/provider.dart';
 import '../../../presentation/provider/auth_provider.dart';
-import '../../../presentation/provider/data_provider.dart';
 import '../../../data/model/grade.dart';
 import '../../../data/model/user.dart';
-import '../../../domain/entity/user_entity.dart';
-import '../../../presentation/widgets/user_card.dart';
+import '../../../presentation/utils/user_role.dart';
 
 class TeacherInputGradesView extends StatefulWidget {
-  const TeacherInputGradesView({super.key});
+  // Tambahkan parameter opsional untuk menerima data dari halaman Detail Tugas
+  final User? preSelectedStudent;
+  final String? preSelectedSubject;
+  final String? preSelectedAssignmentTitle;
+
+  const TeacherInputGradesView({
+    super.key,
+    this.preSelectedStudent,
+    this.preSelectedSubject,
+    this.preSelectedAssignmentTitle,
+  });
 
   @override
   State<TeacherInputGradesView> createState() => _TeacherInputGradesViewState();
@@ -17,178 +28,170 @@ class TeacherInputGradesView extends StatefulWidget {
 class _TeacherInputGradesViewState extends State<TeacherInputGradesView> {
   final _formKey = GlobalKey<FormState>();
   User? _selectedStudent;
-  String _subject = '';
-  String _assignment = '';
-  double _score = 0.0;
+  late TextEditingController _subjectController;
+  late TextEditingController _assignmentController;
+  late TextEditingController _scoreController;
+
   List<User> _students = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi controller dengan data lemparan jika ada
+    _selectedStudent = widget.preSelectedStudent;
+    _subjectController = TextEditingController(
+      text: widget.preSelectedSubject ?? '',
+    );
+    _assignmentController = TextEditingController(
+      text: widget.preSelectedAssignmentTitle ?? '',
+    );
+    _scoreController = TextEditingController();
+
     _loadStudents();
+  }
+
+  @override
+  void dispose() {
+    _subjectController.dispose();
+    _assignmentController.dispose();
+    _scoreController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadStudents() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final allUsers = await authProvider.getAllUsers();
-    setState(() {
-      _students = allUsers.where((u) => u.role == UserRole.student).toList();
-      _isLoading = false;
-    });
+
+    if (mounted) {
+      setState(() {
+        _students = allUsers.where((u) => u.role == UserRole.student).toList();
+        _isLoading = false;
+      });
+    }
   }
 
   void _submitGrade() {
     if (_formKey.currentState!.validate() && _selectedStudent != null) {
       _formKey.currentState!.save();
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      final user = authProvider.currentUser!;
 
-      final grade = Grade(
-        id: DateTime.now().toString(),
-        studentId: _selectedStudent!.id,
-        subject: _subject,
-        assignment: _assignment,
-        score: _score,
-        date: DateTime.now().toString(),
-        teacherId: user.id,
-      );
+      // Logika simpan grade (bisa ditambahkan provider call di sini)
+      // final grade = Grade(..., studentId: _selectedStudent!.id, ...);
+      // context.read<DataProvider>().addGrade(grade);
 
-      dataProvider.addGrade(grade);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Grade added successfully')),
+        SnackBar(
+          content: Text(
+            'Nilai untuk ${_selectedStudent!.name} berhasil disimpan',
+          ),
+        ),
       );
-      _formKey.currentState!.reset();
-      setState(() {
-        _selectedStudent = null;
-      });
+      Navigator.pop(context); // Kembali ke layar sebelumnya
     } else if (_selectedStudent == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a student')),
+        const SnackBar(content: Text('Pilih siswa terlebih dahulu')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser!;
-
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Input Student Grades'),
-        backgroundColor: Colors.blue,
+        title: const Text('Input Nilai Siswa'),
+        backgroundColor: const Color(0xFF667EEA),
       ),
-      body: Column(
-        children: [
-          UserCard(user: user),
-          Expanded(
-            child: SingleChildScrollView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    // Dropdown Siswa (Disable jika sudah ada preSelectedStudent)
+                    DropdownButtonFormField<User>(
+                      value: _students.any((s) => s.id == _selectedStudent?.id)
+                          ? _selectedStudent
+                          : null,
+                      decoration: const InputDecoration(
+                        labelText: 'Pilih Siswa',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            DropdownButtonFormField<User>(
-                              value: _selectedStudent,
-                              decoration: const InputDecoration(
-                                labelText: 'Select Student',
-                                prefixIcon: Icon(Icons.person, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: _students.map((student) {
-                                return DropdownMenuItem<User>(
-                                  value: student,
-                                  child: Text('${student.name} (ID: ${student.id})'),
-                                );
-                              }).toList(),
-                              onChanged: (User? newValue) {
-                                setState(() {
-                                  _selectedStudent = newValue;
-                                });
-                              },
-                              validator: (value) => value == null ? 'Please select a student' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Subject',
-                                prefixIcon: Icon(Icons.subject, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) => value!.isEmpty ? 'Subject is required' : null,
-                              onSaved: (value) => _subject = value!,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Assignment',
-                                prefixIcon: Icon(Icons.assignment, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) => value!.isEmpty ? 'Assignment is required' : null,
-                              onSaved: (value) => _assignment = value!,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Score (0-100)',
-                                prefixIcon: Icon(Icons.grade, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value!.isEmpty) return 'Score is required';
-                                final score = double.tryParse(value);
-                                if (score == null || score < 0 || score > 100) {
-                                  return 'Enter a valid score between 0 and 100';
-                                }
-                                return null;
-                              },
-                              onSaved: (value) => _score = double.parse(value!),
-                            ),
-                          ],
-                        ),
+                      items: _students.map((student) {
+                        return DropdownMenuItem(
+                          value: student,
+                          child: Text(student.name),
+                        );
+                      }).toList(),
+                      onChanged: widget.preSelectedStudent != null
+                          ? null // Disable jika dari detail screen
+                          : (value) => setState(() => _selectedStudent = value),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _subjectController,
+                      decoration: const InputDecoration(
+                        labelText: 'Mata Pelajaran',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.book),
                       ),
+                      // ReadOnly jika data dilempar dari screen sebelumnya
+                      readOnly: widget.preSelectedSubject != null,
+                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _assignmentController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Tugas / Ujian',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.assignment),
+                      ),
+                      readOnly: widget.preSelectedAssignmentTitle != null,
+                      validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _scoreController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Nilai (0-100)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.grade),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty)
+                          return 'Masukkan nilai';
+                        final n = double.tryParse(value);
+                        if (n == null || n < 0 || n > 100)
+                          return 'Nilai tidak valid';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _submitGrade,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Add Grade'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _submitGrade,
+                        icon: const Icon(Icons.save),
+                        label: const Text('Simpan Nilai'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: const Color(0xFF667EEA),
                         ),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }

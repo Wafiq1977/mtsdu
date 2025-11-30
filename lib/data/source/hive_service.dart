@@ -7,6 +7,7 @@ class HiveService {
   static const String gradeBox = 'grades';
   static const String attendanceBox = 'attendances';
   static const String assignmentBox = 'assignments';
+  static const String assignmentSubmissionBox = 'assignment_submissions';
   static const String announcementBox = 'announcements';
   static const String paymentBox = 'payments';
   static const String calendarEventBox = 'calendar_events';
@@ -20,6 +21,7 @@ class HiveService {
     await Hive.openBox(gradeBox);
     await Hive.openBox(attendanceBox);
     await Hive.openBox(assignmentBox);
+    await Hive.openBox(assignmentSubmissionBox);
     await Hive.openBox(announcementBox);
     await Hive.openBox(paymentBox);
     await Hive.openBox(calendarEventBox);
@@ -60,5 +62,9 @@ class HiveService {
 
   static Box getMaterialBox() {
     return Hive.box(_materialBox);
+  }
+
+  static Box getAssignmentSubmissionBox() {
+    return Hive.box(assignmentSubmissionBox);
   }
 }
