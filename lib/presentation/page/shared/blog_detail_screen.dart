@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../data/model/blog.dart'; // [PENTING] Pastikan import ini ada
 
 class BlogDetailScreen extends StatelessWidget {
-  final String blogId;
+  // Ubah parameter dari String blogId menjadi objek Blog
+  final Blog blog;
 
-  const BlogDetailScreen({super.key, required this.blogId});
+  const BlogDetailScreen({super.key, required this.blog});
 
   @override
   Widget build(BuildContext context) {
-    // For now, create a placeholder blog object
-    // In a real app, you would fetch the blog by ID
-    final blog = {
-      'title': 'Blog Post $blogId',
-      'content': 'This is the content for blog post $blogId. In a real application, this would be fetched from your data source.',
-      'author': 'Author Name',
-      'createdAt': DateTime.now(),
-      'imageUrl': null,
-      'link': null,
-    };
-
+    // Kita gunakan data dari objek 'blog' yang dikirim, bukan membuat map baru
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Berita'),
@@ -28,36 +21,35 @@ class BlogDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Placeholder image
-            Container(
-              height: 250,
-              color: Colors.grey[300],
-              child: const Center(
-                child: Icon(Icons.article, size: 64, color: Colors.grey),
-              ),
-            ),
+            // --- BAGIAN GAMBAR ---
+            _buildHeroImage(blog.imageUrl), // Panggil fungsi helper gambar
 
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Date & Author
+                  // --- BAGIAN TANGGAL & PENULIS ---
                   Row(
                     children: [
                       const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
+                      // Gunakan data tanggal dari blog.createdAt
                       Text(
-                        "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}",
+                        "${blog.createdAt.day}/${blog.createdAt.month}/${blog.createdAt.year}",
                         style: const TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                       const SizedBox(width: 16),
                       const Icon(Icons.person, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
+                        // Gunakan data penulis dari blog.author
                         child: Text(
-                          blog['author'] as String,
-                          style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold),
+                          blog.author,
+                          style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -65,47 +57,83 @@ class BlogDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Title
+                  // --- BAGIAN JUDUL ---
                   Text(
-                    blog['title'] as String,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, height: 1.3),
+                    blog.title, // Gunakan blog.title
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold, height: 1.3),
                   ),
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 16),
 
-                  // Content
+                  // --- BAGIAN KONTEN ---
                   Text(
-                    blog['content'] as String,
-                    style: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
+                    blog.content, // Gunakan blog.content
+                    style: const TextStyle(
+                        fontSize: 16, height: 1.6, color: Colors.black87),
+                    textAlign: TextAlign.justify,
                   ),
 
                   const SizedBox(height: 30),
 
-                  // Placeholder button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Blog detail functionality coming soon!")),
-                        );
-                      },
-                      icon: const Icon(Icons.open_in_browser),
-                      label: const Text("Read More"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF667EEA),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                  // --- TOMBOL BACA SELENGKAPNYA ---
+                  if (blog.link != null && blog.link!.isNotEmpty)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Implementasi buka link browser bisa ditambahkan di sini
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Link sumber: ${blog.link}")),
+                          );
+                        },
+                        icon: const Icon(Icons.open_in_browser),
+                        label: const Text("Baca Sumber Asli"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF667EEA),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // Helper untuk menampilkan gambar dengan penanganan error
+  Widget _buildHeroImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        height: 250,
+        width: double.infinity,
+        color: Colors.grey[300],
+        child: const Center(
+          child: Icon(Icons.article, size: 64, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      height: 250,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 250,
+          width: double.infinity,
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 64, color: Colors.grey),
+          ),
+        );
+      },
     );
   }
 }
