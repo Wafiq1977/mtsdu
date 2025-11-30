@@ -30,17 +30,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // UPDATE: Tambahkan Academic Calendar dan reorder menu
   static const List<Widget> _widgetOptions = <Widget>[
-    AdminUserManagement(),           // Index 0 - User Management
-    AdminAcademicCalendar(),         // Index 1 - Academic Calendar (BARU)
-    AdminScheduleManagement(),       // Index 2 - Schedule Management  
-    AdminAttendanceReports(),        // Index 3 - Attendance Reports
+    AdminUserManagement(), // Index 0 - User Management
+    AdminAcademicCalendar(), // Index 1 - Academic Calendar (BARU)
+    AdminScheduleManagement(), // Index 2 - Schedule Management
+    AdminAttendanceReports(), // Index 3 - Attendance Reports
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    
+
     switch (index) {
       case 0:
         GoRouter.of(context).go('/admin-dashboard/usermanagements');
@@ -203,14 +203,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         const SizedBox(width: 10),
                       ],
                     ),
-                    
+
                     // Title dan Welcome Message (Tengah)
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Text(
-                            'LPMMTSDU Admin',
+                            'ESEMKA Admin',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -226,12 +226,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                           const Text(
                             'Administrator',
-                            style: TextStyle(fontSize: 14, color: Colors.white60),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white60,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    
+
                     // Logout Button (Kanan)
                     IconButton(
                       icon: const Icon(Icons.logout, color: Colors.white),
@@ -240,7 +243,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Logout'),
-                            content: const Text('Are you sure you want to logout?'),
+                            content: const Text(
+                              'Are you sure you want to logout?',
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),

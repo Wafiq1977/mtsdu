@@ -3,6 +3,9 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import 'data/source/hive_service.dart';
 import 'injector.dart';
@@ -17,6 +20,7 @@ import 'data/model/attendance.dart';
 import 'data/model/assignment.dart';
 import 'data/model/announcement.dart';
 import 'data/model/payment.dart';
+import 'data/model/material.dart' as material_model;
 import 'domain/entity/user_entity.dart';
 import 'domain/entity/attendance_entity.dart';
 import 'domain/entity/schedule_entity.dart';
@@ -244,7 +248,7 @@ Future<void> _addSampleData() async {
         subject: 'Mathematics',
         date: '2024-01-15',
         status: AttendanceStatus.present,
-        teacherId: 'teacher1',
+        teacherId: 'teacher2',
       ),
       Attendance(
         id: 'a2',
@@ -273,6 +277,7 @@ Future<void> _addSampleData() async {
         className: '10A',
         major: 'IPA',
         dueDate: '2024-01-25',
+        attachmentPath: 'null',
       ),
       Assignment(
         id: 'as2',
@@ -283,13 +288,375 @@ Future<void> _addSampleData() async {
         className: '10A',
         major: 'IPA',
         dueDate: '2024-01-30',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as3',
+        title: 'Mengerjakan soal Teks Eksposisi',
+        description:
+            'Bacalah Materi tentang Teks Eksposisi lalu kerjakan Lembar Kerja dari Bab I, II, dan III',
+        subject: 'B.Indo',
+        teacherId: 'teacher1',
+        className: '10A',
+        major: 'Multimedia',
+        dueDate: '2025-12-15',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as4',
+        title: 'Soal Ulangan Harian',
+        description:
+            'Soal ulangan harian ini disusun untuk menguji pemahaman siswa kelas XI Multimedia II pada materi invitation text (undangan). Siswa diminta membaca dan memahami teks undangan untuk menjawab pertanyaan berupa reading comprehension, serta mengidentifikasi bagian-bagian undangan pada soal penulisan personal invitation. Waktu pengerjaan adalah 45 menit.',
+        subject: 'B.Inggris',
+        teacherId: 'teacher3',
+        className: '11A',
+        major: 'Multimedia',
+        dueDate: '2025-12-2',
+        attachmentPath: '../../asset/Soal_Ulangan_Harian_B.Inggris.pdf',
+      ),
+      Assignment(
+        id: 'as2',
+        title: 'Latihan Soal Matriks',
+        description:
+            'Mengerjakan 20 soal tentang operasi matriks dan determinan',
+        subject: 'Matematika',
+        teacherId: 'teacher2',
+        className: '11A',
+        major: 'Rekayasa Perangkat Lunak',
+        dueDate: '2025-12-12',
+        attachmentPath: 'assets/assignments/soal_matriks.pdf',
+      ),
+      Assignment(
+        id: 'as3',
+        title: 'Membuat Invitation Card',
+        description:
+            'Buatlah sebuah undangan formal dan informal dalam bahasa Inggris',
+        subject: 'B. Inggris',
+        teacherId: 'teacher3',
+        className: '11A',
+        major: 'Multimedia',
+        dueDate: '2025-12-08',
+        attachmentPath: 'assets/assignments/template_invitation.docx',
+      ),
+      Assignment(
+        id: 'as4',
+        title: 'Hafalan Rukun Iman dan Islam',
+        description:
+            'Hafalkan rukun iman dan rukun Islam beserta penjelasannya',
+        subject: 'Agama',
+        teacherId: 'teacher4',
+        className: '10A',
+        major: 'Multimedia',
+        dueDate: '2025-12-15',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as5',
+        title: 'Essay Nilai-nilai Pancasila',
+        description:
+            'Tulis essay 500 kata tentang implementasi nilai Pancasila di kehidupan sehari-hari',
+        subject: 'PKN',
+        teacherId: 'teacher5',
+        className: '10A',
+        major: 'Multimedia',
+        dueDate: '2025-12-20',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as6',
+        title: 'Program Latihan Kebugaran',
+        description:
+            'Buat program latihan kebugaran selama 2 minggu dan dokumentasikan pelaksanaannya',
+        subject: 'Olahraga',
+        teacherId: 'teacher6',
+        className: '10A',
+        major: 'Multimedia',
+        dueDate: '2025-12-25',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as7',
+        title: 'Diagram Arsitektur Komputer',
+        description:
+            'Gambar dan jelaskan diagram blok arsitektur komputer Von Neumann',
+        subject: 'Sistem Komputer',
+        teacherId: 'teacher7',
+        className: '10A',
+        major: 'Teknik Komputer dan Jaringan',
+        dueDate: '2025-12-18',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as8',
+        title: 'Presentasi Business Model Canvas',
+        description:
+            'Buat BMC untuk ide bisnis kreatif dan presentasikan di kelas',
+        subject: 'Produk Kreatif dan Kewirausahaan',
+        teacherId: 'teacher8',
+        className: '12A',
+        major: 'Multimedia',
+        dueDate: '2025-12-22',
+        attachmentPath: 'assets/assignments/template_bmc.pptx',
+      ),
+      Assignment(
+        id: 'as9',
+        title: 'Konfigurasi Jaringan LAN',
+        description:
+            'Praktik konfigurasi jaringan LAN sederhana dan buat laporan',
+        subject: 'Arsitektur Jaringan dan Komputer',
+        teacherId: 'teacher9',
+        className: '11A',
+        major: 'Teknik Komputer dan Jaringan',
+        dueDate: '2025-12-14',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as10',
+        title: 'Desain Poster Digital',
+        description: 'Buat desain poster digital dengan tema lingkungan hidup',
+        subject: 'Desain Grafis Percetakan',
+        teacherId: 'teacher10',
+        className: '11A',
+        major: 'Multimedia',
+        dueDate: '2025-12-16',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as11',
+        title: 'Prototype Website Interaktif',
+        description: 'Buat prototype website interaktif menggunakan Figma',
+        subject: 'Desain Media Interaktif',
+        teacherId: 'teacher11',
+        className: '12A',
+        major: 'Multimedia',
+        dueDate: '2025-12-19',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as12',
+        title: 'Animasi Karakter 2D',
+        description:
+            'Buat animasi karakter 2D berjalan dengan minimal 12 frame',
+        subject: 'Teknik Animasi 2D dan 3D',
+        teacherId: 'teacher12',
+        className: '11A',
+        major: 'Multimedia',
+        dueDate: '2025-12-21',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as13',
+        title: 'Program Kalkulator Sederhana',
+        description: 'Buat program kalkulator sederhana menggunakan Python',
+        subject: 'Pemrograman Dasar',
+        teacherId: 'teacher13',
+        className: '10A',
+        major: 'Rekayasa Perangkat Lunak',
+        dueDate: '2025-12-11',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as14',
+        title: 'Desain Database Perpustakaan',
+        description: 'Buat ERD dan normalisasi database sistem perpustakaan',
+        subject: 'Basis Data',
+        teacherId: 'teacher14',
+        className: '11A',
+        major: 'Rekayasa Perangkat Lunak',
+        dueDate: '2025-12-17',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as15',
+        title: 'Aplikasi CRUD Sederhana',
+        description: 'Buat aplikasi CRUD sederhana dengan PHP dan MySQL',
+        subject: 'Pemrograman Perangkat Lunak',
+        teacherId: 'teacher15',
+        className: '12A',
+        major: 'Rekayasa Perangkat Lunak',
+        dueDate: '2025-12-23',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as16',
+        title: 'Surat Bisnis',
+        description: 'Buat 5 contoh surat bisnis dengan format yang benar',
+        subject: 'Otomatisasi Tata Kelola Perkantoran',
+        teacherId: 'teacher16',
+        className: '11A',
+        major: 'Manajemen',
+        dueDate: '2025-12-13',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as17',
+        title: 'Analisis Sistem Informasi',
+        description: 'Analisis sistem informasi pada sebuah perusahaan',
+        subject: 'Pengelolaan Sistem Informasi',
+        teacherId: 'teacher17',
+        className: '12A',
+        major: 'Manajemen',
+        dueDate: '2025-12-24',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as18',
+        title: 'Studi Kasus Ekonomi',
+        description: 'Analisis kasus ekonomi Indonesia terkini',
+        subject: 'Ekonomi dan Bisnis',
+        teacherId: 'teacher18',
+        className: '11A',
+        major: 'Manajemen',
+        dueDate: '2025-12-26',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as19',
+        title: 'Identifikasi Komponen Mesin',
+        description: 'Identifikasi dan jelaskan fungsi 20 komponen mesin mobil',
+        subject: 'Teknologi Dasar Otomotif',
+        teacherId: 'teacher19',
+        className: '10A',
+        major: 'Teknik Kendaraan Ringan Otomotif',
+        dueDate: '2025-12-09',
+        attachmentPath: 'null',
+      ),
+      Assignment(
+        id: 'as20',
+        title: 'Praktik Perawatan AC Mobil',
+        description: 'Lakukan perawatan rutin AC mobil dan buat laporan',
+        subject: 'Pemeliharaan AC Kendaraan Ringan',
+        teacherId: 'teacher20',
+        className: '11A',
+        major: 'Teknik Kendaraan Ringan Otomotif',
+        dueDate: '2025-12-27',
+        attachmentPath: 'null',
       ),
     ];
     for (final assignment in assignments) {
       await assignmentBox.put(assignment.id, assignment.toMap());
     }
   }
+  final materialBox = HiveService.getMaterialBox();
+  if (materialBox.isEmpty) {
+    final materials = [
+      // Materi untuk setiap guru
+      material_model.Material(
+        id: 'mat1',
+        title: 'Pengenalan Teks Eksposisi',
+        description:
+            'Materi lengkap tentang teks eksposisi meliputi pengertian, struktur, dan ciri-ciri kebahasaan',
+        subject: 'B. Indo',
+        teacherId: 'teacher1',
+        className: '10A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/teks_eksposisi.pdf',
+        fileType: 'pdf',
+        fileSize: 2.5,
+      ),
+      material_model.Material(
+        id: 'mat2',
+        title: 'Aljabar Linear',
+        description:
+            'Pembahasan matriks, determinan, dan sistem persamaan linear',
+        subject: 'Matematika',
+        teacherId: 'teacher2',
+        className: '11A',
+        major: 'Rekayasa Perangkat Lunak',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/aljabar_linear.pdf',
+        fileType: 'pdf',
+        fileSize: 3.2,
+      ),
+      material_model.Material(
+        id: 'mat3',
+        title: 'Invitation Text',
+        description:
+            'Materi tentang undangan formal dan informal dalam bahasa Inggris',
+        subject: 'B. Inggris',
+        teacherId: 'teacher3',
+        className: '11A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/invitation_text.pdf',
+        fileType: 'pdf',
+        fileSize: 1.8,
+      ),
+      material_model.Material(
+        id: 'mat4',
+        title: 'Akidah dan Akhlak Islam',
+        description:
+            'Penjelasan tentang rukun iman dan rukun Islam serta akhlak mulia',
+        subject: 'Agama',
+        teacherId: 'teacher4',
+        className: '10A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/akidah_akhlak.pdf',
+        fileType: 'pdf',
+        fileSize: 2.1,
+      ),
+      material_model.Material(
+        id: 'mat5',
+        title: 'Pancasila dan UUD 1945',
+        description:
+            'Materi PKN tentang nilai-nilai Pancasila dan implementasinya',
+        subject: 'PKN',
+        teacherId: 'teacher5',
+        className: '10A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/pancasila.pptx',
+        fileType: 'pptx',
+        fileSize: 4.5,
+      ),
+      material_model.Material(
+        id: 'mat6',
+        title: 'Kebugaran Jasmani',
+        description: 'Panduan latihan kebugaran dan kesehatan tubuh',
+        subject: 'Olahraga',
+        teacherId: 'teacher6',
+        className: '10A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/kebugaran.pdf',
+        fileType: 'pdf',
+        fileSize: 1.5,
+      ),
+      material_model.Material(
+        id: 'mat7',
+        title: 'Arsitektur Komputer',
+        description:
+            'Penjelasan tentang komponen sistem komputer dan cara kerjanya',
+        subject: 'Sistem Komputer',
+        teacherId: 'teacher7',
+        className: '10A',
+        major: 'Teknik Komputer dan Jaringan',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/arsitektur_komputer.pdf',
+        fileType: 'pdf',
+        fileSize: 3.8,
+      ),
+      material_model.Material(
+        id: 'mat8',
+        title: 'Business Model Canvas',
+        description: 'Materi kewirausahaan tentang model bisnis canvas',
+        subject: 'Produk Kreatif dan Kewirausahaan',
+        teacherId: 'teacher8',
+        className: '12A',
+        major: 'Multimedia',
+        uploadDate: DateTime.now(),
+        filePath: 'assets/materials/business_canvas.pdf',
+        fileType: 'pdf',
+        fileSize: 2.9,
+      ),
+    ];
 
+    for (final material in materials) {
+      await materialBox.put(material.id, material.toMap());
+    }
+  }
   // Add sample announcements
   final announcementBox = HiveService.getAnnouncementBox();
   if (announcementBox.isEmpty) {

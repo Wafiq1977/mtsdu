@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lpmmtsdu/presentation/page/teacher/teacher_materials_view.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -612,6 +613,7 @@ class TeacherHomeView extends StatelessWidget {
     final assignments = dataProvider.assignments
         .where((a) => a.teacherId == user.id)
         .toList();
+    final materials = dataProvider.getMaterialsByTeacher(user.id);
 
     return Container(
       color: Colors.white,
@@ -629,48 +631,79 @@ class TeacherHomeView extends StatelessWidget {
               ),
             ),
           ),
+          // Update Grid menjadi 2 baris
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Input Nilai',
-                    Icons.grade,
-                    Colors.green,
-                    grades.length,
-                    () => GoRouter.of(
-                      context,
-                    ).go('/teacher-dashboard/beranda/input-grades'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Absen',
-                    Icons.check_circle,
-                    Colors.orange,
-                    attendances.length,
-                    () => _showAttendanceOptionsDialog(context),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Tugas',
-                    Icons.assignment,
-                    Colors.purple,
-                    assignments.length,
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AssignmentListPage(),
+                // Baris pertama
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCompactFeatureCard(
+                        context,
+                        'Input Nilai',
+                        Icons.grade,
+                        Colors.green,
+                        grades.length,
+                        () => GoRouter.of(
+                          context,
+                        ).go('/teacher-dashboard/beranda/input-grades'),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildCompactFeatureCard(
+                        context,
+                        'Absen',
+                        Icons.check_circle,
+                        Colors.orange,
+                        attendances.length,
+                        () => _showAttendanceOptionsDialog(context),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildCompactFeatureCard(
+                        context,
+                        'Tugas',
+                        Icons.assignment,
+                        Colors.purple,
+                        assignments.length,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AssignmentListPage(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Baris kedua - TAMBAHAN
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCompactFeatureCard(
+                        context,
+                        'Materi',
+                        Icons.book,
+                        Colors.blue,
+                        materials.length,
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TeacherMaterialsView(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Container()), // Spacer
+                    const SizedBox(width: 12),
+                    Expanded(child: Container()), // Spacer
+                  ],
                 ),
               ],
             ),
@@ -1061,6 +1094,7 @@ class _CreateAssignmentPageState extends State<CreateAssignmentPage> {
           className: className,
           major: '', // Set default or extract from class
           dueDate: _dueDate,
+          attachmentPath: '',
         );
 
         dataProvider.addAssignment(assignment);

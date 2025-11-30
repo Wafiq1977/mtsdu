@@ -6,8 +6,9 @@ import '../../../data/model/attendance.dart';
 import '../../../data/model/assignment.dart';
 import '../../../data/model/announcement.dart';
 import '../../../data/model/payment.dart';
-import '../../../data/model/calendar_event.dart'; // IMPORT BARU
+import '../../../data/model/calendar_event.dart';
 import '../../../data/source/hive_service.dart';
+import '../../../data/model/material.dart' as material_model;
 
 class DataProvider with ChangeNotifier {
   List<Schedule> _schedules = [];
@@ -16,7 +17,8 @@ class DataProvider with ChangeNotifier {
   List<Assignment> _assignments = [];
   List<Announcement> _announcements = [];
   List<Payment> _payments = [];
-  List<CalendarEvent> _calendarEvents = []; // TAMBAH INI
+  List<CalendarEvent> _calendarEvents = [];
+  List<material_model.Material> _materials = [];
 
   // Getters
   List<Schedule> get schedules => _schedules;
@@ -25,7 +27,8 @@ class DataProvider with ChangeNotifier {
   List<Assignment> get assignments => _assignments;
   List<Announcement> get announcements => _announcements;
   List<Payment> get payments => _payments;
-  List<CalendarEvent> get calendarEvents => _calendarEvents; // TAMBAH INI
+  List<CalendarEvent> get calendarEvents => _calendarEvents;
+  List<material_model.Material> get materials => _materials;
 
   DataProvider() {
     _loadAllData();
@@ -39,13 +42,16 @@ class DataProvider with ChangeNotifier {
     loadAnnouncements();
     loadPayments();
     loadCalendarEvents();
+    _loadMaterials();
   }
 
   // === CALENDAR EVENTS METHODS ===
   void loadCalendarEvents() {
     try {
       final box = HiveService.getCalendarEventBox();
-      _calendarEvents = box.values.map((e) => CalendarEvent.fromMap(Map<String, dynamic>.from(e))).toList();
+      _calendarEvents = box.values
+          .map((e) => CalendarEvent.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
       notifyListeners();
     } catch (e) {
       print('Error loading calendar events: $e');
@@ -96,7 +102,9 @@ class DataProvider with ChangeNotifier {
   // === SCHEDULE METHODS ===
   void loadSchedules() {
     final box = HiveService.getScheduleBox();
-    _schedules = box.values.map((e) => Schedule.fromMap(Map<String, dynamic>.from(e))).toList();
+    _schedules = box.values
+        .map((e) => Schedule.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -127,7 +135,9 @@ class DataProvider with ChangeNotifier {
   // === GRADE METHODS ===
   void loadGrades() {
     final box = HiveService.getGradeBox();
-    _grades = box.values.map((e) => Grade.fromMap(Map<String, dynamic>.from(e))).toList();
+    _grades = box.values
+        .map((e) => Grade.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -158,7 +168,9 @@ class DataProvider with ChangeNotifier {
   // === ATTENDANCE METHODS ===
   void loadAttendances() {
     final box = HiveService.getAttendanceBox();
-    _attendances = box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
+    _attendances = box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -189,7 +201,9 @@ class DataProvider with ChangeNotifier {
   // === ASSIGNMENT METHODS ===
   void loadAssignments() {
     final box = HiveService.getAssignmentBox();
-    _assignments = box.values.map((e) => Assignment.fromMap(Map<String, dynamic>.from(e))).toList();
+    _assignments = box.values
+        .map((e) => Assignment.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -220,7 +234,9 @@ class DataProvider with ChangeNotifier {
   // === ANNOUNCEMENT METHODS ===
   void loadAnnouncements() {
     final box = HiveService.getAnnouncementBox();
-    _announcements = box.values.map((e) => Announcement.fromMap(Map<String, dynamic>.from(e))).toList();
+    _announcements = box.values
+        .map((e) => Announcement.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -251,7 +267,9 @@ class DataProvider with ChangeNotifier {
   // === PAYMENT METHODS ===
   void loadPayments() {
     final box = HiveService.getPaymentBox();
-    _payments = box.values.map((e) => Payment.fromMap(Map<String, dynamic>.from(e))).toList();
+    _payments = box.values
+        .map((e) => Payment.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     notifyListeners();
   }
 
@@ -279,6 +297,48 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void _loadMaterials() {
+    final box = HiveService.getMaterialBox();
+    _materials = box.values
+        .map(
+          (e) => material_model.Material.fromMap(Map<String, dynamic>.from(e)),
+        )
+        .toList();
+    notifyListeners();
+  }
+
+  // Material methods - TAMBAHAN BARU
+  Future<void> addMaterial(material_model.Material material) async {
+    final box = HiveService.getMaterialBox();
+    await box.put(material.id, material.toMap());
+    _loadMaterials();
+  }
+
+  Future<void> updateMaterial(material_model.Material material) async {
+    final box = HiveService.getMaterialBox();
+    await box.put(material.id, material.toMap());
+    _loadMaterials();
+  }
+
+  Future<void> deleteMaterial(String id) async {
+    final box = HiveService.getMaterialBox();
+    await box.delete(id);
+    _loadMaterials();
+  }
+
+  List<material_model.Material> getMaterialsByTeacher(String teacherId) {
+    return _materials.where((m) => m.teacherId == teacherId).toList();
+  }
+
+  List<material_model.Material> getMaterialsByClass(
+    String className,
+    String major,
+  ) {
+    return _materials
+        .where((m) => m.className == className && m.major == major)
+        .toList();
+  }
+
   // === UTILITY METHODS ===
   void clearAllData() {
     _schedules.clear();
@@ -288,25 +348,33 @@ class DataProvider with ChangeNotifier {
     _announcements.clear();
     _payments.clear();
     _calendarEvents.clear();
+    _materials.clear();
     notifyListeners();
   }
 
   // Get events for specific date
   List<CalendarEvent> getEventsForDate(DateTime date) {
-    return _calendarEvents.where((event) =>
-      event.startDate.year == date.year &&
-      event.startDate.month == date.month &&
-      event.startDate.day == date.day
-    ).toList();
+    return _calendarEvents
+        .where(
+          (event) =>
+              event.startDate.year == date.year &&
+              event.startDate.month == date.month &&
+              event.startDate.day == date.day,
+        )
+        .toList();
   }
 
   // Get upcoming events (next 7 days)
   List<CalendarEvent> getUpcomingEvents() {
     final now = DateTime.now();
     final nextWeek = now.add(const Duration(days: 7));
-    
-    return _calendarEvents.where((event) =>
-      event.startDate.isAfter(now) && event.startDate.isBefore(nextWeek)
-    ).toList();
+
+    return _calendarEvents
+        .where(
+          (event) =>
+              event.startDate.isAfter(now) &&
+              event.startDate.isBefore(nextWeek),
+        )
+        .toList();
   }
 }
