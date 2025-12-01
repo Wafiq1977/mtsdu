@@ -20,7 +20,9 @@ class _TeacherMaterialsViewState extends State<TeacherMaterialsView> {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final materials = dataProvider.getMaterialsByTeacher(user.id);
+    final materials = dataProvider.materials
+        .where((material) => material.teacherId == user.id)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -80,7 +82,7 @@ class _TeacherMaterialsViewState extends State<TeacherMaterialsView> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  _getFileIcon(material.fileType),
+                                  _getFileIcon(material.type),
                                   color: Colors.blue,
                                   size: 24,
                                 ),
@@ -155,11 +157,6 @@ class _TeacherMaterialsViewState extends State<TeacherMaterialsView> {
                               const SizedBox(width: 8),
                               _buildInfoChip(Icons.school, material.major),
                               const SizedBox(width: 8),
-                              if (material.fileSize != null)
-                                _buildInfoChip(
-                                  Icons.file_present,
-                                  '${material.fileSize!.toStringAsFixed(1)} MB',
-                                ),
                             ],
                           ),
                         ],
@@ -184,6 +181,8 @@ class _TeacherMaterialsViewState extends State<TeacherMaterialsView> {
         return Icons.slideshow;
       case 'video':
       case 'mp4':
+        return Icons.video_library;
+      case 'link':
         return Icons.video_library;
       default:
         return Icons.insert_drive_file;
@@ -225,13 +224,8 @@ class _TeacherMaterialsViewState extends State<TeacherMaterialsView> {
                 'Tanggal Upload',
                 material.uploadDate.toString().split(' ')[0],
               ),
-              if (material.fileType != null)
-                _buildDetailRow('Tipe File', material.fileType!.toUpperCase()),
-              if (material.fileSize != null)
-                _buildDetailRow(
-                  'Ukuran File',
-                  '${material.fileSize!.toStringAsFixed(2)} MB',
-                ),
+              if (material.type != null)
+                _buildDetailRow('Tipe File', material.type!.toUpperCase()),
               const SizedBox(height: 12),
               const Text(
                 'Deskripsi:',
@@ -403,12 +397,9 @@ class _CreateMaterialPageState extends State<CreateMaterialPage> {
           teacherId: user.id,
           className: className,
           major: 'Multimedia', // Adjust based on your needs
-          uploadDate: DateTime.now(),
-          filePath: _attachedFile?.path,
-          fileType: _attachedFile?.extension,
-          fileSize: _attachedFile != null
-              ? _attachedFile!.size / (1024 * 1024)
-              : null,
+          uploadDate: DateTime.now().toIso8601String(),
+          url: _attachedFile?.path ?? widget.material?.url ?? '',
+          type: _attachedFile?.extension ?? widget.material?.type ?? '',
         );
 
         if (widget.material != null) {
@@ -564,7 +555,7 @@ class MaterialDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _filePath = material.filePath;
+    final _filePath = material.type;
     final _fileName = _filePath != null ? _filePath.split('/').last : null;
     return Scaffold(
       appBar: AppBar(title: Text(material.title)),

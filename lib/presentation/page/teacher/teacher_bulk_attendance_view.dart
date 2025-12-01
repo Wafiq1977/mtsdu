@@ -11,7 +11,8 @@ class TeacherBulkAttendanceView extends StatefulWidget {
   const TeacherBulkAttendanceView({super.key});
 
   @override
-  State<TeacherBulkAttendanceView> createState() => _TeacherBulkAttendanceViewState();
+  State<TeacherBulkAttendanceView> createState() =>
+      _TeacherBulkAttendanceViewState();
 }
 
 class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
@@ -23,51 +24,23 @@ class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
   @override
   void initState() {
     super.initState();
-    _dateController.text = DateTime.now().toString().split(' ')[0]; // Today's date
+    _dateController.text = DateTime.now().toString().split(
+      ' ',
+    )[0]; // Today's date
     _loadStudents();
   }
 
-  void _loadStudents() {
-    // In a real app, you'd fetch students from your data source
-    // For now, we'll create sample students
-    _students = [
-      User(
-        id: 's1',
-        username: 'student1',
-        password: 'pass',
-        role: UserRole.student,
-        name: 'Ahmad Rahman',
-        className: '10A',
-      ),
-      User(
-        id: 's2',
-        username: 'student2',
-        password: 'pass',
-        role: UserRole.student,
-        name: 'Siti Aminah',
-        className: '10A',
-      ),
-      User(
-        id: 's3',
-        username: 'student3',
-        password: 'pass',
-        role: UserRole.student,
-        name: 'Budi Santoso',
-        className: '10A',
-      ),
-      User(
-        id: 's4',
-        username: 'student4',
-        password: 'pass',
-        role: UserRole.student,
-        name: 'Maya Sari',
-        className: '10A',
-      ),
-    ];
-
-    // Initialize all students as present by default
-    for (var student in _students) {
-      _attendanceMap[student.id] = AttendanceStatus.present;
+  Future<void> _loadStudents() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final allUsers = await authProvider.getAllUsers();
+    if (mounted) {
+      setState(() {
+        _students = allUsers.where((u) => u.role == UserRole.student).toList();
+        // Initialize all students as present by default
+        for (var student in _students) {
+          _attendanceMap[student.id] = AttendanceStatus.present;
+        }
+      });
     }
   }
 
@@ -79,9 +52,9 @@ class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
 
   void _submitAttendance() async {
     if (_subjectController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter subject')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter subject')));
       return;
     }
 
@@ -156,7 +129,9 @@ class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
                     );
                     if (pickedDate != null) {
                       setState(() {
-                        _dateController.text = pickedDate.toString().split(' ')[0];
+                        _dateController.text = pickedDate.toString().split(
+                          ' ',
+                        )[0];
                       });
                     }
                   },
@@ -171,10 +146,14 @@ class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
               itemCount: _students.length,
               itemBuilder: (context, index) {
                 final student = _students[index];
-                final currentStatus = _attendanceMap[student.id] ?? AttendanceStatus.present;
+                final currentStatus =
+                    _attendanceMap[student.id] ?? AttendanceStatus.present;
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -249,15 +228,10 @@ class _TeacherBulkAttendanceViewState extends State<TeacherBulkAttendanceView> {
         style: ElevatedButton.styleFrom(
           backgroundColor: isSelected ? color : Colors.grey[300],
           foregroundColor: isSelected ? Colors.white : Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(vertical: 8),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 12),
-        ),
+        child: Text(label, style: const TextStyle(fontSize: 12)),
       ),
     );
   }

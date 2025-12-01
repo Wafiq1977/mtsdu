@@ -7,6 +7,7 @@ import '../../../data/model/assignment.dart';
 import '../../../data/model/user.dart';
 import '../../../presentation/provider/auth_provider.dart';
 import '../../../presentation/utils/user_role.dart';
+import '../../utils/date_utils.dart';
 import 'teacher_input_grades_view.dart';
 
 class TeacherAssignmentDetailView extends StatefulWidget {
@@ -38,7 +39,14 @@ class _TeacherAssignmentDetailViewState
 
     if (mounted) {
       setState(() {
-        _students = allUsers.where((u) => u.role == UserRole.student).toList();
+        _students = allUsers
+            .where(
+              (u) =>
+                  u.role == UserRole.student &&
+                  u.className == widget.assignment.className &&
+                  u.major == widget.assignment.major,
+            )
+            .toList();
         _isLoading = false;
       });
     }
@@ -105,7 +113,7 @@ class _TeacherAssignmentDetailViewState
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        "Deadline: ${widget.assignment.dueDate}",
+                        "Deadline: ${AppDateUtils.formatDate(DateTime.parse(widget.assignment.dueDate))}",
                         style: TextStyle(
                           color: Colors.orange.shade800,
                           fontSize: 12,

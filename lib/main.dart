@@ -170,7 +170,7 @@ Future<void> _addSampleData() async {
       'Yudi',
       'Zara',
       'Ali',
-      'Bella',
+      'Lufita',
     ];
     int studentId = 1;
     for (final classInfo in classes) {
@@ -215,8 +215,6 @@ Future<void> _addSampleData() async {
         description: 'Maaf terlambat mengumpulkan karena sakit.',
         status: 'late',
       ),
-      // Siswa 3: Belum Mengumpulkan (Tidak dimasukkan ke list ini)
-
       // Siswa 4: Sudah Dinilai (Graded)
       AssignmentSubmission(
         id: 'sub_s4_as3',
@@ -226,10 +224,6 @@ Future<void> _addSampleData() async {
         fileUrl: 'assets/submissions/tugas_ahmad.pdf',
         status: 'graded',
       ),
-
-      // Skenario 2: Tugas Bahasa Inggris (as4) - Kelas 11A Multimedia
-      // Multimedia 11A adalah student6 s/d student10 (Index loop ke-2)
-
       // Siswa 6: Mengumpulkan
       AssignmentSubmission(
         id: 'sub_s6_as4',
@@ -371,10 +365,16 @@ Future<void> _addSampleData() async {
           id: 'as1',
           title: 'Mathematics Homework!',
           description: 'Complete exercises 1-10 from chapter 5',
-          subject: 'Mathematics',
-          teacherId: 'teacher1',
+          subject: 'Matematika',
+          teacherId: 'teacher2',
           className: '10A',
-          major: 'IPA',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2024-01-25',
           attachmentPath: 'null',
         ),
@@ -382,10 +382,16 @@ Future<void> _addSampleData() async {
           id: 'as2',
           title: 'Physics Lab Report',
           description: 'Write a report on the pendulum experiment',
-          subject: 'Physics',
-          teacherId: 'teacher2',
-          className: '10A',
-          major: 'IPA',
+          subject: 'B. Inggris',
+          teacherId: 'teacher3',
+          className: '12A',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2024-01-30',
           attachmentPath: 'null',
         ),
@@ -397,7 +403,13 @@ Future<void> _addSampleData() async {
           subject: 'B.Indo',
           teacherId: 'teacher1',
           className: '10A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-15',
           attachmentPath: 'null',
         ),
@@ -409,43 +421,67 @@ Future<void> _addSampleData() async {
           subject: 'B.Inggris',
           teacherId: 'teacher3',
           className: '11A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-2',
           attachmentPath: '../../asset/Soal_Ulangan_Harian_B.Inggris.pdf',
         ),
         Assignment(
-          id: 'as2',
+          id: 'as2_mat',
           title: 'Latihan Soal Matriks',
           description:
               'Mengerjakan 20 soal tentang operasi matriks dan determinan',
           subject: 'Matematika',
           teacherId: 'teacher2',
           className: '11A',
-          major: 'Rekayasa Perangkat Lunak',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-12',
           attachmentPath: 'assets/assignments/soal_matriks.pdf',
         ),
         Assignment(
-          id: 'as3',
+          id: 'as3_eng',
           title: 'Membuat Invitation Card',
           description:
               'Buatlah sebuah undangan formal dan informal dalam bahasa Inggris',
           subject: 'B. Inggris',
           teacherId: 'teacher3',
           className: '11A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-08',
           attachmentPath: 'assets/assignments/template_invitation.docx',
         ),
         Assignment(
-          id: 'as4',
+          id: 'as4_agama',
           title: 'Hafalan Rukun Iman dan Islam',
           description:
               'Hafalkan rukun iman dan rukun Islam beserta penjelasannya',
           subject: 'Agama',
           teacherId: 'teacher4',
           className: '10A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-15',
           attachmentPath: 'null',
         ),
@@ -457,7 +493,13 @@ Future<void> _addSampleData() async {
           subject: 'PKN',
           teacherId: 'teacher5',
           className: '10A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-20',
           attachmentPath: 'null',
         ),
@@ -469,7 +511,13 @@ Future<void> _addSampleData() async {
           subject: 'Olahraga',
           teacherId: 'teacher6',
           className: '10A',
-          major: 'Multimedia',
+          major: [
+            'Rekayasa Perangkat Lunak',
+            'Teknik Komputer dan Jaringan',
+            'Menajemen',
+            'Teknik Kendaraan Ringan Otomotif',
+            'Multimedia',
+          ],
           dueDate: '2025-12-25',
           attachmentPath: 'null',
         ),
@@ -481,7 +529,7 @@ Future<void> _addSampleData() async {
           subject: 'Sistem Komputer',
           teacherId: 'teacher7',
           className: '10A',
-          major: 'Teknik Komputer dan Jaringan',
+          major: ['Teknik Komputer dan Jaringan'],
           dueDate: '2025-12-18',
           attachmentPath: 'null',
         ),
@@ -493,7 +541,7 @@ Future<void> _addSampleData() async {
           subject: 'Produk Kreatif dan Kewirausahaan',
           teacherId: 'teacher8',
           className: '12A',
-          major: 'Multimedia',
+          major: ['Multimedia'],
           dueDate: '2025-12-22',
           attachmentPath: 'assets/assignments/template_bmc.pptx',
         ),
@@ -505,7 +553,7 @@ Future<void> _addSampleData() async {
           subject: 'Arsitektur Jaringan dan Komputer',
           teacherId: 'teacher9',
           className: '11A',
-          major: 'Teknik Komputer dan Jaringan',
+          major: ['Teknik Komputer dan Jaringan'],
           dueDate: '2025-12-14',
           attachmentPath: 'null',
         ),
@@ -517,7 +565,7 @@ Future<void> _addSampleData() async {
           subject: 'Desain Grafis Percetakan',
           teacherId: 'teacher10',
           className: '11A',
-          major: 'Multimedia',
+          major: ['Multimedia'],
           dueDate: '2025-12-16',
           attachmentPath: 'null',
         ),
@@ -528,7 +576,7 @@ Future<void> _addSampleData() async {
           subject: 'Desain Media Interaktif',
           teacherId: 'teacher11',
           className: '12A',
-          major: 'Multimedia',
+          major: ['Multimedia'],
           dueDate: '2025-12-19',
           attachmentPath: 'null',
         ),
@@ -540,7 +588,7 @@ Future<void> _addSampleData() async {
           subject: 'Teknik Animasi 2D dan 3D',
           teacherId: 'teacher12',
           className: '11A',
-          major: 'Multimedia',
+          major: ['Multimedia'],
           dueDate: '2025-12-21',
           attachmentPath: 'null',
         ),
@@ -551,7 +599,7 @@ Future<void> _addSampleData() async {
           subject: 'Pemrograman Dasar',
           teacherId: 'teacher13',
           className: '10A',
-          major: 'Rekayasa Perangkat Lunak',
+          major: ['Rekayasa Perangkat Lunak'],
           dueDate: '2025-12-11',
           attachmentPath: 'null',
         ),
@@ -562,7 +610,7 @@ Future<void> _addSampleData() async {
           subject: 'Basis Data',
           teacherId: 'teacher14',
           className: '11A',
-          major: 'Rekayasa Perangkat Lunak',
+          major: ['Rekayasa Perangkat Lunak'],
           dueDate: '2025-12-17',
           attachmentPath: 'null',
         ),
@@ -573,7 +621,7 @@ Future<void> _addSampleData() async {
           subject: 'Pemrograman Perangkat Lunak',
           teacherId: 'teacher15',
           className: '12A',
-          major: 'Rekayasa Perangkat Lunak',
+          major: ['Rekayasa Perangkat Lunak'],
           dueDate: '2025-12-23',
           attachmentPath: 'null',
         ),
@@ -584,7 +632,7 @@ Future<void> _addSampleData() async {
           subject: 'Otomatisasi Tata Kelola Perkantoran',
           teacherId: 'teacher16',
           className: '11A',
-          major: 'Manajemen',
+          major: ['Manajemen'],
           dueDate: '2025-12-13',
           attachmentPath: 'null',
         ),
@@ -595,7 +643,7 @@ Future<void> _addSampleData() async {
           subject: 'Pengelolaan Sistem Informasi',
           teacherId: 'teacher17',
           className: '12A',
-          major: 'Manajemen',
+          major: ['Manajemen'],
           dueDate: '2025-12-24',
           attachmentPath: 'null',
         ),
@@ -606,7 +654,7 @@ Future<void> _addSampleData() async {
           subject: 'Ekonomi dan Bisnis',
           teacherId: 'teacher18',
           className: '11A',
-          major: 'Manajemen',
+          major: ['Manajemen'],
           dueDate: '2025-12-26',
           attachmentPath: 'null',
         ),
@@ -618,7 +666,7 @@ Future<void> _addSampleData() async {
           subject: 'Teknologi Dasar Otomotif',
           teacherId: 'teacher19',
           className: '10A',
-          major: 'Teknik Kendaraan Ringan Otomotif',
+          major: ['Teknik Kendaraan Ringan Otomotif'],
           dueDate: '2025-12-09',
           attachmentPath: 'null',
         ),
@@ -629,7 +677,7 @@ Future<void> _addSampleData() async {
           subject: 'Pemeliharaan AC Kendaraan Ringan',
           teacherId: 'teacher20',
           className: '11A',
-          major: 'Teknik Kendaraan Ringan Otomotif',
+          major: ['Teknik Kendaraan Ringan Otomotif'],
           dueDate: '2025-12-27',
           attachmentPath: 'null',
         ),
@@ -638,126 +686,7 @@ Future<void> _addSampleData() async {
         await assignmentBox.put(assignment.id, assignment.toMap());
       }
     }
-    final materialBox = HiveService.getMaterialBox();
-    if (materialBox.isEmpty) {
-      final materials = [
-        // Materi untuk setiap guru
-        material_model.Material(
-          id: 'mat1',
-          title: 'Pengenalan Teks Eksposisi',
-          description:
-              'Materi lengkap tentang teks eksposisi meliputi pengertian, struktur, dan ciri-ciri kebahasaan',
-          subject: 'B. Indo',
-          teacherId: 'teacher1',
-          className: '10A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/teks_eksposisi.pdf',
-          fileType: 'pdf',
-          fileSize: 2.5,
-        ),
-        material_model.Material(
-          id: 'mat2',
-          title: 'Aljabar Linear',
-          description:
-              'Pembahasan matriks, determinan, dan sistem persamaan linear',
-          subject: 'Matematika',
-          teacherId: 'teacher2',
-          className: '11A',
-          major: 'Rekayasa Perangkat Lunak',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/aljabar_linear.pdf',
-          fileType: 'pdf',
-          fileSize: 3.2,
-        ),
-        material_model.Material(
-          id: 'mat3',
-          title: 'Invitation Text',
-          description:
-              'Materi tentang undangan formal dan informal dalam bahasa Inggris',
-          subject: 'B. Inggris',
-          teacherId: 'teacher3',
-          className: '11A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/invitation_text.pdf',
-          fileType: 'pdf',
-          fileSize: 1.8,
-        ),
-        material_model.Material(
-          id: 'mat4',
-          title: 'Akidah dan Akhlak Islam',
-          description:
-              'Penjelasan tentang rukun iman dan rukun Islam serta akhlak mulia',
-          subject: 'Agama',
-          teacherId: 'teacher4',
-          className: '10A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/akidah_akhlak.pdf',
-          fileType: 'pdf',
-          fileSize: 2.1,
-        ),
-        material_model.Material(
-          id: 'mat5',
-          title: 'Pancasila dan UUD 1945',
-          description:
-              'Materi PKN tentang nilai-nilai Pancasila dan implementasinya',
-          subject: 'PKN',
-          teacherId: 'teacher5',
-          className: '10A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/pancasila.pptx',
-          fileType: 'pptx',
-          fileSize: 4.5,
-        ),
-        material_model.Material(
-          id: 'mat6',
-          title: 'Kebugaran Jasmani',
-          description: 'Panduan latihan kebugaran dan kesehatan tubuh',
-          subject: 'Olahraga',
-          teacherId: 'teacher6',
-          className: '10A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/kebugaran.pdf',
-          fileType: 'pdf',
-          fileSize: 1.5,
-        ),
-        material_model.Material(
-          id: 'mat7',
-          title: 'Arsitektur Komputer',
-          description:
-              'Penjelasan tentang komponen sistem komputer dan cara kerjanya',
-          subject: 'Sistem Komputer',
-          teacherId: 'teacher7',
-          className: '10A',
-          major: 'Teknik Komputer dan Jaringan',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/arsitektur_komputer.pdf',
-          fileType: 'pdf',
-          fileSize: 3.8,
-        ),
-        material_model.Material(
-          id: 'mat8',
-          title: 'Business Model Canvas',
-          description: 'Materi kewirausahaan tentang model bisnis canvas',
-          subject: 'Produk Kreatif dan Kewirausahaan',
-          teacherId: 'teacher8',
-          className: '12A',
-          major: 'Multimedia',
-          uploadDate: DateTime.now(),
-          filePath: 'assets/materials/business_canvas.pdf',
-          fileType: 'pdf',
-          fileSize: 2.9,
-        ),
-      ];
 
-      for (final material in materials) {
-        await materialBox.put(material.id, material.toMap());
-      }
-    }
     // Add sample announcements
     final announcementBox = HiveService.getAnnouncementBox();
     if (announcementBox.isEmpty) {
@@ -808,6 +737,323 @@ Future<void> _addSampleData() async {
       ];
       for (final payment in payments) {
         await paymentBox.put(payment.id, payment.toMap());
+      }
+    }
+
+    // Add sample materials
+    final materialBox = HiveService.getMaterialBox();
+    if (materialBox.isEmpty) {
+      final materials = [
+        // Materi untuk setiap guru
+        material_model.Material(
+          id: 'mat1',
+          title: 'Pengenalan Teks Eksposisi',
+          description:
+              'Materi lengkap tentang teks eksposisi meliputi pengertian, struktur, dan ciri-ciri kebahasaan',
+          subject: 'B. Indo',
+          teacherId: 'teacher1', // Egin is teacher1
+          className: '10A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/teks_eksposisi.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat2',
+          title: 'Aljabar Linear',
+          description:
+              'Pembahasan matriks, determinan, dan sistem persamaan linear',
+          subject: 'Matematika',
+          teacherId: 'teacher2', // Iqbal is teacher2
+          className: '11A',
+          major: 'Rekayasa Perangkat Lunak',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/aljabar_linear.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat3',
+          title: 'Invitation Text',
+          description:
+              'Materi tentang undangan formal dan informal dalam bahasa Inggris',
+          subject: 'B. Inggris',
+          teacherId: 'teacher3', // Izaz is teacher3
+          className: '11A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/invitation_text.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat4',
+          title: 'Akidah dan Akhlak Islam',
+          description:
+              'Penjelasan tentang rukun iman dan rukun Islam serta akhlak mulia',
+          subject: 'Agama',
+          teacherId: 'teacher4', // Ahmad is teacher4
+          className: '10A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/akidah_akhlak.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat5',
+          title: 'Pancasila dan UUD 1945',
+          description:
+              'Materi PKN tentang nilai-nilai Pancasila dan implementasinya',
+          subject: 'PKN',
+          teacherId: 'teacher5', // Budi is teacher5
+          className: '10A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/pancasila.pptx',
+          type: 'ppt',
+        ),
+        material_model.Material(
+          id: 'mat6',
+          title: 'Kebugaran Jasmani',
+          description: 'Panduan latihan kebugaran dan kesehatan tubuh',
+          subject: 'Olahraga',
+          teacherId: 'teacher6', // Cici is teacher6
+          className: '10A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/kebugaran.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat7',
+          title: 'Arsitektur Komputer',
+          description:
+              'Penjelasan tentang komponen sistem komputer dan cara kerjanya',
+          subject: 'Sistem Komputer',
+          teacherId: 'teacher7', // Dedi is teacher7
+          className: '10A',
+          major: 'Teknik Komputer dan Jaringan',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/arsitektur_komputer.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat8',
+          title: 'Business Model Canvas',
+          description: 'Materi kewirausahaan tentang model bisnis canvas',
+          subject: 'Produk Kreatif dan Kewirausahaan',
+          teacherId: 'teacher8', // Eka is teacher8
+          className: '12A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/business_canvas.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_tkj_10',
+          title: 'Sistem Komputer - Komponen Hardware',
+          description:
+              'Pengenalan komponen hardware komputer: CPU, RAM, Motherboard, Storage, dan fungsinya dalam sistem komputer',
+          subject: 'Sistem Komputer',
+          teacherId: 'teacher7', // Dedi
+          className: '10A',
+          major: 'Teknik Komputer dan Jaringan',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkj/sistem_komputer_hardware.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_tkj_11',
+          title:
+              'Produk Kreatif dan Kewirausahaan - Strategi Pemasaran Digital',
+          description:
+              'Materi tentang strategi pemasaran digital untuk produk kreatif di bidang teknologi',
+          subject: 'Produk Kreatif dan Kewirausahaan',
+          teacherId: 'teacher8', // Eka
+          className: '11A',
+          major: 'Teknik Komputer dan Jaringan',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkj/pkk_pemasaran_digital.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_tkj_12',
+          title: 'Arsitektur Jaringan Komputer - OSI Layer',
+          description:
+              'Pembahasan lengkap tentang model OSI 7 layer dan TCP/IP dalam jaringan komputer',
+          subject: 'Arsitektur Jaringan dan Komputer',
+          teacherId: 'teacher9', // Fani
+          className: '12A',
+          major: 'Teknik Komputer dan Jaringan',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkj/arsitektur_jaringan_osi.pdf',
+          type: 'pdf',
+        ),
+
+        // MATERI PENJURUSAN MULTIMEDIA
+        material_model.Material(
+          id: 'mat_mm_10',
+          title: 'Desain Grafis Percetakan - Prinsip Desain',
+          description:
+              'Materi tentang prinsip-prinsip desain grafis: komposisi, tipografi, warna, dan layout untuk media cetak',
+          subject: 'Desain Grafis Percetakan',
+          teacherId: 'teacher10', // Gina
+          className: '10A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/multimedia/desain_grafis_prinsip.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_mm_11',
+          title: 'Desain Media Interaktif - UI/UX Design',
+          description:
+              'Pengenalan User Interface dan User Experience design untuk website dan aplikasi mobile',
+          subject: 'Desain Media Interaktif',
+          teacherId: 'teacher11', // Hadi
+          className: '11A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/multimedia/ui_ux_design.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_mm_12',
+          title: 'Teknik Animasi 2D dan 3D - Prinsip Animasi',
+          description:
+              'Materi 12 prinsip animasi dan teknik pembuatan animasi 2D menggunakan frame by frame',
+          subject: 'Teknik Animasi 2D dan 3D',
+          teacherId: 'teacher12', // Ika
+          className: '12A',
+          major: 'Multimedia',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/multimedia/prinsip_animasi.pdf',
+          type: 'pdf',
+        ),
+
+        // MATERI PENJURUSAN RPL (Rekayasa Perangkat Lunak)
+        material_model.Material(
+          id: 'mat_rpl_10',
+          title: 'Pemrograman Dasar - Algoritma dan Flowchart',
+          description:
+              'Dasar-dasar algoritma pemrograman, flowchart, dan pseudocode untuk pemula',
+          subject: 'Pemrograman Dasar',
+          teacherId: 'teacher13', // Joko
+          className: '10A',
+          major: 'Rekayasa Perangkat Lunak',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/rpl/algoritma_flowchart.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_rpl_11',
+          title: 'Basis Data - Normalisasi Database',
+          description:
+              'Materi tentang normalisasi database: 1NF, 2NF, 3NF, dan BCNF dengan contoh kasus',
+          subject: 'Basis Data',
+          teacherId: 'teacher14', // Kiki
+          className: '11A',
+          major: 'Rekayasa Perangkat Lunak',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/rpl/normalisasi_database.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_rpl_12',
+          title: 'Pemrograman Perangkat Lunak - OOP dengan PHP',
+          description:
+              'Konsep Object Oriented Programming (OOP) dalam PHP: Class, Object, Inheritance, Polymorphism',
+          subject: 'Pemrograman Perangkat Lunak',
+          teacherId: 'teacher15', // Lina
+          className: '12A',
+          major: 'Rekayasa Perangkat Lunak',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/rpl/oop_php.pdf',
+          type: 'pdf',
+        ),
+
+        // MATERI PENJURUSAN MANAJEMEN
+        material_model.Material(
+          id: 'mat_mnj_10',
+          title: 'Otomatisasi Tata Kelola Perkantoran - Surat Menyurat',
+          description:
+              'Materi tentang jenis-jenis surat, format surat resmi, dan tata cara penulisan surat bisnis',
+          subject: 'Otomatisasi Tata Kelola Perkantoran',
+          teacherId: 'teacher16', // Miko
+          className: '10A',
+          major: 'Manajemen',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/manajemen/surat_menyurat.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_mnj_11',
+          title: 'Pengelolaan Sistem Informasi - ERP System',
+          description:
+              'Pengenalan Enterprise Resource Planning (ERP) dan implementasinya dalam perusahaan',
+          subject: 'Pengelolaan Sistem Informasi',
+          teacherId: 'teacher17', // Nina
+          className: '11A',
+          major: 'Manajemen',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/manajemen/erp_system.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_mnj_12',
+          title: 'Ekonomi dan Bisnis - Analisis SWOT',
+          description:
+              'Materi tentang analisis SWOT untuk strategi bisnis dan studi kasus perusahaan',
+          subject: 'Ekonomi dan Bisnis',
+          teacherId: 'teacher18', // Oki
+          className: '12A',
+          major: 'Manajemen',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/manajemen/analisis_swot.pdf',
+          type: 'pdf',
+        ),
+
+        // MATERI PENJURUSAN TKRO (Teknik Kendaraan Ringan Otomotif)
+        material_model.Material(
+          id: 'mat_tkro_10',
+          title: 'Teknologi Dasar Otomotif - Sistem Mesin',
+          description:
+              'Pengenalan sistem mesin kendaraan: mesin 2 tak, 4 tak, komponen utama, dan cara kerjanya',
+          subject: 'Teknologi Dasar Otomotif',
+          teacherId: 'teacher19', // Pipi
+          className: '10A',
+          major: 'Teknik Kendaraan Ringan Otomotif',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkro/sistem_mesin_otomotif.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_tkro_11',
+          title: 'Pemeliharaan AC Kendaraan Ringan - Sistem Refrigerasi',
+          description:
+              'Materi tentang sistem refrigerasi AC mobil, komponen, dan prosedur perawatan berkala',
+          subject: 'Pemeliharaan AC Kendaraan Ringan',
+          teacherId: 'teacher20', // Rina
+          className: '11A',
+          major: 'Teknik Kendaraan Ringan Otomotif',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkro/ac_sistem_refrigerasi.pdf',
+          type: 'pdf',
+        ),
+        material_model.Material(
+          id: 'mat_tkro_12',
+          title: 'Pemeliharaan Kelistrikan - Sistem Kelistrikan Body',
+          description:
+              'Pembahasan sistem kelistrikan body kendaraan: lampu, wiper, power window, dan central lock',
+          subject: 'Pemeliharaan Kelistrikan',
+          teacherId: 'teacher20', // Rina (karena hanya ada 20 guru)
+          className: '12A',
+          major: 'Teknik Kendaraan Ringan Otomotif',
+          uploadDate: DateTime.now().toIso8601String(),
+          url: 'assets/materials/tkro/kelistrikan_body.pdf',
+          type: 'pdf',
+        ),
+      ];
+      for (final material in materials) {
+        await materialBox.put(material.id, material.toMap());
       }
     }
   }
