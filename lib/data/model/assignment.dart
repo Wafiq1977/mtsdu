@@ -7,6 +7,9 @@ class Assignment {
   final String className;
   final String major;
   final String dueDate;
+  final String? attachmentPath; // Path ke file attachment
+  final String? attachmentType; // pdf, doc, etc
+  final double? attachmentSize; // dalam MB
 
   Assignment({
     required this.id,
@@ -17,6 +20,9 @@ class Assignment {
     required this.className,
     required this.major,
     required this.dueDate,
+    this.attachmentPath,
+    this.attachmentType,
+    this.attachmentSize,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +35,9 @@ class Assignment {
       'className': className,
       'major': major,
       'dueDate': dueDate,
+      'attachmentPath': attachmentPath,
+      'attachmentType': attachmentType,
+      'attachmentSize': attachmentSize,
     };
   }
 
@@ -42,6 +51,13 @@ class Assignment {
       className: map['className'],
       major: map['major'],
       dueDate: map['dueDate'],
+      attachmentPath: map['attachmentPath'],
+      attachmentType: map['attachmentType'],
+      attachmentSize: map['attachmentSize'],
     );
   }
+
+  // Method untuk check apakah ada attachment
+  bool get hasAttachment =>
+      attachmentPath != null && attachmentPath!.isNotEmpty;
 }

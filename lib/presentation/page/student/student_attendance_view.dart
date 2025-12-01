@@ -13,6 +13,10 @@ class StudentAttendanceView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Absensi'),
       ),
       body: ListView.builder(
@@ -21,7 +25,9 @@ class StudentAttendanceView extends StatelessWidget {
           final Attendance attendance = attendances[index];
           return ListTile(
             title: Text(attendance.subject),
-            subtitle: Text('Tanggal: ${attendance.date} - Status: ${attendance.status}'),
+            subtitle: Text(
+              'Tanggal: ${attendance.date} - Status: ${attendance.status}',
+            ),
           );
         },
       ),
