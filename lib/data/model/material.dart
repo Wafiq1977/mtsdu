@@ -5,6 +5,7 @@ class Material {
   final String subject;
   final String type; // PDF, Video, PPT, Dokumen
   final String url; // URL atau path ke file
+  final String major;
   final String teacherId;
   final String className;
   final String uploadDate;
@@ -16,6 +17,7 @@ class Material {
     required this.subject,
     required this.type,
     required this.url,
+    required this.major,
     required this.teacherId,
     required this.className,
     required this.uploadDate,
@@ -29,6 +31,7 @@ class Material {
       'subject': subject,
       'type': type,
       'url': url,
+      'major': major,
       'teacherId': teacherId,
       'className': className,
       'uploadDate': uploadDate,
@@ -43,6 +46,7 @@ class Material {
       subject: map['subject'],
       type: map['type'],
       url: map['url'],
+      major: map['major'],
       teacherId: map['teacherId'],
       className: map['className'],
       uploadDate: map['uploadDate'],

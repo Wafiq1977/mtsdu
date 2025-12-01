@@ -5,11 +5,10 @@ class Assignment {
   final String subject;
   final String teacherId;
   final String className;
-  final String major;
+  final List<String> major;
   final String dueDate;
-  final String? attachmentPath; // Path ke file attachment
-  final String? attachmentType; // pdf, doc, etc
-  final double? attachmentSize; // dalam MB
+  final String? attachmentPath;
+  // Path ke file attachment
 
   Assignment({
     required this.id,
@@ -21,8 +20,6 @@ class Assignment {
     required this.major,
     required this.dueDate,
     this.attachmentPath,
-    this.attachmentType,
-    this.attachmentSize,
   });
 
   Map<String, dynamic> toMap() {
@@ -36,8 +33,6 @@ class Assignment {
       'major': major,
       'dueDate': dueDate,
       'attachmentPath': attachmentPath,
-      'attachmentType': attachmentType,
-      'attachmentSize': attachmentSize,
     };
   }
 
@@ -52,8 +47,6 @@ class Assignment {
       major: map['major'],
       dueDate: map['dueDate'],
       attachmentPath: map['attachmentPath'],
-      attachmentType: map['attachmentType'],
-      attachmentSize: map['attachmentSize'],
     );
   }
 

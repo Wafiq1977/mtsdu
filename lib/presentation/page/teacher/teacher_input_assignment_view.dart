@@ -102,7 +102,7 @@ class _TeacherInputAssignmentViewState
             subject: _subject,
             teacherId: user.id,
             className: className,
-            major: major,
+            major: [major],
             dueDate: _dueDate,
             attachmentPath: '',
           );

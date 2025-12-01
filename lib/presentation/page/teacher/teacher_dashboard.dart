@@ -614,7 +614,9 @@ class TeacherHomeView extends StatelessWidget {
     final assignments = dataProvider.assignments
         .where((a) => a.teacherId == user.id)
         .toList();
-    final materials = dataProvider.getMaterialsByTeacher(user.id);
+    final materials = dataProvider.materials
+        .where((material) => material.teacherId == user.id)
+        .toList();
 
     return Container(
       color: Colors.white,
@@ -974,7 +976,7 @@ class AssignmentListPage extends StatelessWidget {
             children: [
               _buildDetailRow('Mata Pelajaran', assignment.subject),
               _buildDetailRow('Kelas', assignment.className),
-              _buildDetailRow('Jurusan', assignment.major),
+              _buildDetailRow('Jurusan', assignment.major.join(', ')),
               _buildDetailRow('Deadline', assignment.dueDate.split(' ')[0]),
               const SizedBox(height: 12),
               const Text(
@@ -1099,7 +1101,7 @@ class _CreateAssignmentPageState extends State<CreateAssignmentPage> {
           subject: _selectedSubject!,
           teacherId: user.id,
           className: className,
-          major: '', // Set default or extract from class
+          major: [''], // Set default or extract from class
           dueDate: _dueDate,
           attachmentPath: '',
         );
