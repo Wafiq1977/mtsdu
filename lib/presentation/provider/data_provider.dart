@@ -10,6 +10,7 @@ import '../../../data/model/calendar_event.dart'; // IMPORT BARU
 import '../../../data/model/material.dart' as material_model; // IMPORT BARU
 import '../../../domain/entity/schedule_entity.dart'; // IMPORT BARU
 import '../../../data/source/hive_service.dart';
+import '../../../data/model/material.dart' as material_model;
 
 class DataProvider with ChangeNotifier {
   List<Schedule> _schedules = [];

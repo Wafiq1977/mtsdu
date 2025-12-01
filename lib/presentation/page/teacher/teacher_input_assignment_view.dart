@@ -4,6 +4,7 @@ import '../../../presentation/provider/auth_provider.dart';
 import '../../../presentation/provider/data_provider.dart';
 import '../../../data/model/assignment.dart';
 import '../../../data/model/user.dart';
+import '../../../data/model/teacher.dart';
 import '../../../presentation/widgets/user_card.dart';
 import '../../../domain/entity/user_entity.dart';
 
@@ -11,10 +12,12 @@ class TeacherInputAssignmentView extends StatefulWidget {
   const TeacherInputAssignmentView({super.key});
 
   @override
-  State<TeacherInputAssignmentView> createState() => _TeacherInputAssignmentViewState();
+  State<TeacherInputAssignmentView> createState() =>
+      _TeacherInputAssignmentViewState();
 }
 
-class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView> {
+class _TeacherInputAssignmentViewState
+    extends State<TeacherInputAssignmentView> {
   final _formKey = GlobalKey<FormState>();
   String _title = '';
   String _description = '';
@@ -27,6 +30,7 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
   List<User> _students = [];
   bool _isLoading = true;
   final TextEditingController _dueDateController = TextEditingController();
+  final TextEditingController _subjectController = TextEditingController();
 
   @override
   void initState() {
@@ -37,15 +41,39 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
   @override
   void dispose() {
     _dueDateController.dispose();
+    _subjectController.dispose();
     super.dispose();
   }
 
   Future<void> _loadStudents() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.currentUser;
+    if (currentUser != null) {
+      // Logika: Kita asumsikan user yang login adalah Teacher atau memiliki field subject
+      // Anda mungkin perlu casting jika User base class tidak mengekspos subject secara langsung
+      // Contoh: if (currentUser is Teacher) { ... }
+
+      // Mengambil subject dari property user (pastikan User/Teacher model mendukung ini)
+      if (currentUser.subject != null && currentUser.subject!.isNotEmpty) {
+        _subject = currentUser.subject!;
+        _subjectController.text = _subject;
+      } else {
+        // Fallback jika tidak ada subject (misal admin yang login)
+        _subject = '';
+      }
+    }
     final allUsers = await authProvider.getAllUsers();
     final students = allUsers.where((u) => u.role == UserRole.student).toList();
-    final classes = students.map((s) => s.className).where((c) => c != null && c.isNotEmpty).toSet().toList();
-    final majors = students.map((s) => s.major).where((m) => m != null && m.isNotEmpty).toSet().toList();
+    final classes = students
+        .map((s) => s.className)
+        .where((c) => c != null && c.isNotEmpty)
+        .toSet()
+        .toList();
+    final majors = students
+        .map((s) => s.major)
+        .where((m) => m != null && m.isNotEmpty)
+        .toSet()
+        .toList();
 
     setState(() {
       _students = students;
@@ -56,7 +84,9 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
   }
 
   void _submitAssignment() {
-    if (_formKey.currentState!.validate() && _selectedClasses.isNotEmpty && _selectedMajors.isNotEmpty) {
+    if (_formKey.currentState!.validate() &&
+        _selectedClasses.isNotEmpty &&
+        _selectedMajors.isNotEmpty) {
       _formKey.currentState!.save();
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final dataProvider = Provider.of<DataProvider>(context, listen: false);
@@ -74,6 +104,7 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
             className: className,
             major: major,
             dueDate: _dueDate,
+            attachmentPath: '',
           );
 
           dataProvider.addAssignment(assignment);
@@ -91,7 +122,9 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
       });
     } else if (_selectedClasses.isEmpty || _selectedMajors.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one class and one major')),
+        const SnackBar(
+          content: Text('Please select at least one class and one major'),
+        ),
       );
     }
   }
@@ -117,9 +150,7 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
     final user = authProvider.currentUser!;
 
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -141,7 +172,10 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
                     // Multi-select for Classes
                     const Text(
                       'Select Classes',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -175,7 +209,10 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
                     // Multi-select for Majors
                     const Text(
                       'Select Majors',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -212,7 +249,8 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
                         prefixIcon: Icon(Icons.title, color: Colors.blue),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Title is required' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Title is required' : null,
                       onSaved: (value) => _title = value!,
                     ),
                     const SizedBox(height: 16),
@@ -223,17 +261,26 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
-                      validator: (value) => value!.isEmpty ? 'Description is required' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Description is required' : null,
                       onSaved: (value) => _description = value!,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
+                      controller:
+                          _subjectController, // Gunakan controller yang sudah diisi di initState
+                      readOnly: true, // User tidak bisa mengubah ini
+                      enabled: false, // Visual cue bahwa ini disabled
                       decoration: const InputDecoration(
-                        labelText: 'Subject',
-                        prefixIcon: Icon(Icons.subject, color: Colors.blue),
+                        labelText: 'Subject(Auto-filled)',
+                        prefixIcon: Icon(Icons.subject, color: Colors.grey),
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Color(0xFFEEEEEE),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Subject is required' : null,
+                      validator: (value) => value!.isEmpty
+                          ? 'Subject is missing for this teacher'
+                          : null,
                       onSaved: (value) => _subject = value!,
                     ),
                     const SizedBox(height: 16),
@@ -241,12 +288,16 @@ class _TeacherInputAssignmentViewState extends State<TeacherInputAssignmentView>
                       controller: _dueDateController,
                       decoration: const InputDecoration(
                         labelText: 'Due Date',
-                        prefixIcon: Icon(Icons.calendar_today, color: Colors.blue),
+                        prefixIcon: Icon(
+                          Icons.calendar_today,
+                          color: Colors.blue,
+                        ),
                         border: OutlineInputBorder(),
                       ),
                       readOnly: true,
                       onTap: () => _selectDueDate(context),
-                      validator: (value) => value!.isEmpty ? 'Due date is required' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Due date is required' : null,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
