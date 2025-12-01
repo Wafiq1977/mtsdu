@@ -13,6 +13,10 @@ class StudentGradesView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Nilai / Raport'),
       ),
       body: ListView.builder(
@@ -21,7 +25,9 @@ class StudentGradesView extends StatelessWidget {
           final Grade grade = grades[index];
           return ListTile(
             title: Text(grade.subject),
-            subtitle: Text('Tugas: ${grade.assignment} - Nilai: ${grade.score}'),
+            subtitle: Text(
+              'Tugas: ${grade.assignment} - Nilai: ${grade.score}',
+            ),
             trailing: Text(grade.date),
           );
         },

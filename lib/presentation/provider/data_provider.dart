@@ -6,7 +6,9 @@ import '../../../data/model/attendance.dart';
 import '../../../data/model/assignment.dart';
 import '../../../data/model/announcement.dart';
 import '../../../data/model/payment.dart';
-import '../../../data/model/calendar_event.dart';
+import '../../../data/model/calendar_event.dart'; // IMPORT BARU
+import '../../../data/model/material.dart' as material_model; // IMPORT BARU
+import '../../../domain/entity/schedule_entity.dart'; // IMPORT BARU
 import '../../../data/source/hive_service.dart';
 import '../../../data/model/material.dart' as material_model;
 
@@ -17,8 +19,8 @@ class DataProvider with ChangeNotifier {
   List<Assignment> _assignments = [];
   List<Announcement> _announcements = [];
   List<Payment> _payments = [];
-  List<CalendarEvent> _calendarEvents = [];
-  List<material_model.Material> _materials = [];
+  List<CalendarEvent> _calendarEvents = []; // TAMBAH INI
+  List<material_model.Material> _materials = []; // TAMBAH INI
 
   // Getters
   List<Schedule> get schedules => _schedules;
@@ -27,8 +29,8 @@ class DataProvider with ChangeNotifier {
   List<Assignment> get assignments => _assignments;
   List<Announcement> get announcements => _announcements;
   List<Payment> get payments => _payments;
-  List<CalendarEvent> get calendarEvents => _calendarEvents;
-  List<material_model.Material> get materials => _materials;
+  List<CalendarEvent> get calendarEvents => _calendarEvents; // TAMBAH INI
+  List<material_model.Material> get materials => _materials; // TAMBAH INI
 
   DataProvider() {
     _loadAllData();
@@ -42,7 +44,10 @@ class DataProvider with ChangeNotifier {
     loadAnnouncements();
     loadPayments();
     loadCalendarEvents();
-    _loadMaterials();
+    loadMaterials();
+    _initializeDummySchedules();
+    _initializeDummyMaterials();
+    _initializeDummyCalendarEvents();
   }
 
   // === CALENDAR EVENTS METHODS ===
@@ -297,46 +302,346 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void _loadMaterials() {
-    final box = HiveService.getMaterialBox();
-    _materials = box.values
-        .map(
-          (e) => material_model.Material.fromMap(Map<String, dynamic>.from(e)),
-        )
-        .toList();
-    notifyListeners();
+  // === MATERIAL METHODS ===
+  void loadMaterials() {
+    try {
+      final box = HiveService.getMaterialBox();
+      _materials = box.values
+          .map(
+            (e) =>
+                material_model.Material.fromMap(Map<String, dynamic>.from(e)),
+          )
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      print('Error loading materials: $e');
+      _materials = [];
+      notifyListeners();
+    }
   }
 
-  // Material methods - TAMBAHAN BARU
   Future<void> addMaterial(material_model.Material material) async {
-    final box = HiveService.getMaterialBox();
-    await box.put(material.id, material.toMap());
-    _loadMaterials();
+    try {
+      final box = HiveService.getMaterialBox();
+      await box.put(material.id, material.toMap());
+      _materials.add(material);
+      notifyListeners();
+    } catch (e) {
+      print('Error adding material: $e');
+      throw e;
+    }
   }
 
   Future<void> updateMaterial(material_model.Material material) async {
-    final box = HiveService.getMaterialBox();
-    await box.put(material.id, material.toMap());
-    _loadMaterials();
+    try {
+      final box = HiveService.getMaterialBox();
+      await box.put(material.id, material.toMap());
+      final index = _materials.indexWhere((m) => m.id == material.id);
+      if (index != -1) {
+        _materials[index] = material;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error updating material: $e');
+      throw e;
+    }
   }
 
   Future<void> deleteMaterial(String id) async {
-    final box = HiveService.getMaterialBox();
-    await box.delete(id);
-    _loadMaterials();
+    try {
+      final box = HiveService.getMaterialBox();
+      await box.delete(id);
+      _materials.removeWhere((m) => m.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting material: $e');
+      throw e;
+    }
   }
 
-  List<material_model.Material> getMaterialsByTeacher(String teacherId) {
-    return _materials.where((m) => m.teacherId == teacherId).toList();
+  void _initializeDummyMaterials() {
+    if (_materials.isEmpty) {
+      final dummyMaterials = [
+        material_model.Material(
+          id: 'mat1',
+          title: 'Aljabar Linear Dasar',
+          description: 'Materi pengantar aljabar linear untuk siswa kelas 10',
+          subject: 'Matematika',
+          type: 'PDF',
+          url: 'https://example.com/aljabar.pdf',
+          teacherId: 'teacher1',
+          className: '10A',
+          uploadDate: '2024-01-15',
+        ),
+        material_model.Material(
+          id: 'mat2',
+          title: 'Hukum Newton',
+          description: 'Penjelasan lengkap tentang hukum-hukum Newton',
+          subject: 'Fisika',
+          type: 'Video',
+          url: 'https://example.com/newton.mp4',
+          teacherId: 'teacher2',
+          className: '10A',
+          uploadDate: '2024-01-20',
+        ),
+        material_model.Material(
+          id: 'mat3',
+          title: 'Tata Bahasa Indonesia',
+          description: 'Panduan lengkap tata bahasa Indonesia',
+          subject: 'Bahasa Indonesia',
+          type: 'Document',
+          url: 'https://example.com/tata-bahasa.doc',
+          teacherId: 'teacher3',
+          className: '10A',
+          uploadDate: '2024-01-25',
+        ),
+        material_model.Material(
+          id: 'mat4',
+          title: 'Reaksi Kimia Organik',
+          description: 'Materi tentang reaksi kimia dalam senyawa organik',
+          subject: 'Kimia',
+          type: 'PPT',
+          url: 'https://example.com/organik.ppt',
+          teacherId: 'teacher4',
+          className: '10A',
+          uploadDate: '2024-02-01',
+        ),
+        material_model.Material(
+          id: 'mat5',
+          title: 'Kalkulus Differensial',
+          description: 'Pengantar kalkulus untuk siswa SMA',
+          subject: 'Matematika',
+          type: 'PDF',
+          url: 'https://example.com/kalkulus.pdf',
+          teacherId: 'teacher1',
+          className: '10A',
+          uploadDate: '2024-02-05',
+        ),
+      ];
+
+      for (final material in dummyMaterials) {
+        addMaterial(material);
+      }
+    }
   }
 
-  List<material_model.Material> getMaterialsByClass(
-    String className,
-    String major,
-  ) {
-    return _materials
-        .where((m) => m.className == className && m.major == major)
-        .toList();
+  void _initializeDummySchedules() {
+    if (_schedules.isEmpty) {
+      final dummySchedules = [
+        Schedule(
+          id: 'sch1',
+          subject: 'Matematika',
+          assignedToId: 'teacher1',
+          className: '10A',
+          day: 'Monday',
+          time: '07:00 - 08:30',
+          room: '101',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch2',
+          subject: 'Bahasa Indonesia',
+          assignedToId: 'teacher2',
+          className: '10A',
+          day: 'Monday',
+          time: '08:45 - 10:15',
+          room: '102',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch3',
+          subject: 'Fisika',
+          assignedToId: 'teacher3',
+          className: '10A',
+          day: 'Tuesday',
+          time: '07:00 - 08:30',
+          room: '201',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch4',
+          subject: 'Kimia',
+          assignedToId: 'teacher4',
+          className: '10A',
+          day: 'Tuesday',
+          time: '08:45 - 10:15',
+          room: '202',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch5',
+          subject: 'Biologi',
+          assignedToId: 'teacher5',
+          className: '10A',
+          day: 'Wednesday',
+          time: '07:00 - 08:30',
+          room: '301',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch6',
+          subject: 'Sejarah',
+          assignedToId: 'teacher6',
+          className: '10A',
+          day: 'Wednesday',
+          time: '08:45 - 10:15',
+          room: '302',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch7',
+          subject: 'Bahasa Inggris',
+          assignedToId: 'teacher7',
+          className: '10A',
+          day: 'Thursday',
+          time: '07:00 - 08:30',
+          room: '401',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch8',
+          subject: 'Seni Budaya',
+          assignedToId: 'teacher8',
+          className: '10A',
+          day: 'Thursday',
+          time: '08:45 - 10:15',
+          room: '402',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch9',
+          subject: 'Penjasorkes',
+          assignedToId: 'teacher9',
+          className: '10A',
+          day: 'Friday',
+          time: '07:00 - 08:30',
+          room: 'Lapangan',
+          scheduleType: ScheduleType.teacher,
+        ),
+        Schedule(
+          id: 'sch10',
+          subject: 'Agama',
+          assignedToId: 'teacher10',
+          className: '10A',
+          day: 'Friday',
+          time: '08:45 - 10:15',
+          room: '103',
+          scheduleType: ScheduleType.teacher,
+        ),
+      ];
+
+      for (final schedule in dummySchedules) {
+        addSchedule(schedule);
+      }
+    }
+  }
+
+  void _initializeDummyCalendarEvents() {
+    if (_calendarEvents.isEmpty) {
+      final dummyEvents = [
+        CalendarEvent(
+          id: 'event1',
+          title: 'Pembukaan Tahun Ajaran 2024-2025',
+          description:
+              'Upacara pembukaan tahun ajaran baru dengan kegiatan pengenalan kurikulum dan program sekolah.',
+          startDate: DateTime(2024, 7, 15),
+          type: EventType.academic,
+          location: 'Aula Sekolah',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event2',
+          title: 'Ujian Tengah Semester',
+          description:
+              'Pelaksanaan ujian tengah semester untuk semua mata pelajaran.',
+          startDate: DateTime(2024, 10, 15),
+          endDate: DateTime(2024, 10, 25),
+          type: EventType.exam,
+          location: 'Ruang Kelas',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event3',
+          title: 'Libur Hari Raya Idul Fitri',
+          description: 'Libur Hari Raya Idul Fitri 1445 H.',
+          startDate: DateTime(2024, 4, 10),
+          endDate: DateTime(2024, 4, 17),
+          type: EventType.holiday,
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event4',
+          title: 'Rapat Orang Tua Siswa',
+          description:
+              'Rapat koordinasi antara guru, siswa, dan orang tua siswa.',
+          startDate: DateTime(2024, 11, 20),
+          type: EventType.meeting,
+          location: 'Aula Sekolah',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event5',
+          title: 'Workshop Pengembangan Diri',
+          description:
+              'Workshop tentang pengembangan karakter dan keterampilan siswa.',
+          startDate: DateTime(2024, 12, 5),
+          type: EventType.academic,
+          location: 'Ruang Multimedia',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event6',
+          title: 'Ujian Akhir Semester',
+          description: 'Pelaksanaan ujian akhir semester untuk semua kelas.',
+          startDate: DateTime(2025, 1, 15),
+          endDate: DateTime(2025, 1, 30),
+          type: EventType.exam,
+          location: 'Ruang Kelas',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event7',
+          title: 'Libur Hari Raya Natal',
+          description: 'Libur Hari Raya Natal 2024.',
+          startDate: DateTime(2024, 12, 25),
+          endDate: DateTime(2024, 12, 26),
+          type: EventType.holiday,
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event8',
+          title: 'Pembagian Raport',
+          description:
+              'Pembagian raport akhir semester dan pengumuman hasil belajar.',
+          startDate: DateTime(2025, 2, 10),
+          type: EventType.academic,
+          location: 'Ruang Kelas',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event9',
+          title: 'Kegiatan Ekstrakurikuler',
+          description:
+              'Kegiatan ekstrakurikuler mingguan untuk pengembangan bakat siswa.',
+          startDate: DateTime(2024, 9, 15),
+          type: EventType.academic,
+          location: 'Lapangan Sekolah',
+          createdBy: 'admin',
+        ),
+        CalendarEvent(
+          id: 'event10',
+          title: 'Pengingat Pembayaran SPP',
+          description: 'Pengingat untuk pembayaran SPP bulan ini.',
+          startDate: DateTime(2024, 8, 1),
+          type: EventType.reminder,
+          createdBy: 'admin',
+        ),
+      ];
+
+      for (final event in dummyEvents) {
+        addCalendarEvent(event);
+      }
+    }
   }
 
   // === UTILITY METHODS ===

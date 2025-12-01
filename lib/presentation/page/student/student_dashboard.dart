@@ -15,6 +15,12 @@ import '../../../data/model/announcement.dart';
 import '../../widgets/animated_navigation_bar.dart';
 import '../../widgets/statistics_widget.dart';
 
+// [IMPORT BARU] Import BlogView untuk menampilkan API berita
+import '../../../blog/blog_view.dart';
+
+// Import Academic Calendar Views
+import 'academic_calendar_view.dart';
+
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key, this.initialIndex = 0});
 
@@ -34,18 +40,19 @@ class _StudentDashboardState extends State<StudentDashboard>
   late AnimationController _contentAnimationController;
   late Animation<double> _contentAnimation;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    AnnouncementsView(),
-    HomeView(),
-    StudentScheduleView(),
-    ProfileView(),
+  static final List<Widget> _widgetOptions = <Widget>[
+    AnnouncementsView(
+      key: ValueKey('announcements'),
+    ), // Widget ini yang akan kita modifikasi
+    HomeView(key: ValueKey('home')),
+    AcademicCalendarView(key: ValueKey('calendar')),
+    ProfileView(key: ValueKey('profile')),
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    // Navigate to the corresponding sub-route using GoRouter to keep URL in sync
     switch (index) {
       case 0:
         context.go('/student-dashboard/pengumuman');
@@ -54,7 +61,7 @@ class _StudentDashboardState extends State<StudentDashboard>
         context.go('/student-dashboard/beranda');
         break;
       case 2:
-        context.go('/student-dashboard/jadwal');
+        context.go('/student-dashboard/calendar');
         break;
       case 3:
         context.go('/student-dashboard/profil');
@@ -76,10 +83,8 @@ class _StudentDashboardState extends State<StudentDashboard>
   @override
   void initState() {
     super.initState();
-    // Set initial index from constructor (passed by GoRouter)
     _selectedIndex = widget.initialIndex;
 
-    // Initialize animations
     _fabAnimationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -102,7 +107,6 @@ class _StudentDashboardState extends State<StudentDashboard>
       ),
     );
 
-    // Staggered animation for different elements
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) _contentAnimationController.forward();
     });
@@ -194,10 +198,7 @@ class _StudentDashboardState extends State<StudentDashboard>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
-      child: Text(
-        day.substring(0, 3), // Show first 3 letters
-        style: const TextStyle(fontSize: 12),
-      ),
+      child: Text(day.substring(0, 3), style: const TextStyle(fontSize: 12)),
     );
   }
 
@@ -210,47 +211,39 @@ class _StudentDashboardState extends State<StudentDashboard>
       return Scaffold(body: const Center(child: CircularProgressIndicator()));
     }
 
-    // Cek apakah sedang di halaman profil
     final bool isProfilePage = _selectedIndex == 3;
+    final bool isCalendarPage = _selectedIndex == 2;
 
     return Scaffold(
       body: Container(
-        // Hapus gradient jika di halaman profil agar warna biru dari ProfileView terlihat full
-        decoration: isProfilePage
-            ? null
-            : const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF667EEA),
-                    Color(0xFF764BA2),
-                    Color(0xFFF093FB),
-                    Color(0xFFF5576C),
-                  ],
-                ),
-              ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF667EEA), Color(0xFF764BA2), Color(0xFFF093FB)],
+          ),
+        ),
         child: SafeArea(
           child: FadeTransition(
             opacity: _contentAnimation,
             child: Column(
               children: [
-                // Header: Sembunyikan jika di halaman profil
-                if (!isProfilePage)
+                if (!isProfilePage && !isCalendarPage)
                   SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, -0.5),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _contentAnimationController,
-                        curve: const Interval(
-                          0.1,
-                          0.6,
-                          curve: Curves.easeOutCubic,
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, -0.5),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _contentAnimationController,
+                            curve: const Interval(
+                              0.1,
+                              0.6,
+                              curve: Curves.easeOutCubic,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
                     child: FadeTransition(
                       opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
                         CurvedAnimation(
@@ -263,8 +256,11 @@ class _StudentDashboardState extends State<StudentDashboard>
                         child: Row(
                           children: [
                             GestureDetector(
-                              onTap: () =>
-                                  _showProfileDialog(context, user, authProvider),
+                              onTap: () => _showProfileDialog(
+                                context,
+                                user,
+                                authProvider,
+                              ),
                               child: user.profileImagePath != null
                                   ? CircleAvatar(
                                       radius: 20,
@@ -292,7 +288,6 @@ class _StudentDashboardState extends State<StudentDashboard>
                     ),
                   ),
 
-                // Content Area
                 Expanded(
                   child: ScaleTransition(
                     scale: Tween<double>(begin: 0.9, end: 1.0).animate(
@@ -312,8 +307,7 @@ class _StudentDashboardState extends State<StudentDashboard>
                           curve: const Interval(0.3, 0.8, curve: Curves.easeIn),
                         ),
                       ),
-                      // Jika Profile: Full screen. Jika Bukan: Pakai Container putih melengkung.
-                      child: isProfilePage
+                      child: (isProfilePage || isCalendarPage)
                           ? AnimatedSwitcher(
                               duration: const Duration(milliseconds: 400),
                               child: _widgetOptions.elementAt(_selectedIndex),
@@ -333,42 +327,17 @@ class _StudentDashboardState extends State<StudentDashboard>
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 400),
-                                  transitionBuilder: (
-                                    Widget child,
-                                    Animation<double> animation,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0.5, 0.0),
-                                          end: Offset.zero,
-                                        ).animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOutCubic,
-                                          ),
-                                        ),
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  child: _widgetOptions.elementAt(
-                                    _selectedIndex,
-                                  ),
-                                ),
+                                child: _widgetOptions.elementAt(_selectedIndex),
                               ),
                             ),
                     ),
                   ),
                 ),
 
-                if (!isProfilePage) const SizedBox(height: 10),
+                if (!isProfilePage && !isCalendarPage)
+                  const SizedBox(height: 10),
 
-                // Collapsible Tools Section
-                if (!isProfilePage)
+                if (!isProfilePage && !isCalendarPage)
                   AnimatedSize(
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOutCubic,
@@ -376,21 +345,22 @@ class _StudentDashboardState extends State<StudentDashboard>
                         ? FadeTransition(
                             opacity: Tween<double>(begin: 0.0, end: 1.0)
                                 .animate(
-                              CurvedAnimation(
-                                parent: _fabAnimationController,
-                                curve: Curves.easeIn,
-                              ),
-                            ),
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: _fabAnimationController,
-                                  curve: Curves.easeOutCubic,
+                                  CurvedAnimation(
+                                    parent: _fabAnimationController,
+                                    curve: Curves.easeIn,
+                                  ),
                                 ),
-                              ),
+                            child: SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(0, 0.3),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: _fabAnimationController,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                                  ),
                               child: Container(
                                 margin: EdgeInsets.zero,
                                 padding: const EdgeInsets.all(16),
@@ -435,13 +405,14 @@ class _StudentDashboardState extends State<StudentDashboard>
                         : const SizedBox.shrink(),
                   ),
 
-                if (!isProfilePage) const SizedBox(height: 10),
+                if (!isProfilePage && !isCalendarPage)
+                  const SizedBox(height: 10),
               ],
             ),
           ),
         ),
       ),
-      floatingActionButton: !isProfilePage
+      floatingActionButton: (!isProfilePage && !isCalendarPage)
           ? ScaleTransition(
               scale: _fabAnimation,
               child: FadeTransition(
@@ -455,23 +426,21 @@ class _StudentDashboardState extends State<StudentDashboard>
                   elevation: 8,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (
-                      Widget child,
-                      Animation<double> animation,
-                    ) {
-                      return RotationTransition(
-                        turns: Tween<double>(begin: 0.0, end: 0.25).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          ),
-                        ),
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        ),
-                      );
-                    },
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return RotationTransition(
+                            turns: Tween<double>(begin: 0.0, end: 0.25).animate(
+                              CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeInOut,
+                              ),
+                            ),
+                            child: FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            ),
+                          );
+                        },
                     child: Icon(
                       _showTools ? Icons.close : Icons.build,
                       key: ValueKey<bool>(_showTools),
@@ -505,7 +474,7 @@ class _StudentDashboardState extends State<StudentDashboard>
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.calendar_today),
-                label: 'Jadwal',
+                label: 'Kalender',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
@@ -624,14 +593,22 @@ class GradesView extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Your Grades',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.green.shade900,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => context.go('/student-dashboard/beranda'),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Your Grades',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade900,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -670,8 +647,8 @@ class GradesView extends StatelessWidget {
                           color: grade.score >= 80
                               ? Colors.green
                               : grade.score >= 60
-                                  ? Colors.orange
-                                  : Colors.red,
+                              ? Colors.orange
+                              : Colors.red,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -712,14 +689,22 @@ class AttendanceView extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Your Attendance',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.orange.shade900,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => context.go('/student-dashboard/beranda'),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Your Attendance',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade900,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -796,19 +781,26 @@ class AssignmentsView extends StatelessWidget {
         .toList();
 
     return Container(
-      color: Colors.purple.shade50,
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Your Assignments',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple.shade900,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => context.go('/student-dashboard/beranda'),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Your Assignments',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple.shade900,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -859,7 +851,8 @@ class AssignmentsView extends StatelessWidget {
                                     builder: (BuildContext context) {
                                       return AlertDialog(
                                         title: Text(
-                                            'Kumpulkan Tugas: ${assignment.title}'),
+                                          'Kumpulkan Tugas: ${assignment.title}',
+                                        ),
                                         content: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -882,15 +875,19 @@ class AssignmentsView extends StatelessWidget {
                                           ElevatedButton(
                                             onPressed: () {
                                               // Logic to submit assignment
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 const SnackBar(
-                                                    content: Text(
-                                                        'Tugas berhasil dikumpulkan')),
+                                                  content: Text(
+                                                    'Tugas berhasil dikumpulkan',
+                                                  ),
+                                                ),
                                               );
                                               Navigator.of(context).pop();
-                                              Navigator.of(context)
-                                                  .pop(); // Close detail dialog
+                                              Navigator.of(
+                                                context,
+                                              ).pop(); // Close detail dialog
                                             },
                                             child: const Text('Kumpulkan'),
                                           ),
@@ -946,74 +943,188 @@ class HomeView extends StatelessWidget {
         .where((a) => a.className == user.className)
         .toList();
 
+    // Get today's schedule
+    final today = DateTime.now();
+    final todayName = _getDayName(today.weekday);
+    final todaySchedules = dataProvider.schedules
+        .where((s) => s.className == user.className && s.day == todayName)
+        .toList();
+
     return Container(
       color: Colors.white,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Beranda',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade900,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Lihat Nilai',
-                    Icons.grade,
-                    Colors.green,
-                    grades.length,
-                    () => _navigateToView(context, 0),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Lihat Kehadiran',
-                    Icons.check_circle,
-                    Colors.orange,
-                    attendances.length,
-                    () => _navigateToView(context, 1),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildCompactFeatureCard(
-                    context,
-                    'Tugas',
-                    Icons.assignment,
-                    Colors.purple,
-                    assignments.length,
-                    () => _navigateToView(context, 2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Container(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
               padding: const EdgeInsets.all(16),
-              child: const Center(
-                child: Text(
-                  'Selamat datang di Dashboard Siswa',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Beranda',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade900,
                 ),
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Lihat Nilai',
+                          Icons.grade,
+                          Colors.green,
+                          grades.length,
+                          () => _navigateToView(context, 0),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Lihat Kehadiran',
+                          Icons.check_circle,
+                          Colors.orange,
+                          attendances.length,
+                          () => _navigateToView(context, 1),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Tugas',
+                          Icons.assignment,
+                          Colors.purple,
+                          assignments.length,
+                          () => _navigateToView(context, 2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Materi',
+                          Icons.library_books,
+                          Colors.teal,
+                          dataProvider.materials
+                              .where((m) => m.className == user.className)
+                              .length,
+                          () => _navigateToView(context, 3),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Today's Schedule Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.schedule, color: Colors.blue.shade700),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Jadwal Hari Ini - ${_getIndonesianDayName(today.weekday)}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        if (todaySchedules.isEmpty)
+                          Text(
+                            'Tidak ada jadwal kelas hari ini',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )
+                        else
+                          Column(
+                            children: todaySchedules.map((schedule) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.blue.shade100,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Icon(
+                                        Icons.class_,
+                                        color: Colors.blue.shade700,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            schedule.subject,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${schedule.time} - Ruang ${schedule.room}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -1060,47 +1171,6 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-    int count,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: color),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$count item${count != 1 ? 's' : ''}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _navigateToView(BuildContext context, int index) {
     switch (index) {
       case 0:
@@ -1112,9 +1182,43 @@ class HomeView extends StatelessWidget {
       case 2:
         context.go('/student-dashboard/beranda/assignments');
         break;
-      case 4:
+      case 3:
         context.go('/student-dashboard/beranda/materials');
         break;
+    }
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      default:
+        return 'Monday';
+    }
+  }
+
+  String _getIndonesianDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Senin';
+      case 2:
+        return 'Selasa';
+      case 3:
+        return 'Rabu';
+      case 4:
+        return 'Kamis';
+      case 5:
+        return 'Jumat';
+      default:
+        return 'Senin';
     }
   }
 }
@@ -1223,7 +1327,6 @@ class ProfileView extends StatelessWidget {
     final user = authProvider.currentUser!;
 
     return Container(
-      color: Colors.blue.shade50,
       child: Column(
         children: [
           Container(
@@ -1232,9 +1335,9 @@ class ProfileView extends StatelessWidget {
             child: Text(
               'Profil',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue.shade900,
+                color: Colors.purple.shade900,
               ),
             ),
           ),
@@ -1458,96 +1561,148 @@ class StudentScheduleView extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// MODIFIED AnnouncementsView: Menggunakan TabBar untuk memisahkan API Berita
+// ---------------------------------------------------------------------------
 class AnnouncementsView extends StatelessWidget {
   const AnnouncementsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final dataProvider = Provider.of<DataProvider>(context);
+    // Mengambil data pengumuman internal (sekolah)
     final announcements = dataProvider.announcements
         .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
         .toList();
 
-    return Container(
-      color: Colors.red.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Pengumuman',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.red.shade900,
+    return DefaultTabController(
+      length: 2, // Dua tab: Sekolah dan Berita
+      child: Container(
+        color: Colors.red.shade50,
+        child: Column(
+          children: [
+            // Header Judul
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Pengumuman',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade900,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: announcements.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.announcement, size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text('Belum ada pengumuman'),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: announcements.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemBuilder: (context, index) {
-                      final announcement = announcements[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
+
+            // TabBar Menu
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TabBar(
+                labelColor: Colors.red.shade900,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.red.shade900,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: const [
+                  Tab(text: 'Info Sekolah'),
+                  Tab(text: 'Berita Pendidikan'),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Isi Konten Tab
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // --- TAB 1: PENGUMUMAN SEKOLAH (INTERNAL) ---
+                  announcements.isEmpty
+                      ? const Center(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.announcement, color: Colors.red),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      announcement.title,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              Icon(
+                                Icons.announcement,
+                                size: 80,
+                                color: Colors.grey,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                announcement.content,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Target: ${announcement.targetRole}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
+                              SizedBox(height: 16),
+                              Text('Belum ada pengumuman sekolah'),
                             ],
                           ),
+                        )
+                      : ListView.builder(
+                          itemCount: announcements.length,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (context, index) {
+                            final announcement = announcements[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.announcement,
+                                          color: Colors.red,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            announcement.title,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      announcement.content,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Target: ${announcement.targetRole}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+
+                  const SingleChildScrollView(child: BlogView()),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

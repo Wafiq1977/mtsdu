@@ -12,10 +12,16 @@ class StudentAssignmentsView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
     final user = authProvider.currentUser!;
-    final assignments = dataProvider.assignments.where((a) => a.className == user.className).toList();
+    final assignments = dataProvider.assignments
+        .where((a) => a.className == user.className)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Tugas'),
       ),
       body: ListView.builder(
@@ -54,7 +60,9 @@ class StudentAssignmentsView extends StatelessWidget {
             },
             child: ListTile(
               title: Text(assignment.title),
-              subtitle: Text('Mata Pelajaran: ${assignment.subject} - Deadline: ${assignment.dueDate}'),
+              subtitle: Text(
+                'Mata Pelajaran: ${assignment.subject} - Deadline: ${assignment.dueDate}',
+              ),
               trailing: IconButton(
                 icon: const Icon(Icons.upload),
                 onPressed: () {

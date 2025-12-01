@@ -84,6 +84,9 @@ dependencies:
   open_file: ^3.5.8
   url_launcher: ^6.3.0
 
+  font_awesome_flutter: ^10.6.0
+  url_launcher: ^6.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

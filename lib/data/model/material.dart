@@ -3,26 +3,22 @@ class Material {
   final String title;
   final String description;
   final String subject;
+  final String type; // PDF, Video, PPT, Dokumen
+  final String url; // URL atau path ke file
   final String teacherId;
   final String className;
-  final String major;
-  final DateTime uploadDate;
-  final String? filePath;
-  final String? fileType; // pdf, doc, video, etc
-  final double? fileSize; // in MB
+  final String uploadDate;
 
   Material({
     required this.id,
     required this.title,
     required this.description,
     required this.subject,
+    required this.type,
+    required this.url,
     required this.teacherId,
     required this.className,
-    required this.major,
     required this.uploadDate,
-    this.filePath,
-    this.fileType,
-    this.fileSize,
   });
 
   Map<String, dynamic> toMap() {
@@ -31,13 +27,11 @@ class Material {
       'title': title,
       'description': description,
       'subject': subject,
+      'type': type,
+      'url': url,
       'teacherId': teacherId,
       'className': className,
-      'major': major,
-      'uploadDate': uploadDate.toIso8601String(),
-      'filePath': filePath,
-      'fileType': fileType,
-      'fileSize': fileSize,
+      'uploadDate': uploadDate,
     };
   }
 
@@ -47,13 +41,11 @@ class Material {
       title: map['title'],
       description: map['description'],
       subject: map['subject'],
+      type: map['type'],
+      url: map['url'],
       teacherId: map['teacherId'],
       className: map['className'],
-      major: map['major'],
-      uploadDate: DateTime.parse(map['uploadDate']),
-      filePath: map['filePath'],
-      fileType: map['fileType'],
-      fileSize: map['fileSize'],
+      uploadDate: map['uploadDate'],
     );
   }
 }
