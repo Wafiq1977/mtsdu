@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../data/model/schedule.dart';
 import '../../../data/model/user.dart';
@@ -11,7 +12,8 @@ class AdminScheduleManagement extends StatefulWidget {
   const AdminScheduleManagement({super.key});
 
   @override
-  State<AdminScheduleManagement> createState() => _AdminScheduleManagementState();
+  State<AdminScheduleManagement> createState() =>
+      _AdminScheduleManagementState();
 }
 
 class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
@@ -32,7 +34,7 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     'Rekayasa Perangkat Lunak',
     'Teknik Komputer dan Jaringan',
     'Manajemen',
-    'Teknik Kendaraan Ringan Otomotif'
+    'Teknik Kendaraan Ringan Otomotif',
   ];
 
   // Data Mata Pelajaran Umum
@@ -42,7 +44,7 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     'Bahasa Inggris',
     'Agama',
     'PKN',
-    'Olahraga'
+    'Olahraga',
   ];
 
   // Data Mata Pelajaran Jurusan
@@ -129,9 +131,9 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
       final dataProvider = Provider.of<DataProvider>(context, listen: false);
       await dataProvider.deleteSchedule(schedule.id);
       _loadData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Schedule deleted')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Schedule deleted')));
     }
   }
 
@@ -147,7 +149,9 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
       return ['All', ...generalSubjects];
     }
 
-    if (_selectedMajor != null && _selectedClass != null && _selectedClass != 'All') {
+    if (_selectedMajor != null &&
+        _selectedClass != null &&
+        _selectedClass != 'All') {
       final majorSubs = majorSubjects[_selectedMajor]?[_selectedClass] ?? [];
       return ['All', ...generalSubjects, ...majorSubs];
     }
@@ -169,7 +173,15 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     String major = schedule?.major ?? '';
     String grade = schedule?.grade ?? '';
 
-    final daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final daysOfWeek = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     final grades = ['Kelas 10', 'Kelas 11', 'Kelas 12'];
 
     showDialog(
@@ -215,10 +227,14 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                           labelText: 'Teacher',
                           border: OutlineInputBorder(),
                         ),
-                        items: _teachers.map((teacher) => DropdownMenuItem(
-                          value: teacher.id,
-                          child: Text(teacher.name),
-                        )).toList(),
+                        items: _teachers
+                            .map(
+                              (teacher) => DropdownMenuItem(
+                                value: teacher.id,
+                                child: Text(teacher.name),
+                              ),
+                            )
+                            .toList(),
                         onChanged: (value) => assignedToId = value!,
                         validator: (value) => value == null ? 'Required' : null,
                       )
@@ -232,17 +248,23 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                               labelText: 'Jurusan',
                               border: OutlineInputBorder(),
                             ),
-                            items: majors.map((maj) => DropdownMenuItem(
-                              value: maj,
-                              child: Text(maj),
-                            )).toList(),
+                            items: majors
+                                .map(
+                                  (maj) => DropdownMenuItem(
+                                    value: maj,
+                                    child: Text(maj),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: (value) {
                               setDialogState(() {
                                 major = value!;
-                                className = ''; // Reset class when major changes
+                                className =
+                                    ''; // Reset class when major changes
                               });
                             },
-                            validator: (value) => value == null ? 'Required' : null,
+                            validator: (value) =>
+                                value == null ? 'Required' : null,
                           ),
                           const SizedBox(height: 12),
 
@@ -253,12 +275,17 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                               labelText: 'Kelas',
                               border: OutlineInputBorder(),
                             ),
-                            items: grades.map((gr) => DropdownMenuItem(
-                              value: gr,
-                              child: Text(gr),
-                            )).toList(),
+                            items: grades
+                                .map(
+                                  (gr) => DropdownMenuItem(
+                                    value: gr,
+                                    child: Text(gr),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: (value) => grade = value!,
-                            validator: (value) => value == null ? 'Required' : null,
+                            validator: (value) =>
+                                value == null ? 'Required' : null,
                           ),
                         ],
                       ),
@@ -272,10 +299,12 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                         labelText: 'Subject',
                         border: OutlineInputBorder(),
                       ),
-                      items: _getAvailableSubjects().map((sub) => DropdownMenuItem(
-                        value: sub,
-                        child: Text(sub),
-                      )).toList(),
+                      items: _getAvailableSubjects()
+                          .map(
+                            (sub) =>
+                                DropdownMenuItem(value: sub, child: Text(sub)),
+                          )
+                          .toList(),
                       onChanged: (value) => subject = value!,
                       validator: (value) => value == null ? 'Required' : null,
                     ),
@@ -302,10 +331,12 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                         labelText: 'Day',
                         border: OutlineInputBorder(),
                       ),
-                      items: daysOfWeek.map((day) => DropdownMenuItem(
-                        value: day,
-                        child: Text(day),
-                      )).toList(),
+                      items: daysOfWeek
+                          .map(
+                            (day) =>
+                                DropdownMenuItem(value: day, child: Text(day)),
+                          )
+                          .toList(),
                       onChanged: (value) => day = value!,
                     ),
 
@@ -347,10 +378,15 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     formKey.currentState!.save();
-                    final dataProvider = Provider.of<DataProvider>(context, listen: false);
+                    final dataProvider = Provider.of<DataProvider>(
+                      context,
+                      listen: false,
+                    );
 
                     final newSchedule = Schedule(
-                      id: isEditing ? schedule!.id : DateTime.now().millisecondsSinceEpoch.toString(),
+                      id: isEditing
+                          ? schedule!.id
+                          : DateTime.now().millisecondsSinceEpoch.toString(),
                       subject: subject,
                       assignedToId: assignedToId,
                       className: className,
@@ -370,7 +406,11 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                     _loadData();
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${isEditing ? 'Updated' : 'Added'} schedule')),
+                      SnackBar(
+                        content: Text(
+                          '${isEditing ? 'Updated' : 'Added'} schedule',
+                        ),
+                      ),
                     );
                   }
                 },
@@ -399,7 +439,9 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     return FilledButton.tonal(
       onPressed: () => _selectDay(day),
       style: FilledButton.styleFrom(
-        backgroundColor: _selectedDay == day ? const Color(0xFF667EEA) : Colors.grey[100],
+        backgroundColor: _selectedDay == day
+            ? const Color(0xFF667EEA)
+            : Colors.grey[100],
         foregroundColor: _selectedDay == day ? Colors.white : Colors.black87,
       ),
       child: Text(
@@ -410,22 +452,35 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
   }
 
   List<Schedule> _getFilteredSchedules() {
-    var filtered = _schedules.where((s) => s.scheduleType ==
-        (_selectedView == 'teacher' ? ScheduleType.teacher : ScheduleType.student)).toList();
+    var filtered = _schedules
+        .where(
+          (s) =>
+              s.scheduleType ==
+              (_selectedView == 'teacher'
+                  ? ScheduleType.teacher
+                  : ScheduleType.student),
+        )
+        .toList();
 
     if (_selectedDay != null && _selectedDay!.isNotEmpty) {
       filtered = filtered.where((s) => s.day == _selectedDay).toList();
     }
 
-    if (_selectedMajor != null && _selectedMajor!.isNotEmpty && _selectedMajor != 'All') {
+    if (_selectedMajor != null &&
+        _selectedMajor!.isNotEmpty &&
+        _selectedMajor != 'All') {
       filtered = filtered.where((s) => s.major == _selectedMajor).toList();
     }
 
-    if (_selectedClass != null && _selectedClass!.isNotEmpty && _selectedClass != 'All') {
+    if (_selectedClass != null &&
+        _selectedClass!.isNotEmpty &&
+        _selectedClass != 'All') {
       filtered = filtered.where((s) => s.className == _selectedClass).toList();
     }
 
-    if (_selectedSubject != null && _selectedSubject!.isNotEmpty && _selectedSubject != 'All') {
+    if (_selectedSubject != null &&
+        _selectedSubject!.isNotEmpty &&
+        _selectedSubject != 'All') {
       filtered = filtered.where((s) => s.subject == _selectedSubject).toList();
     }
 
@@ -439,11 +494,43 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     }
 
     final filteredSchedules = _getFilteredSchedules();
-    final teacherSchedules = _schedules.where((s) => s.scheduleType == ScheduleType.teacher).toList();
-    final studentSchedules = _schedules.where((s) => s.scheduleType == ScheduleType.student).toList();
+    final teacherSchedules = _schedules
+        .where((s) => s.scheduleType == ScheduleType.teacher)
+        .toList();
+    final studentSchedules = _schedules
+        .where((s) => s.scheduleType == ScheduleType.student)
+        .toList();
 
     return Column(
       children: [
+        // Tombol Kembali
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => context.go('/admin-dashboard'),
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Kembali',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF667EEA),
+                  foregroundColor: Colors.white,
+                  fixedSize: const Size(40, 40),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Kembali',
+                style: TextStyle(
+                  color: Color(0xFF667EEA),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+
         // Header dengan View Selector
         Container(
           padding: const EdgeInsets.all(16),
@@ -500,7 +587,9 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                       // Tools Toggle
                       IconButton.filledTonal(
                         onPressed: _toggleTools,
-                        icon: Icon(_showTools ? Icons.close : Icons.filter_list),
+                        icon: Icon(
+                          _showTools ? Icons.close : Icons.filter_list,
+                        ),
                         tooltip: _showTools ? 'Hide Filters' : 'Show Filters',
                       ),
                     ],
@@ -596,11 +685,16 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                             isDense: true,
                           ),
                           items: [
-                            const DropdownMenuItem(value: 'All', child: Text('All Jurusan')),
-                            ...majors.map((maj) => DropdownMenuItem(
-                              value: maj,
-                              child: Text(maj),
-                            )),
+                            const DropdownMenuItem(
+                              value: 'All',
+                              child: Text('All Jurusan'),
+                            ),
+                            ...majors.map(
+                              (maj) => DropdownMenuItem(
+                                value: maj,
+                                child: Text(maj),
+                              ),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -620,11 +714,16 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                             border: OutlineInputBorder(),
                             isDense: true,
                           ),
-                          items: _getAvailableClasses().map((cls) => DropdownMenuItem(
-                            value: cls,
-                            child: Text(cls),
-                          )).toList(),
-                          onChanged: (value) => setState(() => _selectedClass = value),
+                          items: _getAvailableClasses()
+                              .map(
+                                (cls) => DropdownMenuItem(
+                                  value: cls,
+                                  child: Text(cls),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedClass = value),
                         ),
                       ),
                     ],
@@ -638,11 +737,14 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
-                    items: _getAvailableSubjects().map((sub) => DropdownMenuItem(
-                      value: sub,
-                      child: Text(sub),
-                    )).toList(),
-                    onChanged: (value) => setState(() => _selectedSubject = value),
+                    items: _getAvailableSubjects()
+                        .map(
+                          (sub) =>
+                              DropdownMenuItem(value: sub, child: Text(sub)),
+                        )
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedSubject = value),
                   ),
                 ],
 
@@ -686,11 +788,20 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                     final schedule = filteredSchedules[index];
                     final teacher = _teachers.firstWhere(
                       (t) => t.id == schedule.assignedToId,
-                      orElse: () => User(id: '', username: '', password: '', role: UserRole.teacher, name: 'Unknown Teacher'),
+                      orElse: () => User(
+                        id: '',
+                        username: '',
+                        password: '',
+                        role: UserRole.teacher,
+                        name: 'Unknown Teacher',
+                      ),
                     );
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
                       elevation: 2,
                       child: ListTile(
                         leading: Container(
@@ -726,7 +837,8 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                                 fontSize: 13,
                               ),
                             ),
-                            if (schedule.major != null && schedule.major!.isNotEmpty) ...[
+                            if (schedule.major != null &&
+                                schedule.major!.isNotEmpty) ...[
                               const SizedBox(height: 2),
                               Text(
                                 'Jurusan: ${schedule.major}${schedule.grade != null ? ' • ${schedule.grade}' : ''}',
@@ -766,9 +878,16 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  Icon(Icons.delete, size: 18, color: Colors.red),
+                                  Icon(
+                                    Icons.delete,
+                                    size: 18,
+                                    color: Colors.red,
+                                  ),
                                   SizedBox(width: 8),
-                                  Text('Delete', style: TextStyle(color: Colors.red)),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                 ],
                               ),
                             ),

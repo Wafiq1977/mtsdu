@@ -7,7 +7,9 @@ import '../../../data/model/assignment.dart';
 import '../../../data/model/announcement.dart';
 import '../../../data/model/payment.dart';
 import '../../../data/model/calendar_event.dart'; // IMPORT BARU
+import '../../../data/model/calendar_event_history.dart'; // IMPORT BARU
 import '../../../data/model/material.dart' as material_model; // IMPORT BARU
+import '../../../data/model/academic_year.dart'; // IMPORT BARU
 import '../../../domain/entity/schedule_entity.dart'; // IMPORT BARU
 import '../../../data/source/hive_service.dart';
 
@@ -20,6 +22,7 @@ class DataProvider with ChangeNotifier {
   List<Payment> _payments = [];
   List<CalendarEvent> _calendarEvents = []; // TAMBAH INI
   List<material_model.Material> _materials = []; // TAMBAH INI
+  List<AcademicYear> _academicYears = []; // TAMBAH INI
 
   // Getters
   List<Schedule> get schedules => _schedules;
@@ -30,6 +33,7 @@ class DataProvider with ChangeNotifier {
   List<Payment> get payments => _payments;
   List<CalendarEvent> get calendarEvents => _calendarEvents; // TAMBAH INI
   List<material_model.Material> get materials => _materials; // TAMBAH INI
+  List<AcademicYear> get academicYears => _academicYears; // TAMBAH INI
 
   DataProvider() {
     _loadAllData();
@@ -44,9 +48,11 @@ class DataProvider with ChangeNotifier {
     loadPayments();
     loadCalendarEvents();
     loadMaterials();
+    loadAcademicYears();
     _initializeDummySchedules();
     _initializeDummyMaterials();
     _initializeDummyCalendarEvents();
+    _initializeDummyAcademicYears();
   }
 
   // === CALENDAR EVENTS METHODS ===
@@ -76,14 +82,56 @@ class DataProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateCalendarEvent(CalendarEvent event) async {
+  Future<void> updateCalendarEvent(
+    CalendarEvent event, {
+    String? userId,
+    String? description,
+  }) async {
     try {
+      // Create history entry if userId and description provided
+      CalendarEvent? oldEvent;
+      if (userId != null && description != null) {
+        oldEvent = _calendarEvents.firstWhere((e) => e.id == event.id);
+      }
+
       final box = HiveService.getCalendarEventBox();
       await box.put(event.id, event.toMap());
       final index = _calendarEvents.indexWhere((e) => e.id == event.id);
       if (index != -1) {
         _calendarEvents[index] = event;
       }
+
+      // Add history entry
+      if (oldEvent != null && userId != null && description != null) {
+        final historyEntry = CalendarEventHistory(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          eventId: event.id,
+          action: 'updated',
+          userId: userId,
+          timestamp: DateTime.now(),
+          oldData: oldEvent.toMap(),
+          newData: event.toMap(),
+          description: description,
+        );
+
+        final updatedEvent = CalendarEvent(
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          type: event.type,
+          location: event.location,
+          createdBy: event.createdBy,
+          color: event.color,
+          target: event.target,
+          history: [...event.history, historyEntry],
+        );
+
+        await box.put(updatedEvent.id, updatedEvent.toMap());
+        _calendarEvents[index] = updatedEvent;
+      }
+
       notifyListeners();
     } catch (e) {
       print('Error updating calendar event: $e');
@@ -99,6 +147,60 @@ class DataProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error deleting calendar event: $e');
+      throw e;
+    }
+  }
+
+  // === ACADEMIC YEARS METHODS ===
+  void loadAcademicYears() {
+    try {
+      final box = HiveService.getAcademicYearBox();
+      _academicYears = box.values
+          .map((e) => AcademicYear.fromMap(Map<String, dynamic>.from(e)))
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      print('Error loading academic years: $e');
+      _academicYears = [];
+      notifyListeners();
+    }
+  }
+
+  Future<void> addAcademicYear(AcademicYear academicYear) async {
+    try {
+      final box = HiveService.getAcademicYearBox();
+      await box.put(academicYear.id, academicYear.toMap());
+      _academicYears.add(academicYear);
+      notifyListeners();
+    } catch (e) {
+      print('Error adding academic year: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateAcademicYear(AcademicYear academicYear) async {
+    try {
+      final box = HiveService.getAcademicYearBox();
+      await box.put(academicYear.id, academicYear.toMap());
+      final index = _academicYears.indexWhere((a) => a.id == academicYear.id);
+      if (index != -1) {
+        _academicYears[index] = academicYear;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error updating academic year: $e');
+      throw e;
+    }
+  }
+
+  Future<void> deleteAcademicYear(String id) async {
+    try {
+      final box = HiveService.getAcademicYearBox();
+      await box.delete(id);
+      _academicYears.removeWhere((a) => a.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting academic year: $e');
       throw e;
     }
   }
@@ -544,6 +646,7 @@ class DataProvider with ChangeNotifier {
           description:
               'Upacara pembukaan tahun ajaran baru dengan kegiatan pengenalan kurikulum dan program sekolah.',
           startDate: DateTime(2024, 7, 15),
+          endDate: DateTime(2024, 7, 15, 12, 0), // Default 3 jam
           type: EventType.academic,
           location: 'Aula Sekolah',
           createdBy: 'admin',
@@ -574,6 +677,7 @@ class DataProvider with ChangeNotifier {
           description:
               'Rapat koordinasi antara guru, siswa, dan orang tua siswa.',
           startDate: DateTime(2024, 11, 20),
+          endDate: DateTime(2024, 11, 20, 16, 0), // Default 3 jam
           type: EventType.meeting,
           location: 'Aula Sekolah',
           createdBy: 'admin',
@@ -584,6 +688,7 @@ class DataProvider with ChangeNotifier {
           description:
               'Workshop tentang pengembangan karakter dan keterampilan siswa.',
           startDate: DateTime(2024, 12, 5),
+          endDate: DateTime(2024, 12, 5, 15, 0), // Default 3 jam
           type: EventType.academic,
           location: 'Ruang Multimedia',
           createdBy: 'admin',
@@ -613,6 +718,7 @@ class DataProvider with ChangeNotifier {
           description:
               'Pembagian raport akhir semester dan pengumuman hasil belajar.',
           startDate: DateTime(2025, 2, 10),
+          endDate: DateTime(2025, 2, 10, 12, 0), // Default 3 jam
           type: EventType.academic,
           location: 'Ruang Kelas',
           createdBy: 'admin',
@@ -623,6 +729,7 @@ class DataProvider with ChangeNotifier {
           description:
               'Kegiatan ekstrakurikuler mingguan untuk pengembangan bakat siswa.',
           startDate: DateTime(2024, 9, 15),
+          endDate: DateTime(2024, 9, 15, 16, 0), // Default 3 jam
           type: EventType.academic,
           location: 'Lapangan Sekolah',
           createdBy: 'admin',
@@ -632,6 +739,7 @@ class DataProvider with ChangeNotifier {
           title: 'Pengingat Pembayaran SPP',
           description: 'Pengingat untuk pembayaran SPP bulan ini.',
           startDate: DateTime(2024, 8, 1),
+          endDate: DateTime(2024, 8, 1, 9, 0), // Default 1 jam
           type: EventType.reminder,
           createdBy: 'admin',
         ),
@@ -639,6 +747,51 @@ class DataProvider with ChangeNotifier {
 
       for (final event in dummyEvents) {
         addCalendarEvent(event);
+      }
+    }
+  }
+
+  void _initializeDummyAcademicYears() {
+    if (_academicYears.isEmpty) {
+      final dummyAcademicYears = [
+        AcademicYear(
+          id: 'ay2024-2025',
+          year: '2024-2025',
+          name: 'Tahun Akademik 2024-2025',
+          startDate: DateTime(2024, 7, 1),
+          endDate: DateTime(2025, 6, 30),
+          description:
+              'Tahun akademik 2024-2025 dengan fokus pada pengembangan kompetensi siswa di era digital.',
+          createdBy: 'admin',
+          createdAt: DateTime.now(),
+          isActive: true,
+        ),
+        AcademicYear(
+          id: 'ay2025-2026',
+          year: '2025-2026',
+          name: 'Tahun Akademik 2025-2026',
+          startDate: DateTime(2025, 7, 1),
+          endDate: DateTime(2026, 6, 30),
+          description:
+              'Tahun akademik 2025-2026 dengan program pengembangan karakter dan keterampilan abad ke-21.',
+          createdBy: 'admin',
+          createdAt: DateTime.now(),
+        ),
+        AcademicYear(
+          id: 'ay2026-2027',
+          year: '2026-2027',
+          name: 'Tahun Akademik 2026-2027',
+          startDate: DateTime(2026, 7, 1),
+          endDate: DateTime(2027, 6, 30),
+          description:
+              'Tahun akademik 2026-2027 dengan inovasi pembelajaran berbasis teknologi.',
+          createdBy: 'admin',
+          createdAt: DateTime.now(),
+        ),
+      ];
+
+      for (final academicYear in dummyAcademicYears) {
+        addAcademicYear(academicYear);
       }
     }
   }
@@ -653,6 +806,7 @@ class DataProvider with ChangeNotifier {
     _payments.clear();
     _calendarEvents.clear();
     _materials.clear();
+    _academicYears.clear();
     notifyListeners();
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entity/attendance_entity.dart';
 import '../../../domain/entity/user_entity.dart';
@@ -138,7 +139,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
       switch (attendance.status) {
         case AttendanceStatus.present:
-          monthlyStats[month]!['present'] = monthlyStats[month]!['present']! + 1;
+          monthlyStats[month]!['present'] =
+              monthlyStats[month]!['present']! + 1;
           break;
         case AttendanceStatus.absent:
           monthlyStats[month]!['absent'] = monthlyStats[month]!['absent']! + 1;
@@ -199,6 +201,34 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
+                // Tombol Kembali
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.go('/admin-dashboard'),
+                        icon: const Icon(Icons.arrow_back),
+                        tooltip: 'Kembali',
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFF667EEA),
+                          foregroundColor: Colors.white,
+                          fixedSize: const Size(40, 40),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Kembali',
+                        style: TextStyle(
+                          color: Color(0xFF667EEA),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // MODERN FILTERS - RESPONSIVE
                 Card(
                   elevation: 2,
@@ -362,7 +392,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
             ),
             items: subjects
                 .map(
-                  (subject) => DropdownMenuItem(value: subject, child: Text(subject)),
+                  (subject) =>
+                      DropdownMenuItem(value: subject, child: Text(subject)),
                 )
                 .toList(),
             onChanged: (value) => setState(() => _selectedSubject = value!),
@@ -440,7 +471,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
               ),
               items: subjects
                   .map(
-                    (subject) => DropdownMenuItem(value: subject, child: Text(subject)),
+                    (subject) =>
+                        DropdownMenuItem(value: subject, child: Text(subject)),
                   )
                   .toList(),
               onChanged: (value) => setState(() => _selectedSubject = value!),
