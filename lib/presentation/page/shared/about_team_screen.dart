@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart'; 
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TeamMember {
   final String name;
@@ -25,84 +26,96 @@ class TeamMember {
 class AboutTeamScreen extends StatelessWidget {
   const AboutTeamScreen({super.key});
 
-  // --- DATA ANGGOTA ---
   List<TeamMember> get _members => [
-    // 1. KETUA 1
     TeamMember(
       name: 'Egin Sefiano Widodo',
       nim: '24111814009',
       role: 'Team Leader',
-      // PERBAIKAN: Link gambar sudah menggunakan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814009.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814009.jpg',
       githubUrl: 'https://github.com/eginryzen',
       linkedinUrl: 'https://id.linkedin.com/in/egin-ryzen',
       instagramUrl: 'https://www.instagram.com/eginryzen/',
     ),
-    
-    // 2. KETUA 2 (Data Kedua Sejajar dengan Lead)
+
     TeamMember(
-      name: 'Anggota Satu', // Ganti dengan Nama Asli Ketua 2
+      name: 'Moch. Wafiq Izna',
       nim: '24111814018',
-      role: 'Team Leader', // UBAH ROLE JADI TEAM LEADER AGAR SEJAJAR
-      // PERBAIKAN: Tambahkan https://wsrv.nl/?url= agar gambar muncul
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814018.jpg',
-      githubUrl: 'https://github.com/',
-      linkedinUrl: 'https://linkedin.com/',
-      instagramUrl: 'https://instagram.com/',
+      role: 'Team Leader',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814018.jpg',
+      githubUrl: ' https://github.com/Wafiq1977',
+      linkedinUrl:
+          ' https://www.linkedin.com/in/moch-wafiq-izna-0b8223377?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      instagramUrl: ' https://www.instagram.com/wfqznn?igsh=d2RtbmZjcXg1ejhh',
     ),
-    
-    // 3. Anggota 2
+
     TeamMember(
-      name: 'Anggota Dua',
+      name: 'Lufita Setiati',
       nim: '24111814057',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814057.jpg',
-      githubUrl: 'https://github.com/',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814057.jpg',
+      githubUrl: ' https://github.com/lupitaaasetia',
+      instagramUrl:
+          ' https://www.instagram.com/lufitasetiati?igsh=MTBzdzBrZGViOGt5MQ==',
+      linkedinUrl:
+          'https://www.linkedin.com/in/lufita-setiati-6332b3344?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
     ),
-    
-    // 4. Anggota 3
+
     TeamMember(
-      name: 'Anggota Tiga',
+      name: 'Muhammad Rifqi Iqbal Ghufron',
       nim: '24111814073',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814073.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814073.jpg',
+      githubUrl: 'https://github.com/iqbalghufron',
+      instagramUrl:
+          'https://www.instagram.com/iqbal.ghufron.9?igsh=MTZkZWswcHM4eHpqbA==',
     ),
-    
-    // 5. Anggota 4
+
     TeamMember(
-      name: 'Anggota Empat',
+      name: 'Izaz Tsany Rismawan',
       nim: '24111814088',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814088.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814088.jpg',
+      githubUrl: 'https://github.com/IzazTsany14',
+      instagramUrl: 'https://www.instagram.com/sani_rsmawan/',
+      linkedinUrl: 'https://www.linkedin.com/in/izaz-tsany-ab4609331/',
     ),
-    
-    // 6. Anggota 5
+
     TeamMember(
-      name: 'Anggota Lima',
+      name: 'Muhammad Reyhan Sheva RizQulah ',
       nim: '24111814124',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814124.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814124.jpg',
+      githubUrl: 'https://github.com/ShevaFortz',
+      instagramUrl:
+          'https://www.instagram.com/reyhansheva__?igsh=MTFxYWk5b3ZoY2tpag==',
+      linkedinUrl:
+          ' https://www.linkedin.com/in/reyhan-shevaid-70061b352?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
     ),
-    
-    // 7. Anggota 6
+
     TeamMember(
-      name: 'Anggota Enam',
+      name: 'Fearda Agnessiya Putri Dardiri',
       nim: '24111814138',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814138.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814138.jpg',
+      githubUrl: 'https://github.com/feardaa',
+      instagramUrl: ' https://www.instagram.com/fyrxd_xa/',
     ),
-    // 8. Anggota 7 (Saya biarkan sesuai data Anda)
     TeamMember(
-      name: 'Anggota Tujuh',
+      name: 'Naila Nurul Faizah',
       nim: '24111814144',
       role: 'Member',
-      // PERBAIKAN: Tambahkan proxy
-      imageUrl: 'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814144.jpg',
+      imageUrl:
+          'https://wsrv.nl/?url=https://sindig.unesa.ac.id/fotomhs/200/24111814144.jpg',
+      githubUrl: 'https://github.com/Nayla311',
+      instagramUrl:
+          'https://www.instagram.com/naymatchie?igsh=MW5ldnJlNHZncXVrMA%3D%3D&utm_source=qr',
     ),
   ];
 
@@ -116,14 +129,20 @@ class AboutTeamScreen extends StatelessWidget {
 
     const Color goldColor = Color(0xFFD4AF37);
     const Color darkBlueColor = Color(0xFF001F3F);
-    
-    const double spacing = 15.0; 
-    const double padding = 20.0; 
-    const double aspectRatio = 0.70; 
+
+    const double spacing = 15.0;
+    const double padding = 20.0;
+    const double aspectRatio = 0.70;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TIM PROGRAMMER'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/login');
+          },
+        ),
+        title: const Text('ABOUT US'),
         backgroundColor: const Color(0xFF667EEA),
         foregroundColor: Colors.white,
         centerTitle: true,
@@ -140,7 +159,7 @@ class AboutTeamScreen extends StatelessWidget {
         ),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800), 
+            constraints: const BoxConstraints(maxWidth: 800),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final availableWidth = constraints.maxWidth;
@@ -169,7 +188,6 @@ class AboutTeamScreen extends StatelessWidget {
                       // --- SECTION LEADERS (SEJAJAR) ---
                       // Jika layar kecil (HP), tetap tampilkan sejajar tapi mungkin perlu wrap/scroll
                       // atau biarkan Grid logika menangani ukuran kartu
-                      
                       if (leaders.isNotEmpty)
                         Wrap(
                           spacing: spacing,
@@ -177,16 +195,22 @@ class AboutTeamScreen extends StatelessWidget {
                           alignment: WrapAlignment.center,
                           children: leaders.map((leader) {
                             return SizedBox(
-                              width: cardWidth, // Gunakan lebar yang sama dengan grid member
+                              width:
+                                  cardWidth, // Gunakan lebar yang sama dengan grid member
                               child: AspectRatio(
                                 aspectRatio: aspectRatio,
-                                child: _buildMemberCard(context, leader, goldColor, darkBlueColor),
+                                child: _buildMemberCard(
+                                  context,
+                                  leader,
+                                  goldColor,
+                                  darkBlueColor,
+                                ),
                               ),
                             );
                           }).toList(),
                         ),
 
-                      const SizedBox(height: 40), 
+                      const SizedBox(height: 40),
 
                       // --- MEMBERS (Grid) ---
                       GridView.builder(
@@ -194,13 +218,18 @@ class AboutTeamScreen extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: members.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount, 
+                          crossAxisCount: crossAxisCount,
                           childAspectRatio: aspectRatio,
                           crossAxisSpacing: spacing,
                           mainAxisSpacing: spacing,
                         ),
                         itemBuilder: (context, index) {
-                          return _buildMemberCard(context, members[index], goldColor, darkBlueColor);
+                          return _buildMemberCard(
+                            context,
+                            members[index],
+                            goldColor,
+                            darkBlueColor,
+                          );
                         },
                       ),
                     ],
@@ -214,7 +243,12 @@ class AboutTeamScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberCard(BuildContext context, TeamMember member, Color accentColor, Color textColor) {
+  Widget _buildMemberCard(
+    BuildContext context,
+    TeamMember member,
+    Color accentColor,
+    Color textColor,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -243,19 +277,20 @@ class AboutTeamScreen extends StatelessWidget {
               ),
             ),
             child: CircleAvatar(
-              radius: 28, 
+              radius: 28,
               backgroundColor: Colors.grey[200],
               backgroundImage: NetworkImage(member.imageUrl),
               onBackgroundImageError: (exception, stackTrace) {
-                 debugPrint('Gagal load gambar ${member.name}: $exception');
+                debugPrint('Gagal load gambar ${member.name}: $exception');
               },
-              child: member.imageUrl.isEmpty 
-                  ? const Icon(Icons.person, color: Colors.grey) : null,
+              child: member.imageUrl.isEmpty
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // 2. NAMA
           Text(
             member.name,
@@ -268,41 +303,58 @@ class AboutTeamScreen extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          
+
           const SizedBox(height: 4),
 
           // 3. ROLE
           Text(
-            member.role == 'Team Leader' ? 'Leader' : member.role, // Tampilkan 'Leader' jika Team Leader
+            member.role == 'Team Leader'
+                ? 'Leader'
+                : member.role, // Tampilkan 'Leader' jika Team Leader
             style: const TextStyle(
               fontSize: 9,
-              color: Colors.black87, 
-              fontWeight: FontWeight.w600, 
-            ),
-            textAlign: TextAlign.center,
-          ),
-          
-          // 4. NIM
-          Text(
-            member.nim,
-            style: const TextStyle(
-              fontSize: 9,
-              color: Colors.grey,
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 12), 
+          // 4. NIM
+          Text(
+            member.nim,
+            style: const TextStyle(fontSize: 9, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 12),
 
           // 5. SOCIAL ICONS
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildMiniIcon(context, FontAwesomeIcons.github, Colors.black, "GitHub", member.githubUrl),
+              _buildMiniIcon(
+                context,
+                FontAwesomeIcons.github,
+                Colors.black,
+                "GitHub",
+                member.githubUrl,
+              ),
               const SizedBox(width: 8),
-              _buildMiniIcon(context, FontAwesomeIcons.linkedin, const Color(0xFF0077B5), "LinkedIn", member.linkedinUrl),
+              _buildMiniIcon(
+                context,
+                FontAwesomeIcons.linkedin,
+                const Color(0xFF0077B5),
+                "LinkedIn",
+                member.linkedinUrl,
+              ),
               const SizedBox(width: 8),
-              _buildMiniIcon(context, FontAwesomeIcons.instagram, const Color(0xFFE4405F), "Instagram", member.instagramUrl),
+              _buildMiniIcon(
+                context,
+                FontAwesomeIcons.instagram,
+                const Color(0xFFE4405F),
+                "Instagram",
+                member.instagramUrl,
+              ),
             ],
           ),
         ],
@@ -310,7 +362,13 @@ class AboutTeamScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniIcon(BuildContext context, IconData icon, Color color, String label, String url) {
+  Widget _buildMiniIcon(
+    BuildContext context,
+    IconData icon,
+    Color color,
+    String label,
+    String url,
+  ) {
     final bool hasUrl = url.isNotEmpty;
 
     return InkWell(
@@ -320,26 +378,26 @@ class AboutTeamScreen extends StatelessWidget {
           if (await canLaunchUrl(uri)) {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
           } else {
-             ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Gagal membuka link $label')),
             );
           }
         } else {
-           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$label belum tersedia'),
               duration: const Duration(milliseconds: 500),
             ),
           );
         }
-      }, 
+      },
       borderRadius: BorderRadius.circular(50),
       child: Padding(
         padding: const EdgeInsets.all(4.0),
-        child: FaIcon( 
-          icon, 
-          size: 16, 
+        child: FaIcon(
+          icon,
+          size: 16,
           color: hasUrl ? color.withOpacity(0.8) : Colors.grey.withOpacity(0.3),
         ),
       ),
