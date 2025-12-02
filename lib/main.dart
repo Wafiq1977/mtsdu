@@ -25,6 +25,7 @@ import 'data/model/academic_year.dart';
 import 'domain/entity/user_entity.dart';
 import 'domain/entity/attendance_entity.dart';
 import 'domain/entity/schedule_entity.dart';
+import '../../../data/model/material.dart' as material_model;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
