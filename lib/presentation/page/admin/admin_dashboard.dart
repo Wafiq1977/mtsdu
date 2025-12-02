@@ -8,7 +8,7 @@ import '../../../presentation/widgets/statistics_widget.dart';
 import 'admin_user_management.dart';
 import 'admin_schedule_management.dart';
 import 'admin_attendance_reports.dart';
-import 'admin_academic_calendar.dart'; // IMPORT BARU
+import 'admin_integrated_calendar_management.dart'; // IMPORT BARU
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key, this.initialIndex = 0});
@@ -28,10 +28,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _selectedIndex = widget.initialIndex;
   }
 
-  // UPDATE: Tambahkan Academic Calendar dan reorder menu
+  // UPDATE: Integrated Calendar Management
   static const List<Widget> _widgetOptions = <Widget>[
     AdminUserManagement(), // Index 0 - User Management
-    AdminAcademicCalendar(), // Index 1 - Academic Calendar (BARU)
+    AdminIntegratedCalendarManagement(), // Index 1 - Integrated Calendar Management
     AdminScheduleManagement(), // Index 2 - Schedule Management
     AdminAttendanceReports(), // Index 3 - Attendance Reports
   ];
@@ -46,7 +46,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         GoRouter.of(context).go('/admin-dashboard/usermanagements');
         break;
       case 1:
-        GoRouter.of(context).go('/admin-dashboard/calendar'); // ROUTE BARU
+        GoRouter.of(context).go('/admin-dashboard/calendar');
         break;
       case 2:
         GoRouter.of(context).go('/admin-dashboard/schedule');
@@ -299,7 +299,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
       ),
 
-      // UPDATE: Bottom Navigation Bar dengan 4 item
+      // UPDATE: Bottom Navigation Bar dengan 4 item (Academic Years diintegrasikan ke Calendar)
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
@@ -316,7 +316,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: AnimatedNavigationBar(
-            // UPDATE: Tambah item Calendar dan reorder labels
+            // UPDATE: Integrated Calendar Management
             items: const <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.people_outline),
