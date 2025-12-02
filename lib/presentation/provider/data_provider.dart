@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:lpmmtsdu/domain/entity/attendance_entity.dart';
 import '../../../data/model/schedule.dart';
 import '../../../data/model/grade.dart';
-import '../../../data/model/attendance.dart';
+import '../../../data/model/attendance.dart' as attendance_model;
 import '../../../data/model/assignment.dart';
 import '../../../data/model/announcement.dart';
 import '../../../data/model/payment.dart';
@@ -13,12 +13,11 @@ import '../../../data/model/material.dart' as material_model; // IMPORT BARU
 import '../../../data/model/academic_year.dart'; // IMPORT BARU
 import '../../../domain/entity/schedule_entity.dart'; // IMPORT BARU
 import '../../../data/source/hive_service.dart';
-import '../../../data/model/material.dart' as material_model;
 
 class DataProvider with ChangeNotifier {
   List<Schedule> _schedules = [];
   List<Grade> _grades = [];
-  List<Attendance> _attendances = [];
+  List<attendance_model.Attendance> _attendances = [];
   List<Assignment> _assignments = [];
   List<Announcement> _announcements = [];
   List<Payment> _payments = [];
@@ -29,7 +28,7 @@ class DataProvider with ChangeNotifier {
   // Getters
   List<Schedule> get schedules => _schedules;
   List<Grade> get grades => _grades;
-  List<Attendance> get attendances => _attendances;
+  List<attendance_model.Attendance> get attendances => _attendances;
   List<Assignment> get assignments => _assignments;
   List<Announcement> get announcements => _announcements;
   List<Payment> get payments => _payments;
@@ -277,19 +276,22 @@ class DataProvider with ChangeNotifier {
   void loadAttendances() {
     final box = HiveService.getAttendanceBox();
     _attendances = box.values
-        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .map(
+          (e) =>
+              attendance_model.Attendance.fromMap(Map<String, dynamic>.from(e)),
+        )
         .toList();
     notifyListeners();
   }
 
-  Future<void> addAttendance(Attendance attendance) async {
+  Future<void> addAttendance(attendance_model.Attendance attendance) async {
     final box = HiveService.getAttendanceBox();
     await box.put(attendance.id, attendance.toMap());
     _attendances.add(attendance);
     notifyListeners();
   }
 
-  Future<void> updateAttendance(Attendance attendance) async {
+  Future<void> updateAttendance(attendance_model.Attendance attendance) async {
     final box = HiveService.getAttendanceBox();
     await box.put(attendance.id, attendance.toMap());
     final index = _attendances.indexWhere((a) => a.id == attendance.id);
@@ -472,6 +474,7 @@ class DataProvider with ChangeNotifier {
           subject: 'Matematika',
           type: 'PDF',
           url: 'https://example.com/aljabar.pdf',
+          major: 'Rekayasa Perangkat Lunak',
           teacherId: 'teacher1',
           className: '10A',
           uploadDate: '2024-01-15',
@@ -483,6 +486,7 @@ class DataProvider with ChangeNotifier {
           subject: 'Fisika',
           type: 'Video',
           url: 'https://example.com/newton.mp4',
+          major: 'Rekayasa Perangkat Lunak',
           teacherId: 'teacher2',
           className: '10A',
           uploadDate: '2024-01-20',
@@ -494,6 +498,7 @@ class DataProvider with ChangeNotifier {
           subject: 'Bahasa Indonesia',
           type: 'Document',
           url: 'https://example.com/tata-bahasa.doc',
+          major: 'Rekayasa Perangkat Lunak',
           teacherId: 'teacher3',
           className: '10A',
           uploadDate: '2024-01-25',
@@ -505,6 +510,7 @@ class DataProvider with ChangeNotifier {
           subject: 'Kimia',
           type: 'PPT',
           url: 'https://example.com/organik.ppt',
+          major: 'Rekayasa Perangkat Lunak',
           teacherId: 'teacher4',
           className: '10A',
           uploadDate: '2024-02-01',
@@ -516,6 +522,7 @@ class DataProvider with ChangeNotifier {
           subject: 'Matematika',
           type: 'PDF',
           url: 'https://example.com/kalkulus.pdf',
+          major: 'Rekayasa Perangkat Lunak',
           teacherId: 'teacher1',
           className: '10A',
           uploadDate: '2024-02-05',
@@ -838,7 +845,25 @@ class DataProvider with ChangeNotifier {
         .toList();
   }
 
-  Future<void> addBulkAttendances(
-    List<AttendanceEntity> newAttendances,
-  ) async {}
+  Future<void> addBulkAttendances(List<AttendanceEntity> newAttendances) async {
+    try {
+      final box = HiveService.getAttendanceBox();
+      for (final attendance in newAttendances) {
+        final attendanceModel = attendance_model.Attendance(
+          id: attendance.id,
+          studentId: attendance.studentId,
+          subject: attendance.subject,
+          date: attendance.date,
+          status: attendance.status,
+          teacherId: attendance.teacherId,
+        );
+        await box.put(attendanceModel.id, attendanceModel.toMap());
+        _attendances.add(attendanceModel);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error adding bulk attendances: $e');
+      throw e;
+    }
+  }
 }
