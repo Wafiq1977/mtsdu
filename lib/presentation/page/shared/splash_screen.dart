@@ -64,16 +64,16 @@ class _SplashScreenState extends State<SplashScreen> {
               SizedBox(height: 20),
               // Logo/Icon
               Image(
-                image: AssetImage('assets/gambar.png'),
-                width: 100,
-                height: 100,
+                image: AssetImage('assets/logo.png'),
+                width: 120,
+                height: 120,
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 50),
               // Title
               Text(
-                'LPM MTS DARUL ULUM',
+                'MENAJEMEN SEKOLAH MENENGAH KEJURUAN',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 2,
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               SizedBox(height: 10),
               Text(
-                'Langkah pasti, Raih prestasi',
+                'Siap Kerja, Santun, Mandiri, dan Kreatif',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white70,
