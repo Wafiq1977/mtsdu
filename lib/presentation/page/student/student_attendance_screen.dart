@@ -55,6 +55,12 @@ class StudentAttendanceScreen extends StatelessWidget {
                     case AttendanceStatus.late:
                       statusColor = Colors.orange;
                       break;
+                    case AttendanceStatus.permission:
+                      statusColor = Colors.blue;
+                      break;
+                    case AttendanceStatus.sick:
+                      statusColor = Colors.yellow.shade800;
+                      break;
                   }
                   return Card(
                     margin: const EdgeInsets.symmetric(

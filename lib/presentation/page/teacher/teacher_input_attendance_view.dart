@@ -7,18 +7,25 @@ import '../../../data/model/user.dart';
 import '../../../domain/entity/attendance_entity.dart';
 import '../../../domain/entity/user_entity.dart';
 import '../../../presentation/widgets/user_card.dart';
+// WAJIB DITAMBAHKAN: Import UserRole
+import '../../../presentation/utils/user_role.dart';
 
 class TeacherInputAttendanceView extends StatefulWidget {
   const TeacherInputAttendanceView({super.key});
 
   @override
-  State<TeacherInputAttendanceView> createState() => _TeacherInputAttendanceViewState();
+  State<TeacherInputAttendanceView> createState() =>
+      _TeacherInputAttendanceViewState();
 }
 
-class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView> {
+class _TeacherInputAttendanceViewState
+    extends State<TeacherInputAttendanceView> {
   final _formKey = GlobalKey<FormState>();
+
+  // State variables
   User? _selectedStudent;
   final _subjectController = TextEditingController();
+  final _dateController = TextEditingController();
   AttendanceStatus? _status;
   List<User> _students = [];
   bool _isLoading = true;
@@ -26,174 +33,282 @@ class _TeacherInputAttendanceViewState extends State<TeacherInputAttendanceView>
   @override
   void initState() {
     super.initState();
+    // PERBAIKAN: Inisialisasi tanggal dengan format YYYY-MM-DD yang aman
+    final now = DateTime.now();
+    _dateController.text =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     _loadStudents();
   }
 
   @override
   void dispose() {
     _subjectController.dispose();
+    _dateController.dispose();
     super.dispose();
   }
 
+  // Fungsi untuk memuat daftar semua siswa
   Future<void> _loadStudents() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final allUsers = await authProvider.getAllUsers();
-    setState(() {
-      _students = allUsers.where((u) => u.role == UserRole.student).toList();
-      _isLoading = false;
-    });
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final allUsers = await authProvider.getAllUsers();
+      if (mounted) {
+        setState(() {
+          // Memfilter hanya user dengan role student
+          _students = allUsers
+              .where((u) => u.role == UserRole.student)
+              .toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memuat data siswa: $e')));
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  void _submit() async {
-    if (_formKey.currentState!.validate() && _status != null && _selectedStudent != null) {
-      _formKey.currentState!.save();
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      final user = authProvider.currentUser!;
+  // Fungsi untuk memilih tanggal
+  Future<void> _selectDate(BuildContext context) async {
+    final initialDate =
+        DateTime.tryParse(_dateController.text) ?? DateTime.now();
 
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        // PERBAIKAN: Menggunakan format YYYY-MM-DD yang eksplisit
+        _dateController.text = picked.toIso8601String().split('T')[0];
+      });
+    }
+  }
+
+  // Fungsi untuk mengirim data absensi
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedStudent == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Siswa wajib dipilih')));
+      return;
+    }
+    if (_status == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Status absensi wajib dipilih')),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final dataProvider = Provider.of<DataProvider>(context, listen: false);
+
+    // PERBAIKAN: Cek currentUser dengan aman
+    final user = authProvider.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kesalahan Otentikasi: ID Guru tidak ditemukan'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Membuat objek Attendance baru
       final attendance = Attendance(
-        id: DateTime.now().toString(),
+        // ID unik berdasarkan siswa, tanggal, dan hash subjek
+        id: '${_selectedStudent!.id}_${_dateController.text}_${_subjectController.text.hashCode}',
         studentId: _selectedStudent!.id,
         subject: _subjectController.text,
-        date: DateTime.now().toString(),
+        date: _dateController.text,
         status: _status!,
         teacherId: user.id,
       );
 
       await dataProvider.addAttendance(attendance);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Attendance added successfully')),
-      );
-      _formKey.currentState!.reset();
-      _subjectController.clear();
-      setState(() {
-        _selectedStudent = null;
-        _status = null;
-      });
-    } else if (_selectedStudent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a student')),
-      );
-    } else if (_status == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select attendance status')),
-      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Absensi berhasil ditambahkan')),
+        );
+
+        // Membersihkan form setelah submit
+        setState(() {
+          _selectedStudent = null;
+          _subjectController.clear();
+          // _dateController tidak di-clear agar tanggal tetap hari ini
+          _status = null;
+        });
+      }
+
+      // Opsional: Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menyimpan absensi: $e')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser!;
-
+    // Tampilkan loading screen jika data belum dimuat
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Input Attendance'),
+          backgroundColor: const Color(0xFF667EEA),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Input Student Attendance'),
-        backgroundColor: Colors.blue,
+        title: const Text('Input Absensi Satu Siswa'),
+        backgroundColor: const Color(0xFF667EEA),
       ),
-      body: Column(
-        children: [
-          UserCard(user: user),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            DropdownButtonFormField<User>(
-                              value: _selectedStudent,
-                              decoration: const InputDecoration(
-                                labelText: 'Select Student',
-                                prefixIcon: Icon(Icons.person, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: _students.map((student) {
-                                return DropdownMenuItem<User>(
-                                  value: student,
-                                  child: Text('${student.name} (ID: ${student.id})'),
-                                );
-                              }).toList(),
-                              onChanged: (User? newValue) {
-                                setState(() {
-                                  _selectedStudent = newValue;
-                                });
-                              },
-                              validator: (value) => value == null ? 'Please select a student' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _subjectController,
-                              decoration: const InputDecoration(
-                                labelText: 'Subject',
-                                prefixIcon: Icon(Icons.subject, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) =>
-                                  value == null || value.isEmpty ? 'Subject is required' : null,
-                            ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<AttendanceStatus>(
-                              value: _status,
-                              decoration: const InputDecoration(
-                                labelText: 'Attendance Status',
-                                prefixIcon: Icon(Icons.check_circle, color: Colors.blue),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: AttendanceStatus.values.map((AttendanceStatus status) {
-                                return DropdownMenuItem<AttendanceStatus>(
-                                  value: status,
-                                  child: Text(status.toString().split('.').last),
-                                );
-                              }).toList(),
-                              onChanged: (AttendanceStatus? newValue) {
-                                setState(() {
-                                  _status = newValue;
-                                });
-                              },
-                              validator: (value) =>
-                                  value == null ? 'Select attendance status' : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: _submit,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Add Attendance'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. Pemilihan Siswa (Dropdown)
+                DropdownButtonFormField<User>(
+                  decoration: const InputDecoration(
+                    labelText: 'Pilih Siswa',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                  value: _selectedStudent,
+                  hint: const Text('Ketuk untuk memilih siswa'),
+                  items: _students.map((User student) {
+                    return DropdownMenuItem<User>(
+                      value: student,
+                      child: Text(
+                        '${student.name} (${student.className ?? ''})',
+                      ), // Tampilkan Nama dan Kelas
+                    );
+                  }).toList(),
+                  onChanged: (User? newValue) {
+                    setState(() {
+                      _selectedStudent = newValue;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? 'Siswa wajib diisi' : null,
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                // 2. Input Tanggal
+                TextFormField(
+                  controller: _dateController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tanggal (YYYY-MM-DD)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.calendar_today),
+                  ),
+                  readOnly: true,
+                  onTap: () => _selectDate(context),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Tanggal wajib diisi' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // 3. Input Mata Pelajaran (Subject)
+                TextFormField(
+                  controller: _subjectController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mata Pelajaran',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.subject),
+                  ),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Mata pelajaran wajib diisi'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+
+                // 4. Pemilihan Status Absensi (Dropdown)
+                DropdownButtonFormField<AttendanceStatus>(
+                  decoration: const InputDecoration(
+                    labelText: 'Status Absensi',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.checklist),
+                  ),
+                  value: _status,
+                  hint: const Text('Pilih status'),
+                  items: AttendanceStatus.values.map((AttendanceStatus status) {
+                    // Konversi nama enum menjadi string yang mudah dibaca (e.g., 'present' -> 'Hadir')
+                    String statusName = status.toString().split('.').last;
+                    statusName =
+                        statusName[0].toUpperCase() + statusName.substring(1);
+
+                    // Pilihan terjemahan
+                    switch (status) {
+                      case AttendanceStatus.present:
+                        statusName = 'Hadir';
+                        break;
+                      case AttendanceStatus.absent:
+                        statusName = 'Absen';
+                        break;
+                      case AttendanceStatus.late:
+                        statusName = 'Telat';
+                        break;
+                      default:
+                        break;
+                    }
+
+                    return DropdownMenuItem<AttendanceStatus>(
+                      value: status,
+                      child: Text(statusName),
+                    );
+                  }).toList(),
+                  onChanged: (AttendanceStatus? newValue) {
+                    setState(() {
+                      _status = newValue;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? 'Status absensi wajib diisi' : null,
+                ),
+
+                const SizedBox(height: 32),
+
+                // 5. Tombol Submit
+                ElevatedButton.icon(
+                  onPressed: _submit,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Tambahkan Absensi'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: const Color(0xFF667EEA),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
