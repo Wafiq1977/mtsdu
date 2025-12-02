@@ -11,7 +11,7 @@ import '../../../presentation/page/shared/blog_detail_screen.dart';
 import '../../../presentation/page/teacher/teacher_input_grades_view.dart';
 import '../../../presentation/page/teacher/teacher_input_attendance_view.dart';
 import '../../../presentation/page/teacher/teacher_bulk_attendance_view.dart';
-import '../../../presentation/page/admin/admin_academic_calendar.dart';
+import '../../../presentation/page/admin/admin_integrated_calendar_management.dart';
 import '../../../presentation/page/admin/admin_user_management.dart';
 import '../../../presentation/page/admin/admin_schedule_management.dart';
 import '../../../presentation/page/admin/admin_attendance_reports.dart';
@@ -126,7 +126,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/admin-dashboard/calendar',
-        builder: (context, state) => const AdminAcademicCalendar(),
+        builder: (context, state) => const AdminIntegratedCalendarManagement(),
       ),
       GoRoute(
         path: '/admin-dashboard/academic',

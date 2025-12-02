@@ -21,7 +21,7 @@ import 'data/model/attendance.dart';
 import 'data/model/assignment.dart';
 import 'data/model/announcement.dart';
 import 'data/model/payment.dart';
-import 'data/model/material.dart' as material_model;
+import 'data/model/academic_year.dart';
 import 'domain/entity/user_entity.dart';
 import 'domain/entity/attendance_entity.dart';
 import 'domain/entity/schedule_entity.dart';
@@ -564,7 +564,7 @@ Future<void> _addSampleData() async {
               'Buat desain poster digital dengan tema lingkungan hidup',
           subject: 'Desain Grafis Percetakan',
           teacherId: 'teacher10',
-          className: '11A',
+          className: '10A',
           major: ['Multimedia'],
           dueDate: '2025-12-16',
           attachmentPath: 'null',
