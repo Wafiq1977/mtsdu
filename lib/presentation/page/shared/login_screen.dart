@@ -119,26 +119,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // Logo/Icon
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 200,
+                    height: 200,
                     decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: Image.asset(
-                      'assets/gambar.png',
+                      'assets/logo.png',
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.error,
-                        size: 50,
-                        color: Colors.white,
-                      ),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.error, color: Colors.white),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 50),
 
                   // Title
                   const Text(
-                    'LPM MTS DARUL ULUM',
+                    'MENAJEMEN SEKOLAH MENENGAH KEJURUAN',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 2,
@@ -146,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'Langkah pasti, Raih prestasi',
+                    'Siap Kerja, Santun, Mandiri, dan Kreatif',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
