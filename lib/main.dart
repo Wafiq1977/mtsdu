@@ -564,7 +564,7 @@ Future<void> _addSampleData() async {
               'Buat desain poster digital dengan tema lingkungan hidup',
           subject: 'Desain Grafis Percetakan',
           teacherId: 'teacher10',
-          className: '11A',
+          className: '10A',
           major: ['Multimedia'],
           dueDate: '2025-12-16',
           attachmentPath: 'null',

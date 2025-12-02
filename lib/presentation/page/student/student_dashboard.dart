@@ -723,6 +723,12 @@ class AttendanceView extends StatelessWidget {
                   case AttendanceStatus.late:
                     statusColor = Colors.orange;
                     break;
+                  case AttendanceStatus.permission:
+                    // TODO: Handle this case.
+                    throw UnimplementedError();
+                  case AttendanceStatus.sick:
+                    // TODO: Handle this case.
+                    throw UnimplementedError();
                 }
                 return Card(
                   margin: const EdgeInsets.symmetric(

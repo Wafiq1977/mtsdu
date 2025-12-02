@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:lpmmtsdu/domain/entity/attendance_entity.dart';
 import '../../../data/model/schedule.dart';
 import '../../../data/model/grade.dart';
 import '../../../data/model/attendance.dart';
@@ -394,4 +395,8 @@ class DataProvider with ChangeNotifier {
         )
         .toList();
   }
+
+  Future<void> addBulkAttendances(
+    List<AttendanceEntity> newAttendances,
+  ) async {}
 }

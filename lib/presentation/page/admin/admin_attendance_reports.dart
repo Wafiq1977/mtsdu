@@ -121,6 +121,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         case AttendanceStatus.late:
           stats[userId]!['late'] = stats[userId]!['late']! + 1;
           break;
+        default:
+          break;
       }
     }
 
@@ -138,13 +140,16 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
 
       switch (attendance.status) {
         case AttendanceStatus.present:
-          monthlyStats[month]!['present'] = monthlyStats[month]!['present']! + 1;
+          monthlyStats[month]!['present'] =
+              monthlyStats[month]!['present']! + 1;
           break;
         case AttendanceStatus.absent:
           monthlyStats[month]!['absent'] = monthlyStats[month]!['absent']! + 1;
           break;
         case AttendanceStatus.late:
           monthlyStats[month]!['late'] = monthlyStats[month]!['late']! + 1;
+          break;
+        default:
           break;
       }
     }
@@ -362,7 +367,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
             ),
             items: subjects
                 .map(
-                  (subject) => DropdownMenuItem(value: subject, child: Text(subject)),
+                  (subject) =>
+                      DropdownMenuItem(value: subject, child: Text(subject)),
                 )
                 .toList(),
             onChanged: (value) => setState(() => _selectedSubject = value!),
@@ -440,7 +446,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
               ),
               items: subjects
                   .map(
-                    (subject) => DropdownMenuItem(value: subject, child: Text(subject)),
+                    (subject) =>
+                        DropdownMenuItem(value: subject, child: Text(subject)),
                   )
                   .toList(),
               onChanged: (value) => setState(() => _selectedSubject = value!),
