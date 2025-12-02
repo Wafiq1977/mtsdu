@@ -49,7 +49,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         GoRouter.of(context).go('/admin-dashboard/calendar');
         break;
       case 2:
-        GoRouter.of(context).go('/admin-dashboard/academic');
+        GoRouter.of(context).go('/admin-dashboard/schedule');
         break;
       case 3:
         GoRouter.of(context).go('/admin-dashboard/reports');
@@ -210,7 +210,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Text(
-                            'LPMMTSDU Admin',
+                            'ESEMKA Admin',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

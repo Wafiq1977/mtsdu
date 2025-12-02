@@ -5,7 +5,9 @@ import '../source/hive_service.dart';
 class AttendanceService {
   Future<List<Attendance>> getAllAttendances() async {
     final box = HiveService.getAttendanceBox();
-    return box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
+    return box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   Future<Attendance?> getAttendanceById(String id) async {
@@ -19,25 +21,39 @@ class AttendanceService {
 
   Future<List<Attendance>> getAttendancesByStudent(String studentId) async {
     final box = HiveService.getAttendanceBox();
-    final attendances = box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
-    return attendances.where((attendance) => attendance.studentId == studentId).toList();
+    final attendances = box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
+    return attendances
+        .where((attendance) => attendance.studentId == studentId)
+        .toList();
   }
 
   Future<List<Attendance>> getAttendancesBySubject(String subject) async {
     final box = HiveService.getAttendanceBox();
-    final attendances = box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
-    return attendances.where((attendance) => attendance.subject == subject).toList();
+    final attendances = box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
+    return attendances
+        .where((attendance) => attendance.subject == subject)
+        .toList();
   }
 
   Future<List<Attendance>> getAttendancesByTeacher(String teacherId) async {
     final box = HiveService.getAttendanceBox();
-    final attendances = box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
-    return attendances.where((attendance) => attendance.teacherId == teacherId).toList();
+    final attendances = box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
+    return attendances
+        .where((attendance) => attendance.teacherId == teacherId)
+        .toList();
   }
 
   Future<List<Attendance>> getAttendancesByDate(String date) async {
     final box = HiveService.getAttendanceBox();
-    final attendances = box.values.map((e) => Attendance.fromMap(Map<String, dynamic>.from(e))).toList();
+    final attendances = box.values
+        .map((e) => Attendance.fromMap(Map<String, dynamic>.from(e)))
+        .toList();
     return attendances.where((attendance) => attendance.date == date).toList();
   }
 
@@ -57,6 +73,8 @@ class AttendanceService {
           break;
         case AttendanceStatus.late:
           late++;
+          break;
+        default:
           break;
       }
     }

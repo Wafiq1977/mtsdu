@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:lpmmtsdu/domain/entity/attendance_entity.dart';
 import '../../../data/model/schedule.dart';
 import '../../../data/model/grade.dart';
 import '../../../data/model/attendance.dart';
@@ -12,6 +13,7 @@ import '../../../data/model/material.dart' as material_model; // IMPORT BARU
 import '../../../data/model/academic_year.dart'; // IMPORT BARU
 import '../../../domain/entity/schedule_entity.dart'; // IMPORT BARU
 import '../../../data/source/hive_service.dart';
+import '../../../data/model/material.dart' as material_model;
 
 class DataProvider with ChangeNotifier {
   List<Schedule> _schedules = [];
@@ -835,4 +837,8 @@ class DataProvider with ChangeNotifier {
         )
         .toList();
   }
+
+  Future<void> addBulkAttendances(
+    List<AttendanceEntity> newAttendances,
+  ) async {}
 }

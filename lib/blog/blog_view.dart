@@ -47,7 +47,7 @@ class _BlogViewState extends State<BlogView> {
       child: Column(
         children: [
           _buildFilterWidgets(),
-          BlocBuilder<BlogCubit, BlogState>(
+          BlocBuilder<BlogCubit, BlogState>( 
             builder: (context, state) {
               if (state is BlogLoading) {
                 return const Padding(

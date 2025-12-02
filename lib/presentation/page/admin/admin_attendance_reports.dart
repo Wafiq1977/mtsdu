@@ -122,6 +122,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
         case AttendanceStatus.late:
           stats[userId]!['late'] = stats[userId]!['late']! + 1;
           break;
+        default:
+          break;
       }
     }
 
@@ -147,6 +149,8 @@ class _AdminAttendanceReportsState extends State<AdminAttendanceReports> {
           break;
         case AttendanceStatus.late:
           monthlyStats[month]!['late'] = monthlyStats[month]!['late']! + 1;
+          break;
+        default:
           break;
       }
     }
