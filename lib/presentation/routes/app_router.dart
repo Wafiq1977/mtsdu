@@ -14,6 +14,7 @@ import '../../../presentation/page/shared/blog_detail_screen.dart';
 import '../../../presentation/page/teacher/teacher_input_grades_view.dart';
 import '../../../presentation/page/teacher/teacher_input_attendance_view.dart';
 import '../../../presentation/page/teacher/teacher_bulk_attendance_view.dart';
+import '../../../presentation/page/teacher/teacher_academic_year_detail_view.dart';
 import '../../../presentation/page/admin/admin_integrated_calendar_management.dart';
 import '../../../presentation/page/admin/admin_user_management.dart';
 import '../../../presentation/page/admin/admin_schedule_management.dart';
@@ -109,6 +110,13 @@ class AppRouter {
       GoRoute(
         path: '/teacher-dashboard/kalender',
         builder: (context, state) => const TeacherDashboard(initialIndex: 2),
+      ),
+      GoRoute(
+        path: '/teacher-dashboard/calendar/:year',
+        builder: (context, state) {
+          final year = state.pathParameters['year']!;
+          return TeacherAcademicYearDetailView(academicYear: year);
+        },
       ),
       GoRoute(
         path: '/teacher-dashboard/profil',
