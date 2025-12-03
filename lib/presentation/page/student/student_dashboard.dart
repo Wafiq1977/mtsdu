@@ -1,21 +1,21 @@
-import '../../../domain/entity/attendance_entity.dart';
+import 'dart:convert'; // Untuk decode gambar base64
+import 'dart:typed_data'; // Untuk tipe data bytes
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+// import 'package:file_picker/file_picker.dart'; // Tidak digunakan di sini, bisa dihapus jika mau
+// import 'dart:io'; // Tidak disarankan untuk Web, tapi jika mobile-only tidak apa-apa
+
 import '../../../presentation/provider/auth_provider.dart';
 import '../../../presentation/provider/data_provider.dart';
 import '../../../presentation/provider/theme_provider.dart';
 import '../../../data/model/user.dart';
-import '../../../data/model/schedule.dart';
-import '../../../data/model/grade.dart';
-import '../../../data/model/assignment.dart';
-import '../../../data/model/announcement.dart';
+// import '../../../data/model/schedule.dart'; // Import jika diperlukan
+import '../../../domain/entity/attendance_entity.dart';
 import '../../widgets/animated_navigation_bar.dart';
 import '../../widgets/statistics_widget.dart';
 
-// [IMPORT BARU] Import BlogView untuk menampilkan API berita
+// Import BlogView untuk menampilkan API berita
 import '../../../blog/blog_view.dart';
 
 // Import Academic Calendar Views
@@ -41,12 +41,10 @@ class _StudentDashboardState extends State<StudentDashboard>
   late Animation<double> _contentAnimation;
 
   static final List<Widget> _widgetOptions = <Widget>[
-    AnnouncementsView(
-      key: ValueKey('announcements'),
-    ), // Widget ini yang akan kita modifikasi
-    HomeView(key: ValueKey('home')),
-    AcademicCalendarView(key: ValueKey('calendar')),
-    ProfileView(key: ValueKey('profile')),
+    const AnnouncementsView(key: ValueKey('announcements')),
+    const HomeView(key: ValueKey('home')),
+    const AcademicCalendarView(key: ValueKey('calendar')),
+    const ProfileView(key: ValueKey('profile')),
   ];
 
   void _onItemTapped(int index) {
@@ -573,7 +571,318 @@ class _StudentDashboardState extends State<StudentDashboard>
   }
 }
 
-// --- WIDGETS ---
+// ---------------------------------------------------------------------------
+// MODIFIED AnnouncementsView: Tampilan seperti Teacher, tapi Read-Only & Clickable
+// ---------------------------------------------------------------------------
+class AnnouncementsView extends StatelessWidget {
+  const AnnouncementsView({super.key});
+
+  // Helper untuk menampilkan gambar (Diambil dari Teacher Dashboard)
+  Widget _buildAnnouncementImage(String path) {
+    if (path.isEmpty) return const SizedBox.shrink();
+
+    if (path.startsWith('assets/')) {
+      // 1. ASET BAWAAN
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[200],
+          child: const Center(child: Icon(Icons.image, color: Colors.grey)),
+        ),
+      );
+    } else if (path.startsWith('http')) {
+      // 2. INTERNET
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image),
+        ),
+      );
+    } else {
+      // 3. BASE64 STRING
+      try {
+        final cleanBase64 = path.contains(',') ? path.split(',').last : path;
+        Uint8List bytes = base64Decode(cleanBase64);
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: Colors.grey[200],
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, color: Colors.grey),
+                  Text('Error', style: TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+          ),
+        );
+      } catch (e) {
+        return Container(color: Colors.grey[200]);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dataProvider = Provider.of<DataProvider>(context);
+    // Mengambil data pengumuman internal (sekolah)
+    // Urutkan dari yang terbaru
+    final announcements =
+        dataProvider.announcements
+            .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+
+    return DefaultTabController(
+      length: 2, // Dua tab: Sekolah dan Berita
+      child: Container(
+        color: Colors.red.shade50,
+        child: Column(
+          children: [
+            // Header Judul
+            Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Pengumuman',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade900,
+                ),
+              ),
+            ),
+
+            // TabBar Menu
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TabBar(
+                labelColor: Colors.red.shade900,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.red.shade900,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: const [
+                  Tab(text: 'Info Sekolah'),
+                  Tab(text: 'Berita Pendidikan'),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Isi Konten Tab
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // --- TAB 1: PENGUMUMAN SEKOLAH (INTERNAL) ---
+                  announcements.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.announcement,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text('Belum ada pengumuman sekolah'),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: announcements.length,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (context, index) {
+                            final announcement = announcements[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: () {
+                                  context.go(
+                                    '/student-announcement-detail/${announcement.id}',
+                                    extra: announcement,
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // 1. BAGIAN GAMBAR
+                                      if (announcement.imageUrl != null &&
+                                          announcement.imageUrl!.isNotEmpty)
+                                        Container(
+                                          width: 100,
+                                          height: 100,
+                                          margin: const EdgeInsets.only(
+                                            right: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            color: Colors.grey[200],
+                                          ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: _buildAnnouncementImage(
+                                            announcement.imageUrl!,
+                                          ),
+                                        ),
+
+                                      // 2. BAGIAN KONTEN TEKS
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Header: Icon, Judul, Tanggal
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // Ikon Tipe (Red for School Info)
+                                                Container(
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red.shade50,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.campaign,
+                                                    color: Colors.red,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+
+                                                // Judul & Tanggal
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        announcement.title,
+                                                        style: const TextStyle(
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        "${announcement.date.day}/${announcement.date.month}/${announcement.date.year}",
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          color:
+                                                              Colors.grey[600],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            const SizedBox(height: 8),
+
+                                            // Konten Preview
+                                            Text(
+                                              announcement.content,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black87,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+
+                                            const SizedBox(height: 8),
+
+                                            // Target Label
+                                            Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade300,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'To: ${announcement.targetRole == 'all' ? 'All' : announcement.targetRole.toUpperCase()}',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey.shade700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                  // --- TAB 2: BERITA PENDIDIKAN (API) ---
+                  const SingleChildScrollView(child: BlogView()),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- WIDGETS PENDUKUNG LAINNYA ---
 
 class GradesView extends StatelessWidget {
   const GradesView({super.key});
@@ -630,7 +939,7 @@ class GradesView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.grade, color: Colors.green),
+                      leading: const Icon(Icons.grade, color: Colors.green),
                       title: Text(
                         grade.assignment,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -724,11 +1033,11 @@ class AttendanceView extends StatelessWidget {
                     statusColor = Colors.orange;
                     break;
                   case AttendanceStatus.permission:
-                    // TODO: Handle this case.
-                    throw UnimplementedError();
+                    statusColor = Colors.blue;
+                    break;
                   case AttendanceStatus.sick:
-                    // TODO: Handle this case.
-                    throw UnimplementedError();
+                    statusColor = Colors.yellow.shade800;
+                    break;
                 }
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -880,7 +1189,6 @@ class AssignmentsView extends StatelessWidget {
                                           ),
                                           ElevatedButton(
                                             onPressed: () {
-                                              // Logic to submit assignment
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
@@ -910,7 +1218,10 @@ class AssignmentsView extends StatelessWidget {
                       );
                     },
                     child: ListTile(
-                      leading: Icon(Icons.assignment, color: Colors.purple),
+                      leading: const Icon(
+                        Icons.assignment,
+                        color: Colors.purple,
+                      ),
                       title: Text(
                         assignment.title,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -949,7 +1260,6 @@ class HomeView extends StatelessWidget {
         .where((a) => a.className == user.className)
         .toList();
 
-    // Get today's schedule
     final today = DateTime.now();
     final todayName = _getDayName(today.weekday);
     final todaySchedules = dataProvider.schedules
@@ -1229,101 +1539,6 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class MaterialsView extends StatelessWidget {
-  const MaterialsView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final materials = [
-      {'title': 'Matematika Dasar', 'subject': 'Matematika', 'type': 'PDF'},
-      {'title': 'Fisika Mekanika', 'subject': 'Fisika', 'type': 'Video'},
-      {
-        'title': 'Bahasa Indonesia',
-        'subject': 'Bahasa Indonesia',
-        'type': 'Dokumen',
-      },
-      {'title': 'Kimia Organik', 'subject': 'Kimia', 'type': 'PPT'},
-    ];
-
-    return Container(
-      color: Colors.teal.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Materi Pembelajaran',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal.shade900,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: materials.length,
-              itemBuilder: (context, index) {
-                final material = materials[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    leading: Icon(
-                      _getMaterialIcon(material['type'] as String),
-                      color: Colors.teal,
-                      size: 32,
-                    ),
-                    title: Text(
-                      material['title'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      '${material['subject']} - ${material['type']}',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.download, color: Colors.teal),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Downloading ${material['title']}'),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getMaterialIcon(String type) {
-    switch (type) {
-      case 'PDF':
-        return Icons.picture_as_pdf;
-      case 'Video':
-        return Icons.video_library;
-      case 'PPT':
-        return Icons.slideshow;
-      case 'Dokumen':
-        return Icons.description;
-      default:
-        return Icons.library_books;
-    }
-  }
-}
-
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
@@ -1462,253 +1677,6 @@ class ProfileView extends StatelessWidget {
           const SizedBox(height: 8),
           Divider(color: Colors.grey.shade300, height: 1),
         ],
-      ),
-    );
-  }
-}
-
-class StudentScheduleView extends StatelessWidget {
-  const StudentScheduleView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
-    final user = authProvider.currentUser;
-
-    if (user == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final schedules = dataProvider.schedules
-        .where((s) => s.className == user.className)
-        .toList();
-
-    final Map<String, List<Schedule>> schedulesByDay = {
-      'Monday': [],
-      'Tuesday': [],
-      'Wednesday': [],
-      'Thursday': [],
-      'Friday': [],
-    };
-
-    for (var schedule in schedules) {
-      if (schedulesByDay.containsKey(schedule.day)) {
-        schedulesByDay[schedule.day]!.add(schedule);
-      }
-    }
-
-    return Container(
-      color: Colors.purple.shade50,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Jadwal Kelas',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple.shade900,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: schedulesByDay.entries.map((entry) {
-                final day = entry.key;
-                final daySchedules = entry.value;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ExpansionTile(
-                    title: Text(
-                      day,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    subtitle: Text('${daySchedules.length} kelas'),
-                    children: daySchedules.isEmpty
-                        ? [
-                            const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Text('Tidak ada jadwal'),
-                            ),
-                          ]
-                        : daySchedules.map((schedule) {
-                            return ListTile(
-                              leading: const Icon(
-                                Icons.class_,
-                                color: Color(0xFF667EEA),
-                              ),
-                              title: Text(schedule.subject),
-                              subtitle: Text(
-                                'Class: ${schedule.className}\n${schedule.time} - Room: ${schedule.room}',
-                              ),
-                              isThreeLine: true,
-                            );
-                          }).toList(),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// MODIFIED AnnouncementsView: Menggunakan TabBar untuk memisahkan API Berita
-// ---------------------------------------------------------------------------
-class AnnouncementsView extends StatelessWidget {
-  const AnnouncementsView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final dataProvider = Provider.of<DataProvider>(context);
-    // Mengambil data pengumuman internal (sekolah)
-    final announcements = dataProvider.announcements
-        .where((a) => a.targetRole == 'all' || a.targetRole == 'student')
-        .toList();
-
-    return DefaultTabController(
-      length: 2, // Dua tab: Sekolah dan Berita
-      child: Container(
-        color: Colors.red.shade50,
-        child: Column(
-          children: [
-            // Header Judul
-            Container(
-              padding: const EdgeInsets.all(16),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Pengumuman',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade900,
-                ),
-              ),
-            ),
-
-            // TabBar Menu
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TabBar(
-                labelColor: Colors.red.shade900,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: Colors.red.shade900,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                tabs: const [
-                  Tab(text: 'Info Sekolah'),
-                  Tab(text: 'Berita Pendidikan'),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // Isi Konten Tab
-            Expanded(
-              child: TabBarView(
-                children: [
-                  // --- TAB 1: PENGUMUMAN SEKOLAH (INTERNAL) ---
-                  announcements.isEmpty
-                      ? const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.announcement,
-                                size: 80,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 16),
-                              Text('Belum ada pengumuman sekolah'),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: announcements.length,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemBuilder: (context, index) {
-                            final announcement = announcements[index];
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.announcement,
-                                          color: Colors.red,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            announcement.title,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      announcement.content,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Target: ${announcement.targetRole}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                  const SingleChildScrollView(child: BlogView()),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

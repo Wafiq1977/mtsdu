@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart'; // [PENTING] Tambahkan ini untuk menghilangkan error Scaffold
 import 'package:go_router/go_router.dart';
+import 'package:lpmmtsdu/presentation/provider/data_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:lpmmtsdu/data/model/announcement.dart';
 import '../../../data/model/blog.dart'; // [PENTING] Import model Blog
 
 import '../../../presentation/page/shared/splash_screen.dart';
@@ -26,6 +29,7 @@ import '../../../presentation/page/student/academic_calendar_view.dart';
 import '../../../presentation/page/student/academic_year_detail_view.dart';
 import '../../../presentation/page/teacher/teacher_input_assignment_view.dart';
 import '../../../presentation/page/shared/about_team_screen.dart';
+import '../../../presentation/page/student/student_announcement_detail_view.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -178,6 +182,39 @@ class AppRouter {
       GoRoute(
         path: '/about-team',
         builder: (context, state) => const AboutTeamScreen(),
+      ),
+      GoRoute(
+        // Kita gunakan ID di URL agar unik dan aman
+        path: '/student-announcement-detail/:id', 
+        builder: (context, state) {
+          // 1. Coba ambil dari 'extra' (jika navigasi normal dari dashboard)
+          Announcement? announcement = state.extra as Announcement?;
+
+          // 2. Jika 'extra' null (misal user refresh halaman), cari manual via ID
+          if (announcement == null) {
+            final id = state.pathParameters['id'];
+            final dataProvider = Provider.of<DataProvider>(context, listen: false);
+            
+            try {
+              announcement = dataProvider.announcements.firstWhere(
+                (a) => a.id == id,
+              );
+            } catch (e) {
+              // Jika tidak ditemukan
+              announcement = null;
+            }
+          }
+
+          // 3. Tampilkan halaman atau Error jika data tidak valid
+          if (announcement != null) {
+            return StudentAnnouncementDetailView(announcement: announcement);
+          } else {
+            return Scaffold(
+              appBar: AppBar(title: const Text("Tidak Ditemukan")),
+              body: const Center(child: Text("Pengumuman tidak ditemukan.")),
+            );
+          }
+        },
       ),
     ],
   );

@@ -699,6 +699,7 @@ Future<void> _addSampleData() async {
           authorId: 'admin',
           date: DateTime.parse('2024-01-10'),
           targetRole: 'all',
+          imageUrl: 'assets/images/libur.jpg',
         ),
         Announcement(
           id: 'an2',
@@ -707,6 +708,7 @@ Future<void> _addSampleData() async {
           authorId: 'admin',
           date: DateTime.parse('2024-01-12'),
           targetRole: 'student',
+          imageUrl: 'assets/images/ujian.png',
         ),
       ];
       for (final announcement in announcements) {
