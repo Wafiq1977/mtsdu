@@ -49,7 +49,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         GoRouter.of(context).go('/admin-dashboard/calendar');
         break;
       case 2:
-        GoRouter.of(context).go('/admin-dashboard/schedule');
+        GoRouter.of(context).go('/admin-dashboard/academic');
         break;
       case 3:
         GoRouter.of(context).go('/admin-dashboard/reports');
