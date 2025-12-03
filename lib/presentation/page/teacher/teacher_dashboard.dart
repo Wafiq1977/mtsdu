@@ -23,6 +23,7 @@ import 'teacher_input_grades_view.dart';
 import 'teacher_input_attendance_view.dart';
 import 'teacher_bulk_attendance_view.dart';
 import 'assignment_detail_page.dart';
+import 'teacher_academic_calendar_view.dart';
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key, this.initialIndex = 0});
@@ -44,11 +45,11 @@ class _TeacherDashboardState extends State<TeacherDashboard>
   late Animation<double> _contentAnimation;
 
   // Daftar widget utama untuk setiap tab
-  static const List<Widget> _widgetOptions = <Widget>[
-    TeacherAnnouncementsView(),
-    TeacherHomeView(),
-    TeacherScheduleView(),
-    TeacherProfileView(),
+  static final List<Widget> _widgetOptions = <Widget>[
+    const TeacherAnnouncementsView(),
+    const TeacherHomeView(),
+    const TeacherAcademicCalendarView(),
+    const TeacherProfileView(),
   ];
 
   void _onItemTapped(int index) {
@@ -1188,7 +1189,7 @@ class TeacherAnnouncementsView extends StatelessWidget {
   }
 }
 
-// 2. TEACHER HOME VIEW (Tetap Sama)
+// 2. TEACHER HOME VIEW (Updated with Daily Calendar)
 class TeacherHomeView extends StatelessWidget {
   const TeacherHomeView({super.key});
 
@@ -1210,109 +1211,202 @@ class TeacherHomeView extends StatelessWidget {
         .where((material) => material.teacherId == user.id)
         .toList();
 
+    final today = DateTime.now();
+    final todayName = _getDayName(today.weekday);
+    final todaySchedules = dataProvider.schedules
+        .where((s) => s.assignedToId == user.id && s.day == todayName)
+        .toList();
+
     return Container(
       color: Colors.white,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Beranda',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade900,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCompactFeatureCard(
-                        context,
-                        'Input Nilai',
-                        Icons.grade,
-                        Colors.green,
-                        grades.length,
-                        () => GoRouter.of(
-                          context,
-                        ).go('/teacher-dashboard/beranda/input-grades'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildCompactFeatureCard(
-                        context,
-                        'Absen',
-                        Icons.check_circle,
-                        Colors.orange,
-                        attendances.length,
-                        () => _showAttendanceOptionsDialog(context),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildCompactFeatureCard(
-                        context,
-                        'Tugas',
-                        Icons.assignment,
-                        Colors.purple,
-                        assignments.length,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AssignmentListPage(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCompactFeatureCard(
-                        context,
-                        'Materi',
-                        Icons.book,
-                        Colors.blue,
-                        materials.length,
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TeacherMaterialsView(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Container()),
-                    const SizedBox(width: 12),
-                    Expanded(child: Container()),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Container(
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
               padding: const EdgeInsets.all(16),
-              child: const Center(
-                child: Text(
-                  'Selamat datang di Dashboard Guru',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Beranda',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade900,
                 ),
               ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Input Nilai',
+                          Icons.grade,
+                          Colors.green,
+                          grades.length,
+                          () => GoRouter.of(
+                            context,
+                          ).go('/teacher-dashboard/beranda/input-grades'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Absen',
+                          Icons.check_circle,
+                          Colors.orange,
+                          attendances.length,
+                          () => _showAttendanceOptionsDialog(context),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Tugas',
+                          Icons.assignment,
+                          Colors.purple,
+                          assignments.length,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AssignmentListPage(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactFeatureCard(
+                          context,
+                          'Materi',
+                          Icons.book,
+                          Colors.blue,
+                          materials.length,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const TeacherMaterialsView(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container()),
+                      const SizedBox(width: 12),
+                      Expanded(child: Container()),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Today's Schedule Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.schedule, color: Colors.blue.shade700),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Jadwal Hari Ini - ${_getIndonesianDayName(today.weekday)}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        if (todaySchedules.isEmpty)
+                          Text(
+                            'Tidak ada jadwal mengajar hari ini',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )
+                        else
+                          Column(
+                            children: todaySchedules.map((schedule) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.blue.shade100,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Icon(
+                                        Icons.class_,
+                                        color: Colors.blue.shade700,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            schedule.subject,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${schedule.time} - Ruang ${schedule.room} - Kelas ${schedule.className}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -1393,6 +1487,40 @@ class TeacherHomeView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Monday';
+      case 2:
+        return 'Tuesday';
+      case 3:
+        return 'Wednesday';
+      case 4:
+        return 'Thursday';
+      case 5:
+        return 'Friday';
+      default:
+        return 'Monday';
+    }
+  }
+
+  String _getIndonesianDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Senin';
+      case 2:
+        return 'Selasa';
+      case 3:
+        return 'Rabu';
+      case 4:
+        return 'Kamis';
+      case 5:
+        return 'Jumat';
+      default:
+        return 'Senin';
+    }
   }
 }
 
