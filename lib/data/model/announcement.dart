@@ -1,21 +1,75 @@
 class Announcement {
-  final String id;
-  final String title;
-  final String content;
-  final String authorId;
-  final DateTime date;
-  final String targetRole;
-  final String? imageUrl; // [BARU] Tambahkan field ini
+  String _id;
+  String _title;
+  String _content;
+  String _authorId;
+  DateTime _date;
+  String _targetRole;
+  String? _imageUrl;
 
   Announcement({
-    required this.id,
-    required this.title,
-    required this.content,
-    required this.authorId,
-    required this.date,
-    required this.targetRole,
-    this.imageUrl, // [BARU]
-  });
+    required String id,
+    required String title,
+    required String content,
+    required String authorId,
+    required DateTime date,
+    required String targetRole,
+    String? imageUrl,
+  }) : _id = id,
+       _title = title,
+       _content = content,
+       _authorId = authorId,
+       _date = date,
+       _targetRole = targetRole,
+       _imageUrl = imageUrl;
+
+  // Getters
+  String get id => _id;
+  String get title => _title;
+  String get content => _content;
+  String get authorId => _authorId;
+  DateTime get date => _date;
+  String get targetRole => _targetRole;
+  String? get imageUrl => _imageUrl;
+
+  // Setters with validation for data integrity
+  set id(String value) {
+    if (value.isNotEmpty) {
+      _id = value;
+    }
+  }
+
+  set title(String value) {
+    if (value.isNotEmpty) {
+      _title = value;
+    }
+  }
+
+  set content(String value) {
+    if (value.isNotEmpty) {
+      _content = value;
+    }
+  }
+
+  set authorId(String value) {
+    if (value.isNotEmpty) {
+      _authorId = value;
+    }
+  }
+
+  set date(DateTime value) {
+    _date = value;
+  }
+
+  set targetRole(String value) {
+    if (value.isNotEmpty) {
+      _targetRole = value;
+    }
+  }
+
+  set imageUrl(String? value) {
+    _imageUrl = value;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -25,7 +79,7 @@ class Announcement {
       'authorId': authorId,
       'date': date.toIso8601String(),
       'targetRole': targetRole,
-      'imageUrl': imageUrl, // [BARU] Simpan ke database
+      'imageUrl': imageUrl,
     };
   }
 
@@ -37,7 +91,7 @@ class Announcement {
       authorId: map['authorId'],
       date: DateTime.parse(map['date']),
       targetRole: map['targetRole'],
-      imageUrl: map['imageUrl'], // [BARU] Ambil dari database
+      imageUrl: map['imageUrl'],
     );
   }
 }
