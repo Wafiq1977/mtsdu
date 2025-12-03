@@ -21,6 +21,8 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
   List<User> _teachers = [];
   List<User> _students = [];
   bool _isLoading = true;
+  bool _isSaving = false;
+  String? _errorMessage;
   String? _selectedDay;
   bool _showTools = false;
   String _selectedView = 'teacher'; // 'teacher' or 'student'
@@ -83,20 +85,45 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
   }
 
   Future<void> _loadData() async {
-    final dataProvider = Provider.of<DataProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-    final schedules = dataProvider.schedules;
-    final allUsers = await authProvider.getAllUsers();
-    final teachers = allUsers.where((u) => u.role == UserRole.teacher).toList();
-    final students = allUsers.where((u) => u.role == UserRole.student).toList();
+    if (!mounted) return;
 
     setState(() {
-      _schedules = schedules;
-      _teachers = teachers;
-      _students = students;
-      _isLoading = false;
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      final schedules = dataProvider.schedules;
+      final allUsers = await authProvider.getAllUsers();
+      final teachers = allUsers
+          .where((u) => u.role == UserRole.teacher)
+          .toList();
+      final students = allUsers
+          .where((u) => u.role == UserRole.student)
+          .toList();
+
+      if (mounted) {
+        setState(() {
+          _schedules = schedules;
+          _teachers = teachers;
+          _students = students;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Gagal memuat data: ${e.toString()}';
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_errorMessage!), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _addSchedule() {
@@ -111,29 +138,42 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: Text('Delete schedule for ${schedule.subject}?'),
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Hapus jadwal untuk ${schedule.subject}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Batal'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Hapus'),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      final dataProvider = Provider.of<DataProvider>(context, listen: false);
-      await dataProvider.deleteSchedule(schedule.id);
-      _loadData();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Schedule deleted')));
+      try {
+        final dataProvider = Provider.of<DataProvider>(context, listen: false);
+        await dataProvider.deleteSchedule(schedule.id);
+        await _loadData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Jadwal berhasil dihapus')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menghapus jadwal: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -162,6 +202,7 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
   void _showScheduleDialog({Schedule? schedule}) {
     final isEditing = schedule != null;
     final formKey = GlobalKey<FormState>();
+    String? dialogError;
 
     String subject = schedule?.subject ?? '';
     String assignedToId = schedule?.assignedToId ?? '';
@@ -186,240 +227,437 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: Text(isEditing ? 'Edit Schedule' : 'Add Schedule'),
-            content: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
+      barrierDismissible: !_isSaving,
+      builder: (context) {
+        final screenSize = MediaQuery.of(context).size;
+        final isMobileDialog = screenSize.width < 600;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            List<Widget> actions;
+            if (isMobileDialog) {
+              actions = [
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Schedule Type
-                    DropdownButtonFormField<ScheduleType>(
-                      value: scheduleType,
-                      decoration: const InputDecoration(
-                        labelText: 'Schedule Type',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: [
-                        DropdownMenuItem(
-                          value: ScheduleType.teacher,
-                          child: Text('Teacher Schedule'),
-                        ),
-                        DropdownMenuItem(
-                          value: ScheduleType.student,
-                          child: Text('Student Schedule'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setDialogState(() => scheduleType = value!);
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _isSaving
+                          ? null
+                          : () async {
+                              if (formKey.currentState!.validate()) {
+                                formKey.currentState!.save();
 
-                    // Teacher/Student Selection
-                    if (scheduleType == ScheduleType.teacher)
-                      DropdownButtonFormField<String>(
-                        value: assignedToId.isNotEmpty ? assignedToId : null,
-                        decoration: const InputDecoration(
-                          labelText: 'Teacher',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: _teachers
-                            .map(
-                              (teacher) => DropdownMenuItem(
-                                value: teacher.id,
-                                child: Text(teacher.name),
+                                setDialogState(() {
+                                  _isSaving = true;
+                                  dialogError = null;
+                                });
+
+                                try {
+                                  final dataProvider =
+                                      Provider.of<DataProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+
+                                  final newSchedule = Schedule(
+                                    id: isEditing
+                                        ? schedule!.id
+                                        : DateTime.now().millisecondsSinceEpoch
+                                              .toString(),
+                                    subject: subject,
+                                    assignedToId: assignedToId,
+                                    className: className,
+                                    day: day,
+                                    time: time,
+                                    room: room,
+                                    scheduleType: scheduleType,
+                                    major: major,
+                                    grade: grade,
+                                  );
+
+                                  if (isEditing) {
+                                    await dataProvider.updateSchedule(
+                                      newSchedule,
+                                    );
+                                  } else {
+                                    await dataProvider.addSchedule(newSchedule);
+                                  }
+
+                                  await _loadData();
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isEditing
+                                              ? 'Jadwal berhasil diperbarui'
+                                              : 'Jadwal berhasil ditambahkan',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setDialogState(() {
+                                    _isSaving = false;
+                                    dialogError =
+                                        'Gagal menyimpan jadwal: ${e.toString()}';
+                                  });
+                                }
+                              }
+                            },
+                      icon: _isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
-                            .toList(),
-                        onChanged: (value) => assignedToId = value!,
-                        validator: (value) => value == null ? 'Required' : null,
-                      )
-                    else
-                      Column(
-                        children: [
-                          // Jurusan
-                          DropdownButtonFormField<String>(
-                            value: major.isNotEmpty ? major : null,
-                            decoration: const InputDecoration(
-                              labelText: 'Jurusan',
-                              border: OutlineInputBorder(),
-                            ),
-                            items: majors
-                                .map(
-                                  (maj) => DropdownMenuItem(
-                                    value: maj,
-                                    child: Text(maj),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                major = value!;
-                                className =
-                                    ''; // Reset class when major changes
-                              });
-                            },
-                            validator: (value) =>
-                                value == null ? 'Required' : null,
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Kelas
-                          DropdownButtonFormField<String>(
-                            value: grade.isNotEmpty ? grade : null,
-                            decoration: const InputDecoration(
-                              labelText: 'Kelas',
-                              border: OutlineInputBorder(),
-                            ),
-                            items: grades
-                                .map(
-                                  (gr) => DropdownMenuItem(
-                                    value: gr,
-                                    child: Text(gr),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) => grade = value!,
-                            validator: (value) =>
-                                value == null ? 'Required' : null,
-                          ),
-                        ],
+                          : const Icon(Icons.save),
+                      label: Text(isEditing ? 'Perbarui' : 'Tambah'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
                       ),
-
-                    const SizedBox(height: 12),
-
-                    // Subject
-                    DropdownButtonFormField<String>(
-                      value: subject.isNotEmpty ? subject : null,
-                      decoration: const InputDecoration(
-                        labelText: 'Subject',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _getAvailableSubjects()
-                          .map(
-                            (sub) =>
-                                DropdownMenuItem(value: sub, child: Text(sub)),
-                          )
-                          .toList(),
-                      onChanged: (value) => subject = value!,
-                      validator: (value) => value == null ? 'Required' : null,
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // Class Name (for both teacher and student)
-                    TextFormField(
-                      initialValue: className,
-                      decoration: const InputDecoration(
-                        labelText: 'Class Name (e.g., 10A, 11B)',
-                        border: OutlineInputBorder(),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.of(context).pop(),
+                      child: const Text('Batal'),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                      onSaved: (value) => className = value!,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Day
-                    DropdownButtonFormField<String>(
-                      value: day,
-                      decoration: const InputDecoration(
-                        labelText: 'Day',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: daysOfWeek
-                          .map(
-                            (day) =>
-                                DropdownMenuItem(value: day, child: Text(day)),
-                          )
-                          .toList(),
-                      onChanged: (value) => day = value!,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Time
-                    TextFormField(
-                      initialValue: time,
-                      decoration: const InputDecoration(
-                        labelText: 'Time (e.g., 08:00-09:00)',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                      onSaved: (value) => time = value!,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Room
-                    TextFormField(
-                      initialValue: room,
-                      decoration: const InputDecoration(
-                        labelText: 'Room',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'Required' : null,
-                      onSaved: (value) => room = value!,
                     ),
                   ],
                 ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  if (formKey.currentState!.validate()) {
-                    formKey.currentState!.save();
-                    final dataProvider = Provider.of<DataProvider>(
-                      context,
-                      listen: false,
-                    );
+              ];
+            } else {
+              actions = [
+                TextButton(
+                  onPressed: _isSaving
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: const Text('Batal'),
+                ),
+                FilledButton(
+                  onPressed: _isSaving
+                      ? null
+                      : () async {
+                          if (formKey.currentState!.validate()) {
+                            formKey.currentState!.save();
 
-                    final newSchedule = Schedule(
-                      id: isEditing
-                          ? schedule!.id
-                          : DateTime.now().millisecondsSinceEpoch.toString(),
-                      subject: subject,
-                      assignedToId: assignedToId,
-                      className: className,
-                      day: day,
-                      time: time,
-                      room: room,
-                      scheduleType: scheduleType,
-                      major: major,
-                      grade: grade,
-                    );
+                            setDialogState(() {
+                              _isSaving = true;
+                              dialogError = null;
+                            });
 
-                    if (isEditing) {
-                      await dataProvider.updateSchedule(newSchedule);
-                    } else {
-                      await dataProvider.addSchedule(newSchedule);
-                    }
-                    _loadData();
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${isEditing ? 'Updated' : 'Added'} schedule',
+                            try {
+                              final dataProvider = Provider.of<DataProvider>(
+                                context,
+                                listen: false,
+                              );
+
+                              final newSchedule = Schedule(
+                                id: isEditing
+                                    ? schedule!.id
+                                    : DateTime.now().millisecondsSinceEpoch
+                                          .toString(),
+                                subject: subject,
+                                assignedToId: assignedToId,
+                                className: className,
+                                day: day,
+                                time: time,
+                                room: room,
+                                scheduleType: scheduleType,
+                                major: major,
+                                grade: grade,
+                              );
+
+                              if (isEditing) {
+                                await dataProvider.updateSchedule(newSchedule);
+                              } else {
+                                await dataProvider.addSchedule(newSchedule);
+                              }
+
+                              await _loadData();
+                              if (mounted) {
+                                Navigator.of(context).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEditing
+                                          ? 'Jadwal berhasil diperbarui'
+                                          : 'Jadwal berhasil ditambahkan',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              setDialogState(() {
+                                _isSaving = false;
+                                dialogError =
+                                    'Gagal menyimpan jadwal: ${e.toString()}';
+                              });
+                            }
+                          }
+                        },
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : Text(isEditing ? 'Perbarui' : 'Tambah'),
+                ),
+              ];
+            }
+
+            return AlertDialog(
+              title: Text(isEditing ? 'Edit Jadwal' : 'Tambah Jadwal'),
+              content: SizedBox(
+                width: isMobileDialog ? screenSize.width * 0.9 : 500,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (dialogError != null)
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Text(
+                              dialogError!,
+                              style: TextStyle(
+                                color: Colors.red.shade800,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+
+                        // Schedule Type
+                        DropdownButtonFormField<ScheduleType>(
+                          value: scheduleType,
+                          decoration: const InputDecoration(
+                            labelText: 'Tipe Jadwal',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: ScheduleType.teacher,
+                              child: Text('Jadwal Guru'),
+                            ),
+                            DropdownMenuItem(
+                              value: ScheduleType.student,
+                              child: Text('Jadwal Siswa'),
+                            ),
+                          ],
+                          onChanged: _isSaving
+                              ? null
+                              : (value) {
+                                  setDialogState(() => scheduleType = value!);
+                                },
                         ),
-                      ),
-                    );
-                  }
-                },
-                child: Text(isEditing ? 'Update' : 'Add'),
+                        const SizedBox(height: 12),
+
+                        // Teacher/Student Selection
+                        if (scheduleType == ScheduleType.teacher)
+                          DropdownButtonFormField<String>(
+                            value: assignedToId.isNotEmpty
+                                ? assignedToId
+                                : null,
+                            decoration: const InputDecoration(
+                              labelText: 'Guru',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _teachers
+                                .map(
+                                  (teacher) => DropdownMenuItem(
+                                    value: teacher.id,
+                                    child: Text(teacher.name),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _isSaving
+                                ? null
+                                : (value) => assignedToId = value!,
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Guru wajib dipilih'
+                                : null,
+                          )
+                        else
+                          Column(
+                            children: [
+                              // Jurusan
+                              DropdownButtonFormField<String>(
+                                value: major.isNotEmpty ? major : null,
+                                decoration: const InputDecoration(
+                                  labelText: 'Jurusan',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: majors
+                                    .map(
+                                      (maj) => DropdownMenuItem(
+                                        value: maj,
+                                        child: Text(maj),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: _isSaving
+                                    ? null
+                                    : (value) {
+                                        setDialogState(() {
+                                          major = value!;
+                                          className =
+                                              ''; // Reset class when major changes
+                                        });
+                                      },
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                    ? 'Jurusan wajib dipilih'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Kelas
+                              DropdownButtonFormField<String>(
+                                value: grade.isNotEmpty ? grade : null,
+                                decoration: const InputDecoration(
+                                  labelText: 'Kelas',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: grades
+                                    .map(
+                                      (gr) => DropdownMenuItem(
+                                        value: gr,
+                                        child: Text(gr),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: _isSaving
+                                    ? null
+                                    : (value) => grade = value!,
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                    ? 'Kelas wajib dipilih'
+                                    : null,
+                              ),
+                            ],
+                          ),
+
+                        const SizedBox(height: 12),
+
+                        // Subject
+                        DropdownButtonFormField<String>(
+                          value: subject.isNotEmpty ? subject : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Mata Pelajaran',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _getAvailableSubjects()
+                              .map(
+                                (sub) => DropdownMenuItem(
+                                  value: sub,
+                                  child: Text(sub),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: _isSaving
+                              ? null
+                              : (value) => subject = value!,
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Mata pelajaran wajib dipilih'
+                              : null,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Class Name (for both teacher and student)
+                        TextFormField(
+                          initialValue: className,
+                          decoration: const InputDecoration(
+                            labelText: 'Nama Kelas (contoh: 10A, 11B)',
+                            border: OutlineInputBorder(),
+                          ),
+                          enabled: !_isSaving,
+                          validator: (value) =>
+                              value!.isEmpty ? 'Nama kelas wajib diisi' : null,
+                          onSaved: (value) => className = value!,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Day
+                        DropdownButtonFormField<String>(
+                          value: day,
+                          decoration: const InputDecoration(
+                            labelText: 'Hari',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: daysOfWeek
+                              .map(
+                                (day) => DropdownMenuItem(
+                                  value: day,
+                                  child: Text(day),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: _isSaving ? null : (value) => day = value!,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Time
+                        TextFormField(
+                          initialValue: time,
+                          decoration: const InputDecoration(
+                            labelText: 'Waktu (contoh: 08:00-09:00)',
+                            border: OutlineInputBorder(),
+                          ),
+                          enabled: !_isSaving,
+                          validator: (value) =>
+                              value!.isEmpty ? 'Waktu wajib diisi' : null,
+                          onSaved: (value) => time = value!,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Room
+                        TextFormField(
+                          initialValue: room,
+                          decoration: const InputDecoration(
+                            labelText: 'Ruangan',
+                            border: OutlineInputBorder(),
+                          ),
+                          enabled: !_isSaving,
+                          validator: (value) =>
+                              value!.isEmpty ? 'Ruangan wajib diisi' : null,
+                          onSaved: (value) => room = value!,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ],
-          );
-        },
-      ),
+              actions: actions,
+            );
+          },
+        );
+      },
     );
   }
 
@@ -493,6 +731,30 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Terjadi Kesalahan',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _loadData, child: const Text('Coba Lagi')),
+          ],
+        ),
+      );
+    }
+
     final filteredSchedules = _getFilteredSchedules();
     final teacherSchedules = _schedules
         .where((s) => s.scheduleType == ScheduleType.teacher)
@@ -501,404 +763,615 @@ class _AdminScheduleManagementState extends State<AdminScheduleManagement> {
         .where((s) => s.scheduleType == ScheduleType.student)
         .toList();
 
-    return Column(
-      children: [
-        // Tombol Kembali
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => context.go('/admin-dashboard'),
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Kembali',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF667EEA),
-                  foregroundColor: Colors.white,
-                  fixedSize: const Size(40, 40),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Kembali',
-                style: TextStyle(
-                  color: Color(0xFF667EEA),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        final isTablet =
+            constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
 
-        // Header dengan View Selector
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          children: [
+            // Tombol Kembali - Responsif
+            Padding(
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
+              child: Row(
                 children: [
-                  const Text(
-                    'Schedule Management',
+                  IconButton(
+                    onPressed: () => context.go('/admin-dashboard'),
+                    icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Kembali',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF667EEA),
+                      foregroundColor: Colors.white,
+                      fixedSize: Size(isMobile ? 36 : 40, isMobile ? 36 : 40),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Kembali',
                     style: TextStyle(
-                      fontSize: 20,
+                      color: const Color(0xFF667EEA),
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF667EEA),
+                      fontSize: isMobile ? 14 : 16,
                     ),
                   ),
-                  Row(
-                    children: [
-                      // Teacher/Student View Toggle
-                      SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment<String>(
-                            value: 'teacher',
-                            label: Text('Teacher'),
-                            icon: Icon(Icons.person),
-                          ),
-                          ButtonSegment<String>(
-                            value: 'student',
-                            label: Text('Student'),
-                            icon: Icon(Icons.school),
-                          ),
-                        ],
-                        selected: {_selectedView},
-                        onSelectionChanged: (Set<String> newSelection) {
-                          setState(() {
-                            _selectedView = newSelection.first;
-                            _selectedMajor = null;
-                            _selectedClass = null;
-                            _selectedSubject = null;
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      // Tools Toggle
-                      IconButton.filledTonal(
-                        onPressed: _toggleTools,
-                        icon: Icon(
-                          _showTools ? Icons.close : Icons.filter_list,
-                        ),
-                        tooltip: _showTools ? 'Hide Filters' : 'Show Filters',
-                      ),
-                    ],
-                  ),
                 ],
               ),
-
-              // Quick Stats
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildStatChip('Teachers: ${teacherSchedules.length}'),
-                  const SizedBox(width: 8),
-                  _buildStatChip('Students: ${studentSchedules.length}'),
-                  const SizedBox(width: 8),
-                  _buildStatChip('Total: ${_schedules.length}'),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Filters Section
-        if (_showTools)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
             ),
-            child: Column(
-              children: [
-                // Day Filters
-                const Row(
-                  children: [
-                    Icon(Icons.calendar_today, size: 16),
-                    SizedBox(width: 8),
-                    Text(
-                      'Filter by Day',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildDayButton('Monday'),
-                    _buildDayButton('Tuesday'),
-                    _buildDayButton('Wednesday'),
-                    _buildDayButton('Thursday'),
-                    _buildDayButton('Friday'),
-                    _buildDayButton('Saturday'),
-                    FilledButton.tonal(
-                      onPressed: () => setState(() => _selectedDay = null),
-                      child: const Text('Show All'),
-                    ),
-                  ],
-                ),
 
-                const SizedBox(height: 16),
-
-                // Additional Filters for Student View
-                if (_selectedView == 'student') ...[
-                  const Divider(),
-                  const Row(
-                    children: [
-                      Icon(Icons.filter_alt, size: 16),
-                      SizedBox(width: 8),
-                      Text(
-                        'Additional Filters',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+            // Header dengan View Selector - Responsif
+            Container(
+              padding: EdgeInsets.all(isMobile ? 12 : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      // Jurusan Filter
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedMajor,
-                          decoration: const InputDecoration(
-                            labelText: 'Jurusan',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                          items: [
-                            const DropdownMenuItem(
-                              value: 'All',
-                              child: Text('All Jurusan'),
-                            ),
-                            ...majors.map(
-                              (maj) => DropdownMenuItem(
-                                value: maj,
-                                child: Text(maj),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Header Row - Responsif
+                  isMobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Schedule Management',
+                              style: TextStyle(
+                                fontSize: isMobile ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF667EEA),
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                // Teacher/Student View Toggle - Compact untuk mobile
+                                Expanded(
+                                  child: SegmentedButton<String>(
+                                    segments: const [
+                                      ButtonSegment<String>(
+                                        value: 'teacher',
+                                        label: Text(
+                                          'Teacher',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        icon: Icon(Icons.person, size: 16),
+                                      ),
+                                      ButtonSegment<String>(
+                                        value: 'student',
+                                        label: Text(
+                                          'Student',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        icon: Icon(Icons.school, size: 16),
+                                      ),
+                                    ],
+                                    selected: {_selectedView},
+                                    onSelectionChanged:
+                                        (Set<String> newSelection) {
+                                          setState(() {
+                                            _selectedView = newSelection.first;
+                                            _selectedMajor = null;
+                                            _selectedClass = null;
+                                            _selectedSubject = null;
+                                          });
+                                        },
+                                    style: ButtonStyle(
+                                      padding: MaterialStateProperty.all(
+                                        const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 6,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Tools Toggle
+                                IconButton.filledTonal(
+                                  onPressed: _toggleTools,
+                                  icon: Icon(
+                                    _showTools
+                                        ? Icons.close
+                                        : Icons.filter_list,
+                                    size: isMobile ? 20 : 24,
+                                  ),
+                                  tooltip: _showTools
+                                      ? 'Hide Filters'
+                                      : 'Show Filters',
+                                  style: IconButton.styleFrom(
+                                    fixedSize: Size(
+                                      isMobile ? 32 : 40,
+                                      isMobile ? 32 : 40,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedMajor = value;
-                              _selectedClass = null;
-                            });
-                          },
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Schedule Management',
+                              style: TextStyle(
+                                fontSize: isTablet ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF667EEA),
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                // Teacher/Student View Toggle
+                                SegmentedButton<String>(
+                                  segments: const [
+                                    ButtonSegment<String>(
+                                      value: 'teacher',
+                                      label: Text('Teacher'),
+                                      icon: Icon(Icons.person),
+                                    ),
+                                    ButtonSegment<String>(
+                                      value: 'student',
+                                      label: Text('Student'),
+                                      icon: Icon(Icons.school),
+                                    ),
+                                  ],
+                                  selected: {_selectedView},
+                                  onSelectionChanged:
+                                      (Set<String> newSelection) {
+                                        setState(() {
+                                          _selectedView = newSelection.first;
+                                          _selectedMajor = null;
+                                          _selectedClass = null;
+                                          _selectedSubject = null;
+                                        });
+                                      },
+                                ),
+                                const SizedBox(width: 12),
+                                // Tools Toggle
+                                IconButton.filledTonal(
+                                  onPressed: _toggleTools,
+                                  icon: Icon(
+                                    _showTools
+                                        ? Icons.close
+                                        : Icons.filter_list,
+                                  ),
+                                  tooltip: _showTools
+                                      ? 'Hide Filters'
+                                      : 'Show Filters',
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
+
+                  // Quick Stats - Responsif
+                  SizedBox(height: isMobile ? 8 : 12),
+                  isMobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatChip(
+                              'Teachers: ${teacherSchedules.length}',
+                            ),
+                            const SizedBox(height: 4),
+                            _buildStatChip(
+                              'Students: ${studentSchedules.length}',
+                            ),
+                            const SizedBox(height: 4),
+                            _buildStatChip('Total: ${_schedules.length}'),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            _buildStatChip(
+                              'Teachers: ${teacherSchedules.length}',
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatChip(
+                              'Students: ${studentSchedules.length}',
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatChip('Total: ${_schedules.length}'),
+                          ],
+                        ),
+                ],
+              ),
+            ),
+
+            // Filters Section
+            if (_showTools)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                ),
+                child: Column(
+                  children: [
+                    // Day Filters
+                    const Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 16),
+                        SizedBox(width: 8),
+                        Text(
+                          'Filter by Day',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildDayButton('Monday'),
+                        _buildDayButton('Tuesday'),
+                        _buildDayButton('Wednesday'),
+                        _buildDayButton('Thursday'),
+                        _buildDayButton('Friday'),
+                        _buildDayButton('Saturday'),
+                        FilledButton.tonal(
+                          onPressed: () => setState(() => _selectedDay = null),
+                          child: const Text('Show All'),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Additional Filters for Student View - Responsif
+                    if (_selectedView == 'student') ...[
+                      const Divider(),
+                      const Row(
+                        children: [
+                          Icon(Icons.filter_alt, size: 16),
+                          SizedBox(width: 8),
+                          Text(
+                            'Filter Tambahan',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      // Class Filter
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedClass,
+                      const SizedBox(height: 12),
+                      // Responsif: Column untuk mobile, Row untuk desktop
+                      isMobile
+                          ? Column(
+                              children: [
+                                // Jurusan Filter
+                                DropdownButtonFormField<String>(
+                                  value: _selectedMajor,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Jurusan',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem(
+                                      value: 'All',
+                                      child: Text('Semua Jurusan'),
+                                    ),
+                                    ...majors.map(
+                                      (maj) => DropdownMenuItem(
+                                        value: maj,
+                                        child: Text(maj),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedMajor = value;
+                                      _selectedClass = null;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                // Class Filter
+                                DropdownButtonFormField<String>(
+                                  value: _selectedClass,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Kelas',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: _getAvailableClasses()
+                                      .map(
+                                        (cls) => DropdownMenuItem(
+                                          value: cls,
+                                          child: Text(cls),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) =>
+                                      setState(() => _selectedClass = value),
+                                ),
+                                const SizedBox(height: 12),
+                                // Subject Filter
+                                DropdownButtonFormField<String>(
+                                  value: _selectedSubject,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Mata Pelajaran',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                  items: _getAvailableSubjects()
+                                      .map(
+                                        (sub) => DropdownMenuItem(
+                                          value: sub,
+                                          child: Text(sub),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) =>
+                                      setState(() => _selectedSubject = value),
+                                ),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                // Jurusan Filter
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    value: _selectedMajor,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Jurusan',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                    items: [
+                                      const DropdownMenuItem(
+                                        value: 'All',
+                                        child: Text('Semua Jurusan'),
+                                      ),
+                                      ...majors.map(
+                                        (maj) => DropdownMenuItem(
+                                          value: maj,
+                                          child: Text(maj),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedMajor = value;
+                                        _selectedClass = null;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Class Filter
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    value: _selectedClass,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Kelas',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                    items: _getAvailableClasses()
+                                        .map(
+                                          (cls) => DropdownMenuItem(
+                                            value: cls,
+                                            child: Text(cls),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (value) =>
+                                        setState(() => _selectedClass = value),
+                                  ),
+                                ),
+                              ],
+                            ),
+                      if (!isMobile) ...[
+                        const SizedBox(height: 12),
+                        // Subject Filter
+                        DropdownButtonFormField<String>(
+                          value: _selectedSubject,
                           decoration: const InputDecoration(
-                            labelText: 'Class',
+                            labelText: 'Mata Pelajaran',
                             border: OutlineInputBorder(),
                             isDense: true,
                           ),
-                          items: _getAvailableClasses()
+                          items: _getAvailableSubjects()
                               .map(
-                                (cls) => DropdownMenuItem(
-                                  value: cls,
-                                  child: Text(cls),
+                                (sub) => DropdownMenuItem(
+                                  value: sub,
+                                  child: Text(sub),
                                 ),
                               )
                               .toList(),
                           onChanged: (value) =>
-                              setState(() => _selectedClass = value),
+                              setState(() => _selectedSubject = value),
                         ),
-                      ),
+                      ],
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Subject Filter
-                  DropdownButtonFormField<String>(
-                    value: _selectedSubject,
-                    decoration: const InputDecoration(
-                      labelText: 'Subject',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+
+                    const SizedBox(height: 16),
+
+                    // Add Schedule Button
+                    FilledButton.icon(
+                      onPressed: _addSchedule,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add New Schedule'),
                     ),
-                    items: _getAvailableSubjects()
-                        .map(
-                          (sub) =>
-                              DropdownMenuItem(value: sub, child: Text(sub)),
-                        )
-                        .toList(),
-                    onChanged: (value) =>
-                        setState(() => _selectedSubject = value),
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-
-                // Add Schedule Button
-                FilledButton.icon(
-                  onPressed: _addSchedule,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add New Schedule'),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-        // Schedules List
-        Expanded(
-          child: filteredSchedules.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.schedule, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        'No schedules found',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+            // Schedules List - Responsif
+            Expanded(
+              child: filteredSchedules.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            size: isMobile ? 48 : 64,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: isMobile ? 12 : 16),
+                          Text(
+                            'Tidak ada jadwal ditemukan',
+                            style: TextStyle(
+                              fontSize: isMobile ? 14 : 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: isMobile ? 6 : 8),
+                          Text(
+                            'Coba ubah filter atau tambahkan jadwal baru',
+                            style: TextStyle(
+                              fontSize: isMobile ? 12 : 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Try changing your filters or add a new schedule',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                        textAlign: TextAlign.center,
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16,
+                        vertical: 8,
                       ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: filteredSchedules.length,
-                  itemBuilder: (context, index) {
-                    final schedule = filteredSchedules[index];
-                    final teacher = _teachers.firstWhere(
-                      (t) => t.id == schedule.assignedToId,
-                      orElse: () => User(
-                        id: '',
-                        username: '',
-                        password: '',
-                        role: UserRole.teacher,
-                        name: 'Unknown Teacher',
-                      ),
-                    );
+                      itemCount: filteredSchedules.length,
+                      itemBuilder: (context, index) {
+                        final schedule = filteredSchedules[index];
+                        final teacher = _teachers.firstWhere(
+                          (t) => t.id == schedule.assignedToId,
+                          orElse: () => User(
+                            id: '',
+                            username: '',
+                            password: '',
+                            role: UserRole.teacher,
+                            name: 'Guru Tidak Diketahui',
+                          ),
+                        );
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      elevation: 2,
-                      child: ListTile(
-                        leading: Container(
-                          width: 4,
-                          decoration: BoxDecoration(
-                            color: _getScheduleColor(schedule.day),
-                            borderRadius: BorderRadius.circular(2),
+                        return Card(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 4 : 0,
+                            vertical: 4,
                           ),
-                        ),
-                        title: Text(
-                          schedule.subject,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              '${schedule.className} • ${teacher.name}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
+                          elevation: 2,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 12 : 16,
+                              vertical: isMobile ? 8 : 12,
+                            ),
+                            leading: Container(
+                              width: 4,
+                              decoration: BoxDecoration(
+                                color: _getScheduleColor(schedule.day),
+                                borderRadius: BorderRadius.circular(2),
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${schedule.day} ${schedule.time} - Room ${schedule.room}',
+                            title: Text(
+                              schedule.subject,
                               style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                fontSize: isMobile ? 14 : 16,
                               ),
                             ),
-                            if (schedule.major != null &&
-                                schedule.major!.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                'Jurusan: ${schedule.major}${schedule.grade != null ? ' • ${schedule.grade}' : ''}',
-                                style: TextStyle(
-                                  color: Colors.blue[600],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: isMobile ? 2 : 4),
+                                Text(
+                                  '${schedule.className} • ${teacher.name}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: isMobile ? 12 : 14,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert),
-                          onSelected: (value) {
-                            switch (value) {
-                              case 'edit':
-                                _editSchedule(schedule);
-                                break;
-                              case 'delete':
-                                _deleteSchedule(schedule);
-                                break;
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 18),
-                                  SizedBox(width: 8),
-                                  Text('Edit'),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete,
-                                    size: 18,
-                                    color: Colors.red,
+                                SizedBox(height: isMobile ? 1 : 2),
+                                Text(
+                                  '${schedule.day} ${schedule.time} - Ruang ${schedule.room}',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: isMobile ? 11 : 13,
                                   ),
-                                  SizedBox(width: 8),
+                                ),
+                                if (schedule.major != null &&
+                                    schedule.major!.isNotEmpty) ...[
+                                  SizedBox(height: isMobile ? 1 : 2),
                                   Text(
-                                    'Delete',
-                                    style: TextStyle(color: Colors.red),
+                                    'Jurusan: ${schedule.major}${schedule.grade != null ? ' • ${schedule.grade}' : ''}',
+                                    style: TextStyle(
+                                      color: Colors.blue[600],
+                                      fontSize: isMobile ? 10 : 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+                            trailing: PopupMenuButton<String>(
+                              icon: Icon(
+                                Icons.more_vert,
+                                size: isMobile ? 20 : 24,
+                              ),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 'edit':
+                                    _editSchedule(schedule);
+                                    break;
+                                  case 'delete':
+                                    _deleteSchedule(schedule);
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Edit'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete,
+                                        size: 18,
+                                        color: Colors.red,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Hapus',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 
