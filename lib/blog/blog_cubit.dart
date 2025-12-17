@@ -1,58 +1,79 @@
 // lib/blog/blog_cubit.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:dio/dio.dart'; // Import Dio
 import 'blog_state.dart';
 import '../data/model/blog.dart';
 
 class BlogCubit extends Cubit<BlogState> {
   final String _apiKey = 'pub_995e693ea40d47dc8d79482124903dc3';
+  
+  // Instance Dio. Bisa di-pass lewat constructor (Injection) atau buat baru.
+  final Dio _dio;
 
-  BlogCubit() : super(BlogInitial());
+  // Constructor: Jika dio tidak dilempar (dari GetIt), buat instance baru.
+  BlogCubit({Dio? dio}) : _dio = dio ?? Dio(), super(BlogInitial());
 
   Future<void> fetchBlogs({
     String? searchQuery,
-    String? language, // Parameter ini sebelumnya diabaikan
+    String? language,
   }) async {
     emit(BlogLoading());
     try {
-      // Logika Query: Jika user mengetik pencarian sendiri, gunakan itu.
-      // Jika kosong, default ke 'Pendidikan'.
+      // 1. Logika Query
       final String query = (searchQuery != null && searchQuery.isNotEmpty) 
           ? searchQuery 
           : 'Pendidikan';
 
-      // Logika Bahasa: Gunakan pilihan user, jika null default ke 'id'
+      // 2. Logika Bahasa
       final String lang = language ?? 'id';
 
-      final Map<String, String> queryParameters = {
+      // 3. Persiapan Parameter
+      final Map<String, dynamic> queryParameters = {
         'apikey': _apiKey,
         'q': query,
-        'country': 'id',           
-        'category': 'education',   // Tetap memfilter kategori pendidikan
-        'language': lang,          // PERBAIKAN: Menggunakan variabel lang, bukan string 'id'
+        'country': 'id',
+        'category': 'education',
+        'language': lang,
       };
 
-      final uri = Uri.https('newsdata.io', '/api/1/latest', queryParameters);
-
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response = await _dio.get(
+        'https://newsdata.io/api/1/latest',
+        queryParameters: queryParameters,
+        options: Options(
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+        final Map<String, dynamic> responseData = response.data;
         
         if (responseData['status'] == 'success') {
           final List<dynamic> data = responseData['results'];
           final blogs = data.map((json) => Blog.fromJson(json)).toList();
           emit(BlogLoaded(blogs));
         } else {
-          // Menangani jika API sukses tapi results kosong atau error message dari API
           emit(BlogError(responseData['message'] ?? 'Gagal memuat berita.'));
         }
       } else {
         emit(BlogError("Error ${response.statusCode}: Gagal memuat data."));
       }
+
+    } on DioException catch (e) {
+      String errorMessage = "Terjadi kesalahan koneksi.";
+      
+      if (e.type == DioExceptionType.connectionTimeout || 
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = "Koneksi timeout. Silakan coba lagi.";
+      } else if (e.response != null) {
+        errorMessage = "Server Error: ${e.response?.statusCode}";
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = "Tidak ada koneksi internet.";
+      }
+
+      emit(BlogError(errorMessage));
     } catch (e) {
-      emit(BlogError("Kesalahan koneksi: ${e.toString()}"));
+      emit(BlogError("Kesalahan tidak terduga: ${e.toString()}"));
     }
   }
 }
